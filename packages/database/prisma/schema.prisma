@@ -82,6 +82,8 @@ model LeadProfile {
   leadStatus      String           @default("PROSPECT") 
   intentSubject   IntentSubject    
   eventType       String?          
+  leadSource      String           @default("INBOUND_PORTAL")
+  lastContactedAt DateTime?
   targetSquareFt  Int?             
   targetBudget    Float?           
   enrichmentData  Json?            
@@ -103,4 +105,12 @@ model LeadActivity {
   scoreModifier   Int
   metadata        Json?            
   createdAt       DateTime         @default(now())
+}
+
+model KnowledgeBase {
+  id        String   @id @default(uuid())
+  title     String   @unique
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
