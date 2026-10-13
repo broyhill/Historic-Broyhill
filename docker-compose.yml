@@ -2,41 +2,41 @@ version: '3.8'
 services:
   postgres:
     image: ankane/pgvector:latest
-    container_name: nexus-postgres
+    container_name: broyhill-postgres
     environment:
-      POSTGRES_USER: nexus_admin
+      POSTGRES_USER: broyhill_admin
       POSTGRES_PASSWORD: enterprise_secure_pass123
-      POSTGRES_DB: nexus_platform
+      POSTGRES_DB: historic_broyhill
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
-      - nexus-network
+      - broyhill-network
 
   redis:
     image: redis:7-alpine
-    container_name: nexus-redis
+    container_name: broyhill-redis
     ports:
       - "6379:6379"
     volumes:
       - redisdata:/data
     networks:
-      - nexus-network
+      - broyhill-network
 
   mailhog:
     image: mailhog/mailhog:latest
-    container_name: nexus-mailhog
+    container_name: broyhill-mailhog
     ports:
       - "1025:1025"
       - "8025:8025"
     networks:
-      - nexus-network
+      - broyhill-network
 
 volumes:
   pgdata:
   redisdata:
 
 networks:
-  nexus-network:
+  broyhill-network:
     driver: bridge

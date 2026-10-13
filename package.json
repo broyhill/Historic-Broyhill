@@ -1,9 +1,9 @@
 {
-  "name": "enterprise-nexus-monorepo",
+  "name": "historic-broyhill-monorepo",
   "version": "1.0.0",
   "private": true,
   "description": "Autonomous AI Web Platform for Class A Property Management & Conference Operations",
-  "author": "Enterprise Nexus Open Source Contributors",
+  "author": "Historic Broyhill Contributors",
   "license": "MIT",
   "scripts": {
     "dev": "pnpm --parallel dev",
