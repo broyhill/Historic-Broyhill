@@ -5,7 +5,7 @@ services:
     container_name: broyhill-postgres
     environment:
       POSTGRES_USER: broyhill_admin
-      POSTGRES_PASSWORD: enterprise_secure_pass123
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
       POSTGRES_DB: historic_broyhill
     ports:
       - "5432:5432"
@@ -30,6 +30,21 @@ services:
     ports:
       - "1025:1025"
       - "8025:8025"
+    networks:
+      - broyhill-network
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: broyhill-api
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://broyhill_admin:${POSTGRES_PASSWORD:-change-me}@postgres:5432/historic_broyhill
+    depends_on:
+      - postgres
+    ports:
+      - "4000:4000"
     networks:
       - broyhill-network
 
