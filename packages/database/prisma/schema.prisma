@@ -1,0 +1,106 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Tenant {
+  id          String   @id @default(uuid())
+  companyName String
+  floorLevel  String
+  suiteNumber String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  users       User[]
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  role      String   
+  tenantId  String?
+  tenant    Tenant?  @relation(fields: [tenantId], references: [id])
+  tickets   Ticket[]
+  bookings  Booking[]
+}
+
+model EventSpace {
+  id          String    @id @default(uuid())
+  name        String    
+  capacity    Int
+  hourlyRate  Float
+  bookings    Booking[]
+}
+
+model Booking {
+  id           String     @id @default(uuid())
+  title        String
+  startTime    DateTime
+  endTime      DateTime
+  status       String     
+  userId       String
+  user         User       @relation(fields: [userId], references: [id])
+  eventSpaceId String
+  eventSpace   EventSpace @relation(fields: [eventSpaceId], references: [id])
+  tickets      Ticket[]
+}
+
+model Ticket {
+  id          String   @id @default(uuid())
+  bookingId   String
+  booking     Booking  @relation(fields: [bookingId], references: [id])
+  userId      String   
+  user        User     @relation(fields: [userId], references: [id])
+  pricePaid   Float
+  qrCodeToken String   @unique
+  checkedIn   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model AiContentPipeline {
+  id             String    @id @default(uuid())
+  platform       String    
+  suggestedDraft String    @db.Text
+  imageUrl       String?
+  status         String    
+  scheduledFor   DateTime
+  publishedAt    DateTime?
+  metrics        Json?     
+  createdAt      DateTime  @default(now())
+}
+
+model LeadProfile {
+  id              String           @id @default(uuid())
+  email           String           @unique
+  companyName     String?          
+  phone           String?
+  leadScore       Int              @default(0)
+  leadStatus      String           @default("PROSPECT") 
+  intentSubject   IntentSubject    
+  eventType       String?          
+  targetSquareFt  Int?             
+  targetBudget    Float?           
+  enrichmentData  Json?            
+  activities      LeadActivity[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+enum IntentSubject {
+  COMMERCIAL_LEASE  
+  CONFERENCE_EVENT  
+}
+
+model LeadActivity {
+  id              String           @id @default(uuid())
+  leadId          String
+  lead            LeadProfile      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  activityType    String           
+  scoreModifier   Int
+  metadata        Json?            
+  createdAt       DateTime         @default(now())
+}

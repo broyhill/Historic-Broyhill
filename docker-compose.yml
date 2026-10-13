@@ -1,0 +1,42 @@
+version: '3.8'
+services:
+  postgres:
+    image: ankane/pgvector:latest
+    container_name: nexus-postgres
+    environment:
+      POSTGRES_USER: nexus_admin
+      POSTGRES_PASSWORD: enterprise_secure_pass123
+      POSTGRES_DB: nexus_platform
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - nexus-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: nexus-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    networks:
+      - nexus-network
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: nexus-mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - nexus-network
+
+volumes:
+  pgdata:
+  redisdata:
+
+networks:
+  nexus-network:
+    driver: bridge
