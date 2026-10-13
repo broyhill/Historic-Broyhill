@@ -27,7 +27,7 @@ Stripe, SendGrid and Twilio are optional. Without them, deposits are recorded as
 
 ## API (prefix `/api/v1`, interactive docs at `/api/docs`)
 
-**Auth** `POST /auth/login` returns an access token; send it in the `Authorization` header as `****** on every `/admin/*` route. `GET /auth/me` returns the current user. Roles: `STAFF` can do everything except what is `ADMIN` only (user management and deletes).
+**Auth** `POST /auth/login` returns an access token. Send it in the `Authorization` header (JWT bearer scheme) on every `/admin/*` route. `GET /auth/me` returns the current user. Roles: `STAFF` can do everything except what is `ADMIN` only (user management and deletes).
 
 **Public** (for the website)
 
