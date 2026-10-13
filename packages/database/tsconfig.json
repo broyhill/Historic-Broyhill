@@ -1,0 +1,1 @@
+{ "compilerOptions": { "module": "commonjs", "target": "ES2021", "esModuleInterop": true, "skipLibCheck": true, "strict": true }, "include": ["prisma/**/*.ts"] }
