@@ -1,5 +1,6 @@
 {
   "sample": true,
+  "initialMonth": "2026-10",
   "defaultStatus": "open",
   "statuses": {
     "2026-10-17": "held",

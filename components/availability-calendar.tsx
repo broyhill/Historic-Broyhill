@@ -6,14 +6,24 @@ import Link from "next/link";
 export type Status = "open" | "held" | "booked";
 export type AvailabilityData = {
   sample: boolean;
+  /** First month shown, as "YYYY-MM". Edit alongside the dates in data/availability.json. */
+  initialMonth?: string;
   defaultStatus: Status;
   statuses: Record<string, Status>;
 };
 
+function initialMonthFor(data: AvailabilityData) {
+  const source = data.initialMonth ?? Object.keys(data.statuses).sort()[0];
+  const match = source?.match(/^(\d{4})-(\d{2})/);
+  if (match) return new Date(Number(match[1]), Number(match[2]) - 1, 1);
+  const today = new Date();
+  return new Date(today.getFullYear(), today.getMonth(), 1);
+}
+
 const weekdayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 export function AvailabilityCalendar({ data }: { data: AvailabilityData }) {
-  const [month, setMonth] = useState(() => new Date(2026, 9, 1));
+  const [month, setMonth] = useState(() => initialMonthFor(data));
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const year = month.getFullYear();
   const monthIndex = month.getMonth();

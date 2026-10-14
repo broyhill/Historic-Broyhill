@@ -94,7 +94,7 @@ export function SpaceBrowser({ rooms }: { rooms: Room[] }) {
                 <h2>{room.name}</h2>
                 <div className="space-facts">
                   <span>Up to {room.capacity} guests</span>
-                  <span>{room.squareFeet.toLocaleString()} sq ft</span>
+                  <span>{room.squareFeet.toLocaleString("en-US")} sq ft</span>
                 </div>
                 <div className="setup-list">{room.setups.map((name) => <span key={name}>{name}</span>)}</div>
                 <div className="history-note"><span>Room story · sample</span><p>{room.historyNote}</p></div>
@@ -117,7 +117,22 @@ export function SpaceBrowser({ rooms }: { rooms: Room[] }) {
 
       {selected.length > 0 ? (
         <div className="selection-bar">
-          <span>{selected.length} {selected.length === 1 ? "space" : "spaces"} selected</span>
+          <div className="selection-summary">
+            <span>{selected.length} {selected.length === 1 ? "space" : "spaces"} selected</span>
+            <ul aria-label="Selected spaces" className="selection-chips">
+              {selected.map((id) => {
+                const room = rooms.find((item) => item.id === id);
+                if (!room) return null;
+                return (
+                  <li key={id}>
+                    <button aria-label={`Remove ${room.name} from your request`} onClick={() => toggleRoom(id)} type="button">
+                      {room.name} <span aria-hidden="true">×</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
           <Link href={`/plan-your-event?spaces=${encodeURIComponent(selected.join(","))}`}>
             Continue to your event request <span aria-hidden="true">↗</span>
           </Link>
