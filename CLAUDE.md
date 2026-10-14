@@ -42,7 +42,7 @@ The proposed isolated public-app layout is:
 ```
 
 Keep public-site source and its editable `spaces.json`, `availability.json`,
-and `partner-hotels.json` data under `/site`; do not create a competing root
+`hotel-suite.json`, and `partner-hotels.json` data under `/site`; do not create a competing root
 `/data` tree. The future Next.js application should consume these in-project
 files through an implementation-selected Next.js server/build data-loading
 path. Decide and verify the loading behavior against the chosen rendering and
@@ -85,6 +85,9 @@ or claim a working loader, browser fetch, or data integration.
   (suite inquiries), 336-793-1191, 3540 Clemmons Road, Suite 111, Clemmons, NC
   27012; Instagram https://www.instagram.com/historicbroyhill/; bookings run
   through Skedda (broyhill.skedda.com).
+- On-site lodging (Ed, 2026-10-14): the Historic Broyhill has its own hotel
+  suite. Guests can stay on site; partner hotels are for overflow. Suite name,
+  size, beds, rate and booking method: `[CONFIRM: ...]`.
 - Not published there, so still `[CONFIRM: ...]`: room capacities and sizes,
   build year and school name, hours, Facebook URL, suite availability.
 - Fix rather than copy: the placeholder hero image, typos, and the suites copy

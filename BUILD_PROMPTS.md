@@ -101,8 +101,9 @@ Use this proposed layout consistently:
 - /site: isolated Next.js application
 - /site/app: routes and page layouts
 - /site/components: shared interface components
-- /site/data/spaces.json, /site/data/availability.json, and
-  /site/data/partner-hotels.json: editable sample source data
+- /site/data/spaces.json, /site/data/availability.json,
+  /site/data/hotel-suite.json, and /site/data/partner-hotels.json: editable
+  sample source data
 - /site/lib: application utilities and the data access path, once selected and
   verified for the approved Next.js rendering/deployment model
 - /site/public/photos: approved supplied images; until then show TODO-PHOTO
@@ -127,14 +128,16 @@ Build these eight pages, mobile-first:
    date. Do not present sample dates as real availability.
 5. Plan Your Event — RFP form prefilled with the visitor's selected spaces and
    dates. Select and verify any persistence approach during implementation.
-6. Stay — partner-hotel information from editable SAMPLE JSON and a group-block
-   inquiry path, subject to the separate form approval below.
+6. Stay — lead with the on-site Historic Broyhill hotel suite (details from
+   hotel-suite.json; unknowns [CONFIRM]) and a request-to-stay path. Below it,
+   partner hotels for overflow from editable SAMPLE JSON with a group-block
+   inquiry path. Both forms are subject to the separate form approval below.
 7. Office Suites — approved suite information and a tour-request path.
 8. Contact / Directions — use only owner-confirmed contact and location details
    (www.broyhill.net counts; see "Owner sources" in CLAUDE.md).
 
-Provide editable sample records for spaces/rooms, availability, and partner
-hotels. Mark every sample clearly as SAMPLE; use [CONFIRM: ...] for unknown
+Provide editable sample records for spaces/rooms, availability, the on-site
+hotel suite, and partner hotels. Mark every sample clearly as SAMPLE; use [CONFIRM: ...] for unknown
 facts. Do not invent capacities, dates, prices, hotels, testimonials, history,
 or suite details. Use TODO-PHOTO placeholders until real images are supplied.
 Do not replace or connect to the current booking system without explicit
