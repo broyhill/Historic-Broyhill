@@ -130,7 +130,8 @@ Build these eight pages, mobile-first:
 6. Stay — partner-hotel information from editable SAMPLE JSON and a group-block
    inquiry path, subject to the separate form approval below.
 7. Office Suites — approved suite information and a tour-request path.
-8. Contact / Directions — use only owner-confirmed contact and location details.
+8. Contact / Directions — use only owner-confirmed contact and location details
+   (www.broyhill.net counts; see "Owner sources" in CLAUDE.md).
 
 Provide editable sample records for spaces/rooms, availability, and partner
 hotels. Mark every sample clearly as SAMPLE; use [CONFIRM: ...] for unknown
@@ -205,9 +206,10 @@ full checks actually ran.
 
 ```text
 Add page-specific titles and descriptions, sitemap and robots files, and
-structured data only from owner-confirmed facts. Do not copy unconfirmed
-addresses, phone numbers, hours, social links, or other venue details into
-metadata. Add descriptive alt text based on supplied images; keep placeholder
+structured data only from owner-confirmed facts. Details published on
+www.broyhill.net (see "Owner sources" in CLAUDE.md) count as owner-confirmed.
+Do not copy other unconfirmed addresses, phone numbers, hours, social links,
+or venue details into metadata. Add descriptive alt text based on supplied images; keep placeholder
 alt text honest. Run final Impeccable polish only if available, then report
 which SEO and review actions actually completed and which remain blocked.
 ```

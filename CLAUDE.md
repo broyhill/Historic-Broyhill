@@ -53,12 +53,31 @@ or claim a working loader, browser fetch, or data integration.
   without owner approval and compatibility verification.
 - Hosting, form transport, credentials, paid services, deployments, and
   outbound email require explicit owner approval and compatibility checks.
+  Proposed host, pending Ed's decision: Vercel (made by the Next.js team;
+  supports server-side form handling). Not approved; do not deploy.
   HTML form attributes alone do not establish form processing for a Next.js
   application. Do not add a working form backend or production integration
   without approval.
 - Require explicit approval for migrations, tenant/authentication changes,
   infrastructure, production data access, and external messaging. Never run
   verification against production data.
+
+## Owner sources
+
+- www.broyhill.net is the owner's own current site. Ed's instruction on issue #2
+  (2026-10-14): "use www.broyhill.net reference copy content and logos". Its copy,
+  logos and published details are owner-supplied, not reference-site material.
+- Published there (read 2026-10-13): event rooms Magnolia Room, The Boardrooms,
+  The Dock, The Loft; executive office suites; Virtual Office Program ($150/mo,
+  12-month term); The HB Podcast Studio; 1920s school building converted to
+  offices and events around 2006; Info@Broyhill.net, Kristin@Broyhill.net
+  (suite inquiries), 336-793-1191, 3540 Clemmons Road, Suite 111, Clemmons, NC
+  27012; Instagram https://www.instagram.com/historicbroyhill/; bookings run
+  through Skedda (broyhill.skedda.com).
+- Not published there, so still `[CONFIRM: ...]`: room capacities and sizes,
+  build year and school name, hours, Facebook URL, suite availability.
+- Fix rather than copy: the placeholder hero image, typos, and the suites copy
+  duplicated in the event-space section.
 
 ## Public-site content, design, and accessibility
 
