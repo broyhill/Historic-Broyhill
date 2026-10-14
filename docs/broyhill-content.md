@@ -85,7 +85,7 @@ candidates: the checkerboard foyer, the concert crowd (shows real capacity in us
 
 ## Fix list from the current site
 - Hero image is a placeholder (`dummy.png`); no alt text on any image.
-- Three of four rooms have no capacity; none have size or price.
+- Two of four rooms (The Boardrooms, The Dock) have no capacity; none have size or price.
 - Office-suites copy is repeated word for word in the event section; About Us appears twice.
 - Typos: "We officer rentals", "It's hallways speak", "is a more than a building", "packed of history", a stray "p****lease".
 - The Dock lives at `/event-space-2/`; page title is just "Broyhill".

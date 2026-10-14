@@ -88,8 +88,13 @@ or claim a working loader, browser fetch, or data integration.
 - On-site lodging (Ed, 2026-10-14): the Historic Broyhill has its own hotel
   suite. Guests can stay on site; partner hotels are for overflow. Suite name,
   size, beds, rate and booking method: `[CONFIRM: ...]`.
-- Not published there, so still `[CONFIRM: ...]`: room capacities and sizes,
-  build year and school name, hours, Facebook URL, suite availability.
+- Also published there (room and podcast pages, read 2026-10-14): Magnolia Room
+  20-120 seated, up to 140 roaming reception; The Loft up to 20; The Boardrooms
+  by the day or half day; The Dock is an outdoor covered stage; Facebook
+  https://web.facebook.com/thebroyhill. Full inventory: `docs/broyhill-content.md`.
+- Not published there, so still `[CONFIRM: ...]`: capacity of The Boardrooms and
+  The Dock, every room's size and price, build year and school name, hours,
+  suite availability.
 - Fix rather than copy: the placeholder hero image, typos, and the suites copy
   duplicated in the event-space section.
 

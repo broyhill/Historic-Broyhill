@@ -23,17 +23,17 @@ themselves (so tour quality is unverified). The Omni Homestead page text was rea
 | **The Broadmoor** (meetings, planner tools, Main building) | Per-room lines: Main Ballroom "an original space … from when the resort opened in 1918." No timeline seen. | Tabs by building; capacity table (area, L/W/H, 6 setups); spec-sheet flipbook, resort map, RFP. No filter, tour or calendar seen. | 784 rooms; no group page seen. | **One or two lines of history on every room listing.** |
 | **Gold Coast Convention Centre** (virtual-tour page; tools benchmark) | None. | Three tools on one hub page: 3D Venue Explorer, 360° tour with hotspots and commentary, interactive floor plan with capacities. Tools not opened. | None. | **One "Explore the venue" hub for tour, floor plan and capacities.** |
 
-## What they all do the same
-- History is told **room by room** (a line, a dated photo, or a timeline card), not just in an About page.
-- Capacity is shown **by setup** (theatre, classroom, banquet, reception, U-shape…) with sq ft and dimensions.
-- Every path ends in an **RFP / request**, not an instant booking.
-- **None of the eight shows a public availability calendar** on the pages read.
+## What most of them do (counts from the pages read)
+- **Room-by-room history** (a line, a dated photo, or a card about a space): Greenbrier, Homestead, Grove Park, Broadmoor (4 of 8). Dated timelines: Grove Park, Mohonk.
+- **Capacity by setup** with sq ft and dimensions: Greenbrier, Homestead, Grandover, Broadmoor (4 of 8). Mohonk's chart is a PDF not opened; Gold Coast's floor-plan tool was not opened.
+- **An RFP / request, not an instant booking:** Greenbrier, Homestead, Graylyn, Grove Park, Mohonk, Broadmoor (6 of 8). None recorded for Grandover's meetings page or Gold Coast.
+- **No public availability calendar** was seen on any page read (0 of 8). Tours, PDFs and pages not read could differ.
 
 ## Our edge
-- **Live availability.** A visual open / held / booked month view is something none of them show. (Bookings stay in Skedda; the site links to it.)
+- **A visible availability calendar.** An open / held / booked month view, which none of the pages read showed. It starts on SAMPLE data. Making it real means either keeping `availability.json` up to date by hand or reading from Skedda; that is Ed's decision (#6 §5). Bookings stay in Skedda either way.
 - **Small and personal.** Four rooms, a podcast studio, offices and an on-site hotel suite: one request that covers a room, a date and an overnight stay (the Mohonk pattern) fits us better than a 30-room filter.
 - **A real school-era story.** Room sheets in the Greenbrier style with `[CONFIRM]` school-era history and archival photos, plus a dated timeline (Grove Park / Mohonk).
-- **Fix what's broken on broyhill.net today:** no capacities on three of four rooms, an empty suites list, a placeholder hero image, no alt text (see broyhill-content.md).
+- **Fix what's broken on broyhill.net today:** no capacity for two of four rooms and no size or price for any, an empty suites list, a placeholder hero image, no alt text (see broyhill-content.md).
 
 ## Not seen / needs Ed
 - Tour vendors seen: visitme.co, truetour.app (Grandover, Grove Park, Homestead). Whether to commission a 3D/360 tour is a paid-service decision for Ed.
