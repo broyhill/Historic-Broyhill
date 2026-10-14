@@ -47,6 +47,16 @@ is needed, agree on the source and destination with the maintainer and use a
 temporary directory outside the checkout; do not commit extracted contents or
 modify the archives as incidental setup.
 
+## Public website (separate from the archived platform)
+
+The owner has selected Next.js + Tailwind for the future public website, as an
+isolated project under `/site` with editable sample data in `/site/data`. No
+source or setup commands for it exist yet. Its work follows the approval gates
+in [CLAUDE.md](../CLAUDE.md) and the phases in
+[BUILD_PROMPTS.md](../BUILD_PROMPTS.md): research only, then an approved design
+direction, then separately authorized implementation. Hosting, forms,
+deployment and outbound email need the owner's approval.
+
 ## Developer command inventory
 
 **In the current checkout:** there is no app install/dev/build/lint/test command

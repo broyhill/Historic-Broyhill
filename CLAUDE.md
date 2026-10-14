@@ -1,120 +1,136 @@
-# Historic-Broyhill: Claude Code instructions
+# Historic-Broyhill — repository instructions
 
-## Repository context
+Read this file before making changes. This repository contains project
+blueprints and packaged archives; it is not currently an unpacked application.
 
-This checkout is a collection of project blueprints and packaged source, not an
-unpacked application. Do not assume the directories described in the Markdown
-exist on disk.
+## Current contents and proposed public app
+
+The checked-out root contains numbered Markdown batches,
+`Complete Code-historic-broyhill.md`, `enterprise_nexus_platform.zip`,
+`inspinia-template-main.zip`, and `KILLED Guide.pdf`. These are reference and
+archive material, not runnable source:
 
 - `Complete Code-historic-broyhill.md`: collected architecture and code examples.
 - Numbered batch Markdown files: supplemental proposals and code examples; they
   may differ from the complete package.
-- `enterprise_nexus_platform.zip`: packaged pnpm workspace, including
-  `apps/web-portal`, `apps/admin-dashboard`, `apps/ai-workers`, and
-  `packages/database`.
+- `enterprise_nexus_platform.zip`: packaged pnpm workspace for the internal
+  admin platform (`apps/web-portal`, `apps/admin-dashboard`, `apps/ai-workers`,
+  `packages/database`). Separate from the public website.
 - `inspinia-template-main.zip`: separate static HTML/CSS/JavaScript UI template.
-- `KILLED Guide.pdf`: reference material; preserve the original.
+- `KILLED Guide.pdf`: the design-pipeline guide `BUILD_PROMPTS.md` follows.
 
-The proposed application uses TypeScript, Next.js, NestJS, PostgreSQL/Prisma,
-Redis/BullMQ, and Playwright. These are blueprint/archive contents, not verified
-working services in this checkout.
+Preserve them: do not edit, move, rename,
+delete, or unpack them into the checkout unless the owner explicitly approves
+that exact work.
 
-## Working conventions and boundaries
+The owner has selected **Next.js + Tailwind** as the canonical stack for a
+future public website. It is a decision about future implementation, not a
+claim that a site or its tooling exists here. No root or `/site` app manifest,
+lockfile, dependencies, or application checks are present in this checkout.
+Do not scaffold the app, install dependencies, add CI, or begin implementation
+as part of documentation or research work.
 
-- Inspect the relevant document or archive member before proposing a change.
-  When sources disagree, identify the discrepancy and ask which is authoritative.
-- Keep edits scoped to the request and match the surrounding style. Preserve
-  historical code packages rather than reformatting or rewriting them wholesale.
-- Do not unpack archives into the repository, replace binary assets, scaffold an
-  application, install dependencies, or add CI/deployment configuration unless
-  explicitly requested. Inspect archives read-only; use a temporary directory
-  outside the repository for approved experiments.
-- For approved application work, follow the actual manifest and local code style.
-  Preserve TypeScript typing and app/shared-package separation; do not infer
-  executable configuration from Markdown examples alone.
-- Require explicit approval for schema/data migrations, tenant/authentication
-  changes, infrastructure, deployments, paid API calls, or outbound email/SMS.
-  Never run these against production data as part of verification.
-- Never read or copy local credentials or private tenant data into prompts,
-  logs, fixtures, or commits. Example credentials in source documents are not
-  approved secrets. Keep authentication and environment values local.
-- Review shell commands and file edits before granting permission. Do not
-  disable Claude Code permission checks or commit personal Claude settings.
+The proposed isolated public-app layout is:
 
-## Verification
+```text
+/site/
+  app/                 Next.js routes and page layouts
+  components/          shared UI
+  data/                editable SAMPLE JSON source files
+  lib/                 data access and other app utilities
+  public/photos/       supplied images; retain TODO-PHOTO placeholders until then
+```
 
-There is no root `package.json`, lockfile, installed application, or runnable
-test/lint/build setup. For documentation-only changes, check links and commands,
-run `git diff --check`, and review `git diff` and `git status --short`.
-Do not claim application tests passed.
+Keep public-site source and its editable `spaces.json`, `availability.json`,
+`hotel-suite.json`, and `partner-hotels.json` data under `/site`; do not create a competing root
+`/data` tree. The future Next.js application should consume these in-project
+files through an implementation-selected Next.js server/build data-loading
+path. Decide and verify the loading behavior against the chosen rendering and
+deployment model during approved implementation; this policy does not prescribe
+or claim a working loader, browser fetch, or data integration.
 
-The application archive declares pnpm scripts, but they are conditional guidance
-only. Before any approved code work, inspect the extracted manifests, workspace
-packages, lockfile, environment requirements, and tests. Run only applicable
-existing checks and report missing prerequisites rather than inventing scripts.
-See [the workflow guide](docs/claude-code.md) for the command inventory.
+## Approval gates and scope
 
-Before preparing a PR, inspect every changed file for secrets, unintended binary
-changes, extracted sources, dependencies, and generated output. Summarize the
-scope, verification performed, and anything that could not be verified.
-# Historic Broyhill Center — Website Repo
+- **Research:** the first deliverable is only `docs/design-research.md`, about
+  two pages. Record what was actually observed at the reference sites and stop
+  for owner approval. If browsing or a page is unavailable, report that
+  limitation instead of guessing.
+- **Design direction:** after research approval, present distinct directions
+  and stop for explicit approval of one direction before any website code.
+- **Implementation:** begin only in a separately approved implementation task
+  after both gates. Keep changes scoped, follow actual manifests and code style
+  if they exist then, and add focused tests when an applicable test setup exists.
+- Preserve the existing booking workflow; do not replace or integrate with it
+  without owner approval and compatibility verification.
+- Hosting, form transport, credentials, paid services, deployments, and
+  outbound email require explicit owner approval and compatibility checks.
+  Proposed host, pending Ed's decision: Vercel (made by the Next.js team;
+  supports server-side form handling). Not approved; do not deploy.
+  HTML form attributes alone do not establish form processing for a Next.js
+  application. Do not add a working form backend or production integration
+  without approval.
+- Require explicit approval for migrations, tenant/authentication changes,
+  infrastructure, production data access, and external messaging. Never run
+  verification against production data.
 
-Read this file in full before any work. Then read PRODUCT.md and DIRECTION.md if they exist.
+## Owner sources
 
-## What this site is
-Office complex + conference/event center.
-Historic Broyhill Center, 3540 Clemmons Road, Clemmons, NC 27012. 62,500 SF.
-Goal: a site that feels like heritage (Greenbrier, Homestead, Graylyn) and works like a modern planner tool.
-No on-site hotel. Guest rooms come from partner hotels via group-block requests.
+- www.broyhill.net is the owner's own current site. Ed's instruction on issue #2
+  (2026-10-14): "use www.broyhill.net reference copy content and logos". Its copy,
+  logos and published details are owner-supplied, not reference-site material.
+- Published there (read 2026-10-13): event rooms Magnolia Room, The Boardrooms,
+  The Dock, The Loft; executive office suites; Virtual Office Program ($150/mo,
+  12-month term); The HB Podcast Studio; 1920s school building converted to
+  offices and events around 2006; Info@Broyhill.net, Kristin@Broyhill.net
+  (suite inquiries), 336-793-1191, 3540 Clemmons Road, Suite 111, Clemmons, NC
+  27012; Instagram https://www.instagram.com/historicbroyhill/; bookings run
+  through Skedda (broyhill.skedda.com).
+- On-site lodging (Ed, 2026-10-14): the Historic Broyhill has its own hotel
+  suite. Guests can stay on site; partner hotels are for overflow. Suite name,
+  size, beds, rate and booking method: `[CONFIRM: ...]`.
+- Not published there, so still `[CONFIRM: ...]`: room capacities and sizes,
+  build year and school name, hours, Facebook URL, suite availability.
+- Fix rather than copy: the placeholder hero image, typos, and the suites copy
+  duplicated in the event-space section.
 
-## Known facts (from the current site, www.broyhill.net, read 2026-10-13)
-- 1920s school building, converted to an office complex and event center around 2006. "Nearly 100 years" serving the community.
-- Event rooms: Magnolia Room, The Boardrooms, The Dock, The Loft. Capacities and sizes: [CONFIRM].
-- Also: executive office suites, Virtual Office Program ($150/mo, 12-month term), The HB Podcast Studio.
-- Bookings currently run through Skedda (broyhill.skedda.com). The new calendar should link to it or read from it, not replace it, until Ed decides.
-- Instagram: https://www.instagram.com/historicbroyhill/ (link in header/footer and in schema sameAs). Facebook page exists: URL [CONFIRM].
-- Contact: Info@Broyhill.net, 336-793-1191, 3540 Clemmons Road, Suite 111, Clemmons, NC 27012. Suite inquiries: Kristin@Broyhill.net.
-- Keep from the current site: tenant testimonials (real, reuse with permission), staff bios, Work Order Request Form, Request a Tour.
-- Fix from the current site: placeholder hero image, empty "Available Suites" list, duplicated Suites/Event copy, typos, no room capacities, page title is just "Broyhill".
+## Public-site content, design, and accessibility
 
-## Design pipeline — use in this order (from the $10K Website Kit guide)
-The stages run across BUILD_PROMPTS.md, one stage per prompt and one PR per stage:
-stage 1 = Prompt 2, stage 2 = Prompt 3, stages 3-4 = Prompt 5, stage 5 = Prompt 6, stage 6 = Prompt 7.
-A prompt's PR only needs its own stage done.
-1. design-taste-frontend (Taste Skill): set direction before code. Dials: variance 6, motion 3, density 4.
-2. Build: plain HTML/CSS/JS in /site, no build step.
-3. impeccable: critique -> audit -> layout -> typeset. Run critique before polish.
-4. emil-design-eng + improve-animations + review-animations: all motion.
-5. Playwright MCP: test at 1440px and 375px until a full pass finds zero problems. Include break-ui.
-6. SEO basics, then /impeccable polish last.
+- Do not invent venue facts, dates, capacities, amenities, pricing, testimonials,
+  or partner details. Mark unverified copy and values `[CONFIRM: ...]`; label all
+  example records `SAMPLE`. Do not treat claims in earlier draft instructions
+  as independently verified facts.
+- Use `TODO-PHOTO` placeholders until approved real images are supplied. Borrow
+  reference-site patterns only—not their photos, copy, logos, or fonts.
+- Preserve accessible semantics, visible focus, keyboard operation, useful
+  contrast, and reduced-motion support. Design mobile-first and check at 375px;
+  avoid horizontal overflow and provide touch targets of at least 44px.
+- For motion, use ease-out on entry/exit, keep transitions under 300ms, avoid
+  bounce/elastic easing, and respect `prefers-reduced-motion`. Buttons scale to
+  about 0.97 on press; pop-ups start at 0.95 scale, never 0.
+- Use the design workflow in `BUILD_PROMPTS.md`: Taste direction (variance 6,
+  motion 3, density 4), implementation after approvals, Impeccable critique /
+  audit / layout / typeset, Emil motion review, Playwright at 1440px and 375px
+  plus break-ui, SEO, then final polish. A tool named in the workflow is a
+  capability to check, not evidence it is installed or available. Report missing
+  tools and blocked reviews explicitly; never claim a review or check succeeded
+  unless it actually ran.
 
-## Motion rules (Emil)
-Ease-out on enter/exit. Nothing over 300ms. Buttons scale 0.97 on press.
-Pop-ups start at 0.95, never 0. Respect prefers-reduced-motion. No bounce or elastic easing.
+## Safe editing and verification
 
-## Reference sites — borrow PATTERNS only
-- greenbrier.com: per-room spec sheet with that room's history and an archival photo
-- omnihotels.com/hotels/homestead-virginia/meetings: filter spaces by sq ft / capacity / setup, "Add to RFP"
-- graylyn.com: estate storytelling, butler-level service copy
-- omnihotels.com/history: heritage timeline hub
-- broadmoor.com: interactive meeting-facilities map
-- gccec.com.au/event-planning-tool/virtual-tour: 3D / 360 / interactive floor plan benchmark
-Never copy their photos, copy text, logos or fonts.
+- Inspect relevant documents or archive members before proposing edits. When
+  sources disagree, identify the discrepancy and ask which source is
+  authoritative.
+- Keep changes narrow. Do not copy example credentials or private tenant data
+  into prompts, logs, fixtures, or commits. Keep authentication and environment
+  values local; do not disable permission checks or commit personal settings.
+- Use actual manifests when present. In this checkout there are no runnable
+  application manifests or application commands to verify. Any future setup,
+  build, lint, or test commands must be labeled proposed until verified against
+  the actual approved source and its manifests.
+- For documentation-only changes, check relative links, inspect the diff, and
+  run `git diff --check`. Do not claim application tests passed.
+- Before preparing a change, review changed files for secrets, unintended
+  binary/archive changes, extracted sources, dependencies, and generated output.
+  Report exactly which checks ran and any limitations.
 
-## Existing files in this repo — leave them alone
-The root already holds the "enterprise-nexus" admin-platform notes (numbered batch .md files,
-Complete Code-historic-broyhill.md, enterprise_nexus_platform.zip, inspinia-template-main.zip)
-and KILLED Guide.pdf (the design-pipeline guide this file follows).
-The admin platform is a separate internal tool for the event and office managers.
-The public website lives only in /site (data in /site/data) and /docs. Do not edit, move, rename or delete
-the existing files unless Ed asks.
-
-## Hard rules
-- Images: labeled placeholder boxes with the exact size needed (TODO-PHOTO). Real photos go in /photos later.
-- No invented facts. Building history, dates, room names and capacities come from /site/data or from Ed. Missing -> write [CONFIRM: ...] in the copy, never guess.
-- Room and availability data live in /site/data/*.json so Ed can edit without touching code.
-  They sit inside /site because Netlify Drop publishes only the /site folder. Fetch them with relative paths (data/spaces.json).
-- Forms: Netlify Forms (data-netlify="true" + hidden form-name) with a thank-you page.
-- Mobile-first. No horizontal scroll at 375px. Tap targets >= 44px.
-- Git: commit after every pipeline stage with a clear message. One PR per phase. Never merge your own PR.
-- If a reference site blocks fetching or screenshots, say so in the PR. Do not describe a site you did not see.
+See [Claude Code workflows](docs/claude-code.md) for local guidance.
