@@ -1,0 +1,5 @@
+[
+  { "name": "Suite 01", "size": "Private office", "status": "Available" },
+  { "name": "Suite 02", "size": "Two-room office", "status": "Available" },
+  { "name": "Suite 03", "size": "Corner office", "status": "Coming soon" }
+]
