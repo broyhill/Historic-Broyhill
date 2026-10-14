@@ -8,7 +8,18 @@ blueprints and packaged archives; it is not currently an unpacked application.
 The checked-out root contains numbered Markdown batches,
 `Complete Code-historic-broyhill.md`, `enterprise_nexus_platform.zip`,
 `inspinia-template-main.zip`, and `KILLED Guide.pdf`. These are reference and
-archive material, not runnable source. Preserve them: do not edit, move, rename,
+archive material, not runnable source:
+
+- `Complete Code-historic-broyhill.md`: collected architecture and code examples.
+- Numbered batch Markdown files: supplemental proposals and code examples; they
+  may differ from the complete package.
+- `enterprise_nexus_platform.zip`: packaged pnpm workspace for the internal
+  admin platform (`apps/web-portal`, `apps/admin-dashboard`, `apps/ai-workers`,
+  `packages/database`). Separate from the public website.
+- `inspinia-template-main.zip`: separate static HTML/CSS/JavaScript UI template.
+- `KILLED Guide.pdf`: the design-pipeline guide `BUILD_PROMPTS.md` follows.
+
+Preserve them: do not edit, move, rename,
 delete, or unpack them into the checkout unless the owner explicitly approves
 that exact work.
 
@@ -91,7 +102,8 @@ or claim a working loader, browser fetch, or data integration.
   contrast, and reduced-motion support. Design mobile-first and check at 375px;
   avoid horizontal overflow and provide touch targets of at least 44px.
 - For motion, use ease-out on entry/exit, keep transitions under 300ms, avoid
-  bounce/elastic easing, and respect `prefers-reduced-motion`.
+  bounce/elastic easing, and respect `prefers-reduced-motion`. Buttons scale to
+  about 0.97 on press; pop-ups start at 0.95 scale, never 0.
 - Use the design workflow in `BUILD_PROMPTS.md`: Taste direction (variance 6,
   motion 3, density 4), implementation after approvals, Impeccable critique /
   audit / layout / typeset, Emil motion review, Playwright at 1440px and 375px
