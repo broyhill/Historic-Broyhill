@@ -90,6 +90,7 @@ Pages:
 6. Stay: partner hotels, with a group-block request form.
 7. Office Suites: available suites, amenities, request-a-tour form.
 8. Contact & Directions.
+Every page: an Instagram link (https://www.instagram.com/historicbroyhill/) in the footer.
 
 Copy: real and specific, no lorem ipsum, no buzzwords. Any fact you do not have
 -> [CONFIRM: ...].
@@ -150,7 +151,8 @@ Stop only at zero problems. Report what you found and fixed. Open the PR.
 Add a unique title and meta description per page, a social share image,
 sitemap.xml, robots.txt, and LocalBusiness + EventVenue schema:
 Historic Broyhill Center, 3540 Clemmons Road, Clemmons, NC 27012,
-phone [CONFIRM], hours [CONFIRM]. Add descriptive alt text on every image.
+phone 336-793-1191, hours [CONFIRM],
+sameAs: https://www.instagram.com/historicbroyhill/ (add the Facebook URL once confirmed). Add descriptive alt text on every image.
 Then run /impeccable polish. Open the PR.
 ```
 

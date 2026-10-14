@@ -13,6 +13,7 @@ No on-site hotel. Guest rooms come from partner hotels via group-block requests.
 - Event rooms: Magnolia Room, The Boardrooms, The Dock, The Loft. Capacities and sizes: [CONFIRM].
 - Also: executive office suites, Virtual Office Program ($150/mo, 12-month term), The HB Podcast Studio.
 - Bookings currently run through Skedda (broyhill.skedda.com). The new calendar should link to it or read from it, not replace it, until Ed decides.
+- Instagram: https://www.instagram.com/historicbroyhill/ (link in header/footer and in schema sameAs). Facebook page exists: URL [CONFIRM].
 - Contact: Info@Broyhill.net, 336-793-1191, 3540 Clemmons Road, Suite 111, Clemmons, NC 27012. Suite inquiries: Kristin@Broyhill.net.
 - Keep from the current site: tenant testimonials (real, reuse with permission), staff bios, Work Order Request Form, Request a Tour.
 - Fix from the current site: placeholder hero image, empty "Available Suites" list, duplicated Suites/Event copy, typos, no room capacities, page title is just "Broyhill".
