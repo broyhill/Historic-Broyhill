@@ -17,7 +17,10 @@ No on-site hotel. Guest rooms come from partner hotels via group-block requests.
 - Keep from the current site: tenant testimonials (real, reuse with permission), staff bios, Work Order Request Form, Request a Tour.
 - Fix from the current site: placeholder hero image, empty "Available Suites" list, duplicated Suites/Event copy, typos, no room capacities, page title is just "Broyhill".
 
-## Design pipeline — use in this order, every build (from the $10K Website Kit guide)
+## Design pipeline — use in this order (from the $10K Website Kit guide)
+The stages run across BUILD_PROMPTS.md, one stage per prompt and one PR per stage:
+stage 1 = Prompt 2, stage 2 = Prompt 3, stages 3-4 = Prompt 5, stage 5 = Prompt 6, stage 6 = Prompt 7.
+A prompt's PR only needs its own stage done.
 1. design-taste-frontend (Taste Skill): set direction before code. Dials: variance 6, motion 3, density 4.
 2. Build: plain HTML/CSS/JS in /site, no build step.
 3. impeccable: critique -> audit -> layout -> typeset. Run critique before polish.
@@ -43,13 +46,14 @@ The root already holds the "enterprise-nexus" admin-platform notes (numbered bat
 Complete Code-historic-broyhill.md, enterprise_nexus_platform.zip, inspinia-template-main.zip)
 and KILLED Guide.pdf (the design-pipeline guide this file follows).
 The admin platform is a separate internal tool for the event and office managers.
-The public website lives only in /site, /data and /docs. Do not edit, move, rename or delete
+The public website lives only in /site (data in /site/data) and /docs. Do not edit, move, rename or delete
 the existing files unless Ed asks.
 
 ## Hard rules
 - Images: labeled placeholder boxes with the exact size needed (TODO-PHOTO). Real photos go in /photos later.
-- No invented facts. Building history, dates, room names and capacities come from /data or from Ed. Missing -> write [CONFIRM: ...] in the copy, never guess.
-- Room and availability data live in /data/*.json so Ed can edit without touching code.
+- No invented facts. Building history, dates, room names and capacities come from /site/data or from Ed. Missing -> write [CONFIRM: ...] in the copy, never guess.
+- Room and availability data live in /site/data/*.json so Ed can edit without touching code.
+  They sit inside /site because Netlify Drop publishes only the /site folder. Fetch them with relative paths (data/spaces.json).
 - Forms: Netlify Forms (data-netlify="true" + hidden form-name) with a thank-you page.
 - Mobile-first. No horizontal scroll at 375px. Tap targets >= 44px.
 - Git: commit after every pipeline stage with a clear message. One PR per phase. Never merge your own PR.

@@ -11,7 +11,8 @@ Read CLAUDE.md. List every skill and MCP server you have, one line each.
 Confirm you have: design-taste-frontend, impeccable, emil-design-eng, animate,
 review-animations, improve-animations, break-ui, playwright.
 If any is missing, stop and tell me which. Do not build anything.
-Then run /impeccable init. The answers are in the Brief section of Prompt 2 below.
+Then run /impeccable init. It creates PRODUCT.md. The answers are in the Brief section of Prompt 2 below.
+Commit PRODUCT.md on a branch and open a PR.
 ```
 
 ---
@@ -21,6 +22,8 @@ Then run /impeccable init. The answers are in the Brief section of Prompt 2 belo
 Use Playwright to open each reference site in CLAUDE.md at 1440px and 375px.
 Screenshot the home page, the meetings/events page, and one room/space detail page.
 Save the screenshots to docs/research/.
+If a site has no page of a given type (for example, the history page has no room detail),
+write "none" for it. Never fill a gap with guesses.
 
 Write docs/design-research.md with one table row per site:
 - heritage device (history per room, archival photos, timeline, storytelling copy)
@@ -60,15 +63,16 @@ When I pick a direction, save it to DIRECTION.md. Open the PR and stop.
 
 ## Prompt 3 — Build (PR #3: /site)
 ```
-Read CLAUDE.md, DIRECTION.md and PRODUCT.md. Build the full site in /site.
+Read CLAUDE.md, DIRECTION.md and PRODUCT.md (made in Prompt 0; if it is missing, stop and say so).
+Build the full site in /site. Reviews, motion, testing and SEO come in later prompts.
 Use design-taste-frontend and impeccable for every decision and emil-design-eng for all motion.
 
 Data first. Create these with sample data marked SAMPLE:
-- /data/spaces.json: name, sq ft, dimensions, ceiling height, windows,
+- /site/data/spaces.json: name, sq ft, dimensions, ceiling height, windows,
   capacity by setup (theater, classroom, banquet, reception, U-shape, boardroom),
   a history note, photo placeholder
-- /data/availability.json: date, space, status (open | held | booked)
-- /data/partner-hotels.json: name, distance, group-rate link, notes
+- /site/data/availability.json: date, space, status (open | held | booked)
+- /site/data/partner-hotels.json: name, distance, group-rate link, notes
 
 Pages:
 1. Home: heritage hero with one promise and one button ("Check Availability"),
@@ -102,6 +106,7 @@ Here is what I don't like, in plain words:
 3. [ ]
 Fix each one. Use Playwright to show a before and after screenshot of each fix.
 Don't change anything I didn't mention.
+Commit on a new branch and open a PR.
 ```
 
 ---
@@ -163,3 +168,4 @@ Archival photos go on the Heritage page and in the space history notes.
 ## Launch
 Drag /site onto app.netlify.com/drop. Then go to Forms -> Enable form detection,
 and drag /site in again. Send yourself a test RFP.
+Before launch, open the live link and check the calendar, the space filter and the hotel list load their data.
