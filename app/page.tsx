@@ -10,14 +10,14 @@ const offerings = [
   },
   {
     number: "02",
-    title: "Make a stay of it",
-    description: "A thoughtful guide to nearby stays and group accommodation.",
-    href: "/stay",
+    title: "Plan your event",
+    description: "Explore event availability and tell us about your gathering.",
+    href: "/availability",
   },
   {
     number: "03",
-    title: "Find your place",
-    description: "Considered office suites for independent work and growing teams.",
+    title: "Lease a Class A office",
+    description: "Class A office suites for lease for independent work and growing teams.",
     href: "/office-suites",
   },
 ];
@@ -30,8 +30,8 @@ export default function Home() {
           <span className="eyebrow">A place with a past. Room for what’s next.</span>
           <h1>Gathered well.<br /><em>Remembered always.</em></h1>
           <p>
-            A historic setting for the gatherings, ideas, and everyday work
-            that deserve a little more meaning.
+            A historic setting for meaningful gatherings and Class A office
+            suites for lease.
           </p>
           <div className="hero-actions">
             <Link className="button button-dark" href="/plan-your-event">Plan your event <span aria-hidden="true">↗</span></Link>
@@ -61,7 +61,7 @@ export default function Home() {
 
       <section className="offerings-section section-pad">
         <div className="section-heading">
-          <div><span className="eyebrow">Make yourself at home</span><h2>Good things happen here.</h2></div>
+          <div><span className="eyebrow">Gather here. Work here.</span><h2>Good things happen here.</h2></div>
           <Link className="text-link" href="/contact">Get in touch <span aria-hidden="true">↗</span></Link>
         </div>
         <div className="offering-grid">

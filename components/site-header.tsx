@@ -7,7 +7,6 @@ const links = [
   ["Heritage", "/heritage"],
   ["Event spaces", "/event-spaces"],
   ["Availability", "/availability"],
-  ["Stay", "/stay"],
   ["Office suites", "/office-suites"],
   ["Contact", "/contact"],
 ];

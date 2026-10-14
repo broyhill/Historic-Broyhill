@@ -28,7 +28,7 @@ write "none" for it. Never fill a gap with guesses.
 Write docs/design-research.md with one table row per site:
 - heritage device (history per room, archival photos, timeline, storytelling copy)
 - planner tools (space filter, capacity chart, floor plan, 3D/360 tour, calendar, RFP flow)
-- guest rooms / room-block handling
+- event inquiry handling
 - the ONE pattern we should take, and how we would do it better
 
 Then add a section titled "What they all do the same" and a section titled
@@ -72,7 +72,6 @@ Data first. Create these with sample data marked SAMPLE:
   capacity by setup (theater, classroom, banquet, reception, U-shape, boardroom),
   a history note, photo placeholder
 - /site/data/availability.json: date, space, status (open | held | booked)
-- /site/data/partner-hotels.json: name, distance, group-rate link, notes
 
 Pages:
 1. Home: heritage hero with one promise and one button ("Check Availability"),
@@ -87,9 +86,8 @@ Pages:
    Selecting a date + space adds it to "my event".
 5. Plan Your Event: an RFP form pre-filled with the spaces and dates in "my event"
    (keep it in localStorage, wrapped in try/catch). Netlify Forms + thank-you page.
-6. Stay: partner hotels, with a group-block request form.
-7. Office Suites: available suites, amenities, request-a-tour form.
-8. Contact & Directions.
+6. Office Suites: Class A office suites for lease, amenities, request-a-tour form.
+7. Contact & Directions.
 Every page: an Instagram link (https://www.instagram.com/historicbroyhill/) in the footer.
 
 Copy: real and specific, no lorem ipsum, no buzzwords. Any fact you do not have
@@ -170,4 +168,4 @@ Archival photos go on the Heritage page and in the space history notes.
 ## Launch
 Drag /site onto app.netlify.com/drop. Then go to Forms -> Enable form detection,
 and drag /site in again. Send yourself a test RFP.
-Before launch, open the live link and check the calendar, the space filter and the hotel list load their data.
+Before launch, open the live link and check the calendar, the space filter and the office-suite list load their data.

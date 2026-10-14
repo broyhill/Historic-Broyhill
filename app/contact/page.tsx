@@ -9,7 +9,7 @@ export default function ContactPage() {
     <>
       <section className="page-top section-pad">
         <PageHeading
-          description="Questions about gatherings, stays, or a place to work? We’d love to hear what you have in mind."
+          description="Questions about events or Class A office suites for lease? We’d love to hear what you have in mind."
           eyebrow="We’re all ears"
           note="Venue address, contact details, and directions will be added once confirmed."
           title="Come say hello."
@@ -34,11 +34,10 @@ export default function ContactPage() {
           <div className="form-aside">
             <span className="eyebrow">The beginning of something</span>
             <h2>What can we help with?</h2>
-            <p>Send a note about your event, a group stay, office space, or anything else.</p>
+            <p>Send a note about your event or leasing a Class A office suite.</p>
             <div className="contact-shortcuts">
               <a href="/plan-your-event">Event planning <span aria-hidden="true">↗</span></a>
-              <a href="/stay">Group stays <span aria-hidden="true">↗</span></a>
-              <a href="/office-suites">Office leasing <span aria-hidden="true">↗</span></a>
+              <a href="/office-suites">Class A office leasing <span aria-hidden="true">↗</span></a>
             </div>
           </div>
           <InquiryForm

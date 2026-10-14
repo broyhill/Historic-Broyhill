@@ -411,14 +411,6 @@ h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; }
 .form-privacy { max-width: 250px; color: #77796e; font-size: 9px; line-height: 1.6; }
 .form-success { margin: 18px 0 0; padding: 12px; border-left: 2px solid #738a65; background: #eef1e8; color: var(--ink); font-size: 10px; line-height: 1.7; }
 
-.stay-section { padding-top: 10px; padding-bottom: 83px; }
-.hotel-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
-.hotel-card { padding-bottom: 21px; border-bottom: 1px solid var(--line); }
-.hotel-photo { min-height: 215px; margin-bottom: 21px; }
-.hotel-card .eyebrow { font-size: 8px; }
-.hotel-card h2 { margin: 9px 0; font-size: 26px; }
-.hotel-card p { min-height: 42px; margin: 0 0 13px; color: var(--ink-soft); font-size: 11px; line-height: 1.7; }
-.hotel-card .text-link { gap: 8px; font-size: 10px; }
 .suites-section { padding-top: 12px; padding-bottom: 88px; }
 .suite-intro { display: flex; align-items: end; justify-content: space-between; gap: 30px; }
 .suite-intro h2 { font-size: clamp(35px, 4vw, 50px); }
@@ -544,10 +536,6 @@ h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; }
   .form-grid { grid-template-columns: 1fr; gap: 14px; }
   .form-full, .space-options { grid-column: auto; }
   .form-submit-row { align-items: flex-start; flex-direction: column; }
-  .stay-section { padding-top: 0; padding-bottom: 57px; }
-  .hotel-grid { grid-template-columns: 1fr; gap: 23px; }
-  .hotel-photo { min-height: 210px; }
-  .hotel-card p { min-height: auto; }
   .form-section { padding-top: 44px; }
   .suite-intro { display: block; }
   .suite-intro > p { max-width: 420px; margin-top: 15px; color: var(--ink-soft); font-size: 12px; line-height: 1.8; }

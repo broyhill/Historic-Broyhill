@@ -62,10 +62,10 @@ scope, verification performed, and anything that could not be verified.
 Read this file in full before any work. Then read PRODUCT.md and DIRECTION.md if they exist.
 
 ## What this site is
-Office complex + conference/event center.
+Class A office suites for lease + conference/event center.
 Historic Broyhill Center, 3540 Clemmons Road, Clemmons, NC 27012. 62,500 SF.
 Goal: a site that feels like heritage (Greenbrier, Homestead, Graylyn) and works like a modern planner tool.
-No on-site hotel. Guest rooms come from partner hotels via group-block requests.
+Office suites are for lease only. Do not offer accommodation or partner room-block services.
 
 ## Known facts (from the current site, www.broyhill.net, read 2026-10-13)
 - 1920s school building, converted to an office complex and event center around 2006. "Nearly 100 years" serving the community.

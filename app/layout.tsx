@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     template: "%s | Historic Broyhill",
   },
   description:
-    "A storied setting for meaningful gatherings, thoughtful stays, and work with a little more character.",
+    "Historic Broyhill offers event spaces for meaningful gatherings and Class A office suites for lease.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

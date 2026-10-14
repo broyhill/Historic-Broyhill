@@ -3,19 +3,17 @@
 import { FormEvent, useState } from "react";
 
 type SpaceOption = { id: string; name: string };
-type FormKind = "event" | "stay" | "lease" | "contact";
+type FormKind = "event" | "lease" | "contact";
 
 const submitCopy: Record<FormKind, string> = {
   event: "Send event inquiry",
-  stay: "Request a group block",
-  lease: "Ask about a suite",
+  lease: "Ask about an office lease",
   contact: "Send a message",
 };
 
 export function InquiryForm({
   kind,
   spaces = [],
-  stayOptions = [],
   suiteOptions = [],
   initialSpaceIds = [],
   title,
@@ -23,7 +21,6 @@ export function InquiryForm({
 }: {
   kind: FormKind;
   spaces?: SpaceOption[];
-  stayOptions?: string[];
   suiteOptions?: string[];
   initialSpaceIds?: string[];
   title: string;
@@ -49,7 +46,7 @@ export function InquiryForm({
       <div className="form-grid">
         <label>Your name <input autoComplete="name" name="name" placeholder="Full name" required /></label>
         <label>Email address <input autoComplete="email" name="email" placeholder="you@example.com" required type="email" /></label>
-        {(kind === "event" || kind === "stay" || kind === "lease") ? (
+        {(kind === "event" || kind === "lease") ? (
           <label>Organization <input autoComplete="organization" name="organization" placeholder="Company or group" /></label>
         ) : null}
         {kind === "event" ? (
@@ -76,22 +73,9 @@ export function InquiryForm({
             ) : null}
           </>
         ) : null}
-        {kind === "stay" ? (
-          <>
-            <label>Preferred stay style
-              <select defaultValue="" name="stay-style" required>
-                <option disabled value="">Choose a style</option>
-                {stayOptions.map((option) => <option key={option}>{option}</option>)}
-              </select>
-            </label>
-            <label>Check-in <input name="check-in" type="date" /></label>
-            <label>Check-out <input name="check-out" type="date" /></label>
-            <label>Rooms needed <input min="1" name="rooms-needed" placeholder="e.g. 12" type="number" /></label>
-          </>
-        ) : null}
         {kind === "lease" ? (
           <>
-            <label>Suite of interest
+            <label>Office suite of interest
               <select defaultValue="" name="suite">
                 <option value="">Not sure yet</option>
                 {suiteOptions.map((option) => <option key={option}>{option}</option>)}
@@ -104,7 +88,7 @@ export function InquiryForm({
       </div>
       <div className="form-submit-row">
         <button className="button button-dark" type="submit">{submitCopy[kind]} <span aria-hidden="true">↗</span></button>
-        <span className="form-privacy">No obligation. Your details stay with this preview and are not transmitted.</span>
+        <span className="form-privacy">No obligation. Your details are not transmitted by this preview.</span>
       </div>
       {submitted ? (
         <p aria-live="polite" className="form-success">

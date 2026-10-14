@@ -7,7 +7,7 @@ export function SiteFooter() {
         <Link className="wordmark footer-wordmark" href="/">
           <span>HISTORIC</span><strong>BROYHILL</strong>
         </Link>
-        <p>A place with a past.<br />Room for what’s next.</p>
+        <p>Historic event spaces.<br />Class A offices for lease.</p>
         <Link className="button button-light" href="/contact">Start a conversation <span aria-hidden="true">↗</span></Link>
       </div>
       <div className="footer-bottom">
