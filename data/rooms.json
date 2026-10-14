@@ -1,0 +1,52 @@
+[
+  {
+    "id": "assembly-hall",
+    "name": "The Assembly Hall",
+    "kind": "Gathering room",
+    "squareFeet": 4800,
+    "capacity": 360,
+    "setups": ["Theater", "Banquet", "Reception"],
+    "historyNote": "Sample story: add the verified history of this room and its original use.",
+    "accent": "sage"
+  },
+  {
+    "id": "founders-room",
+    "name": "The Founders' Room",
+    "kind": "Ballroom",
+    "squareFeet": 3200,
+    "capacity": 220,
+    "setups": ["Theater", "Classroom", "Banquet"],
+    "historyNote": "Sample story: add the verified story of the people this room honors.",
+    "accent": "rust"
+  },
+  {
+    "id": "library",
+    "name": "The Library",
+    "kind": "Meeting room",
+    "squareFeet": 1150,
+    "capacity": 72,
+    "setups": ["Boardroom", "Classroom", "Reception"],
+    "historyNote": "Sample story: add a verified detail from the building's archives.",
+    "accent": "blue"
+  },
+  {
+    "id": "garden-room",
+    "name": "The Garden Room",
+    "kind": "Event room",
+    "squareFeet": 1850,
+    "capacity": 120,
+    "setups": ["Theater", "Banquet", "Reception"],
+    "historyNote": "Sample story: add the verified history behind this room's name.",
+    "accent": "gold"
+  },
+  {
+    "id": "boardroom",
+    "name": "The Boardroom",
+    "kind": "Meeting room",
+    "squareFeet": 620,
+    "capacity": 18,
+    "setups": ["Boardroom", "U-shape"],
+    "historyNote": "Sample story: add a verified archival note about this intimate room.",
+    "accent": "blue"
+  }
+]
