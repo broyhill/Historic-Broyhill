@@ -1,106 +1,144 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { Sparkles, Send, CheckCircle2, RefreshCw, Edit3 } from 'lucide-react';
+import React, { useEffect, useState } from "react";
 
-export default function AdminPage() {
-  const [items, setItems] = useState<any[]>([]);
+interface Campaign {
+  id: string;
+  channel: string;
+  suggestedDraft: string;
+  status: string;
+  createdAt: string;
+  publishedAt?: string;
+}
+
+export default function AdminConsole() {
+  const [tab, setTab] = useState<"queue" | "history">("queue");
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editId, setEditId] = useState<string | null>(null);
-  const [editDraft, setEditDraft] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editedDraft, setEditedDraft] = useState("");
 
-  const load = async () => {
+  const loadCampaigns = async (targetTab: "queue" | "history") => {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/campaigns');
+      const status = targetTab === "queue" ? "PENDING_REVIEW" : "PUBLISHED";
+      const res = await fetch(`/api/admin/campaigns?status=${status}`);
       const data = await res.json();
-      if (Array.isArray(data)) setItems(data);
+      if (data.campaigns) setCampaigns(data.campaigns);
+    } catch (e) {
+      console.error(e);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { loadCampaigns(tab); }, [tab]);
 
-  const authorize = async (id: string, text?: string) => {
-    await fetch('/api/admin/campaigns', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pipelineId: id, updatedDraft: text }),
-    });
-    setItems(prev => prev.filter(i => i.id !== id));
-    setEditId(null);
+  const handleAction = async (id: string, action: "APPROVE" | "DISMISS") => {
+    try {
+      const payload: any = { id, action };
+      if (editingId === id) payload.suggestedDraft = editedDraft;
+      const res = await fetch("/api/admin/campaigns", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        setEditingId(null);
+        loadCampaigns(tab);
+      }
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-4 sm:p-6 space-y-6">
-      <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
-        <div>
-          <h1 className="text-lg font-bold flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-amber-400" />
-            5% Operations Console
-          </h1>
-          <p className="text-xs text-neutral-400">Review staged AI outreach & authorize broadcasts</p>
+    <div className="min-h-screen bg-neutral-950 text-neutral-100 p-8">
+      <div className="max-w-4xl mx-auto space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-neutral-800 gap-4">
+          <div>
+            <h1 className="text-2xl font-serif tracking-wide text-neutral-100">✧ 5% Operations Console</h1>
+            <p className="text-xs text-neutral-400 font-mono mt-1">Review staged AI outreach & audit published venue broadcasts</p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="flex bg-neutral-900 border border-neutral-800 rounded-lg p-1">
+              <button
+                onClick={() => setTab("queue")}
+                className={`px-4 py-1.5 text-xs font-mono rounded-md transition ${tab === "queue" ? "bg-amber-500 text-neutral-950 font-semibold" : "text-neutral-400"}`}
+              >
+                Review Queue
+              </button>
+              <button
+                onClick={() => setTab("history")}
+                className={`px-4 py-1.5 text-xs font-mono rounded-md transition ${tab === "history" ? "bg-amber-500 text-neutral-950 font-semibold" : "text-neutral-400"}`}
+              >
+                Broadcast History
+              </button>
+            </div>
+            <button onClick={() => loadCampaigns(tab)} className="p-2 border border-neutral-800 bg-neutral-900 rounded-lg text-neutral-400 hover:text-neutral-100">↻</button>
+          </div>
         </div>
-        <button onClick={load} className="p-2 bg-neutral-900 border border-neutral-800 rounded-lg">
-          <RefreshCw className={`w-4 h-4 text-neutral-400 ${loading ? 'animate-spin' : ''}`} />
-        </button>
-      </div>
 
-      <div className="space-y-4">
         {loading ? (
-          <p className="text-xs text-neutral-500 font-mono">Loading queue...</p>
-        ) : items.length === 0 ? (
-          <div className="p-8 bg-neutral-900/40 border border-neutral-850 rounded-xl text-center space-y-2">
-            <CheckCircle2 className="w-6 h-6 text-emerald-400 mx-auto" />
-            <p className="text-sm font-medium text-neutral-300">Queue Clear</p>
-            <p className="text-xs text-neutral-500">No communications pending review</p>
+          <div className="p-12 text-center text-neutral-500 font-mono text-xs">Loading records...</div>
+        ) : campaigns.length === 0 ? (
+          <div className="p-16 border border-neutral-900 rounded-2xl bg-neutral-900/30 text-center space-y-3">
+            <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">✓</div>
+            <h2 className="text-base font-medium text-neutral-200">{tab === "queue" ? "Queue Clear" : "No Broadcast History"}</h2>
+            <p className="text-xs text-neutral-500">{tab === "queue" ? "No communications pending review." : "Authorized broadcasts will be recorded here."}</p>
           </div>
         ) : (
-          items.map(item => (
-            <div key={item.id} className="p-4 bg-neutral-900 border border-neutral-800 rounded-xl space-y-3">
-              <div className="flex items-center justify-between text-xs font-mono">
-                <span className="text-neutral-400 uppercase">{item.channel}</span>
-                <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">PENDING</span>
-              </div>
-              {editId === item.id ? (
-                <textarea
-                  value={editDraft}
-                  onChange={e => setEditDraft(e.target.value)}
-                  className="w-full h-36 bg-neutral-950 border border-neutral-700 rounded-lg p-3 text-xs text-neutral-200 focus:outline-none"
-                />
-              ) : (
-                <p className="text-xs text-neutral-200 whitespace-pre-wrap leading-relaxed bg-neutral-950 p-3 rounded-lg border border-neutral-850">
-                  {item.suggestedDraft}
-                </p>
-              )}
-              <div className="flex justify-end gap-2 pt-1">
-                {editId === item.id ? (
-                  <button
-                    onClick={() => authorize(item.id, editDraft)}
-                    className="px-3 py-1.5 bg-emerald-500 text-neutral-950 text-xs font-semibold rounded-lg"
-                  >
-                    Save & Broadcast
-                  </button>
+          <div className="space-y-4">
+            {campaigns.map((c) => (
+              <div key={c.id} className="bg-neutral-900/80 border border-neutral-800 rounded-xl p-6 space-y-4 shadow-lg">
+                <div className="flex items-center justify-between text-xs font-mono text-neutral-400 border-b border-neutral-800/60 pb-3">
+                  <div className="flex items-center space-x-3">
+                    <span className="text-neutral-200 font-semibold">{c.channel}</span>
+                    <span className="text-neutral-600">·</span>
+                    <span className="text-neutral-500">{new Date(c.createdAt).toLocaleString()}</span>
+                  </div>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-semibold tracking-wider ${c.status === "PUBLISHED" ? "bg-emerald-950/60 border border-emerald-800 text-emerald-400" : "bg-amber-950/60 border border-amber-800 text-amber-400"}`}>
+                    {c.status}
+                  </span>
+                </div>
+
+                {editingId === c.id ? (
+                  <textarea
+                    rows={8}
+                    value={editedDraft}
+                    onChange={(e) => setEditedDraft(e.target.value)}
+                    className="w-full bg-neutral-950 border border-neutral-700 rounded-lg p-3 text-sm text-neutral-100 font-sans leading-relaxed focus:outline-none focus:border-amber-500"
+                  />
                 ) : (
-                  <>
-                    <button
-                      onClick={() => { setEditId(item.id); setEditDraft(item.suggestedDraft); }}
-                      className="px-3 py-1.5 bg-neutral-800 text-neutral-300 text-xs rounded-lg flex items-center gap-1"
-                    >
-                      <Edit3 className="w-3 h-3" /> Edit
-                    </button>
-                    <button
-                      onClick={() => authorize(item.id)}
-                      className="px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-950 text-xs font-semibold rounded-lg flex items-center gap-1"
-                    >
-                      <Send className="w-3 h-3" /> Authorize Broadcast
-                    </button>
-                  </>
+                  <div className="bg-neutral-950/70 border border-neutral-800/80 rounded-lg p-4 text-sm text-neutral-300 whitespace-pre-wrap leading-relaxed">
+                    {c.suggestedDraft}
+                  </div>
+                )}
+
+                {tab === "queue" && (
+                  <div className="flex items-center justify-end space-x-3 pt-2">
+                    {editingId === c.id ? (
+                      <>
+                        <button onClick={() => setEditingId(null)} className="px-4 py-2 border border-neutral-800 rounded-lg text-xs font-mono text-neutral-400">Cancel</button>
+                        <button onClick={() => handleAction(c.id, "APPROVE")} className="px-4 py-2 bg-amber-500 text-neutral-950 rounded-lg text-xs font-mono font-medium">Save & Authorize</button>
+                      </>
+                    ) : (
+                      <>
+                        <button onClick={() => { setEditingId(c.id); setEditedDraft(c.suggestedDraft); }} className="px-4 py-2 border border-neutral-800 rounded-lg text-xs font-mono text-neutral-300">Edit Draft</button>
+                        <button onClick={() => handleAction(c.id, "APPROVE")} className="px-4 py-2 bg-neutral-100 text-neutral-950 rounded-lg text-xs font-mono font-semibold">Authorize Broadcast</button>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {tab === "history" && c.publishedAt && (
+                  <div className="text-right text-[11px] font-mono text-neutral-500">
+                    Published: {new Date(c.publishedAt).toLocaleString()}
+                  </div>
                 )}
               </div>
-            </div>
-          ))
+            ))}
+          </div>
         )}
       </div>
     </div>

@@ -1,13 +1,19 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const queue = await prisma.aiContentPipeline.findMany({
-      where: { status: 'PENDING_REVIEW' },
-      orderBy: { createdAt: 'desc' },
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get("status") || "PENDING_REVIEW";
+    const where = status === "ALL" ? {} : { status };
+
+    const campaigns = await prisma.aiContentPipeline.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      take: 50,
+      include: { business: { select: { businessName: true } } }
     });
-    return NextResponse.json(queue);
+    return NextResponse.json({ success: true, campaigns });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -15,16 +21,28 @@ export async function GET() {
 
 export async function PATCH(request: Request) {
   try {
-    const { pipelineId, updatedDraft } = await request.json();
+    const body = await request.json();
+    const { id, action, suggestedDraft } = body;
+    if (!id || !action) return NextResponse.json({ error: "Missing required parameters" }, { status: 400 });
+
+    let status = "PENDING_REVIEW";
+    let publishedAt: Date | null = null;
+    if (action === "APPROVE") {
+      status = "PUBLISHED";
+      publishedAt = new Date();
+    } else if (action === "DISMISS") {
+      status = "DISMISSED";
+    }
+
     const updated = await prisma.aiContentPipeline.update({
-      where: { id: pipelineId },
+      where: { id },
       data: {
-        status: 'PUBLISHED',
-        suggestedDraft: updatedDraft || undefined,
-        publishedAt: new Date()
-      },
+        status,
+        publishedAt,
+        ...(suggestedDraft ? { suggestedDraft } : {})
+      }
     });
-    return NextResponse.json({ status: 'PUBLISHED', id: updated.id });
+    return NextResponse.json({ success: true, campaign: updated });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
