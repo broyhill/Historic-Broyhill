@@ -35,6 +35,10 @@ export default function AdminConsole() {
         fetch(`/api/admin/campaigns?status=${status}`),
         fetch("/api/admin/metrics")
       ]);
+      if (campRes.status === 401 || metRes.status === 401) {
+        window.location.assign("/admin/login");
+        return;
+      }
       const campData = await campRes.json();
       const metData = await metRes.json();
       if (campData.campaigns) setCampaigns(campData.campaigns);
@@ -66,6 +70,14 @@ export default function AdminConsole() {
     }
   };
 
+  const signOut = async () => {
+    try {
+      await fetch("/api/admin/auth", { method: "DELETE" });
+    } finally {
+      window.location.assign("/admin/login");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 p-8">
       <div className="max-w-5xl mx-auto space-y-6">
@@ -90,6 +102,7 @@ export default function AdminConsole() {
               </button>
             </div>
             <button onClick={() => refreshData(tab)} className="p-2 border border-neutral-800 bg-neutral-900 rounded-lg text-neutral-400 hover:text-neutral-100">↻</button>
+            <button onClick={signOut} className="px-3 py-2 border border-neutral-800 bg-neutral-900 rounded-lg text-xs font-mono text-neutral-400 hover:text-neutral-100">Sign Out</button>
           </div>
         </div>
 

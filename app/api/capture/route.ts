@@ -1,24 +1,14 @@
 import { NextResponse } from 'next/server';
+import { processCapture } from '@/lib/capture';
 
+// Public form endpoint. Processes the capture in-process rather than calling the webhook over HTTP,
+// so CAPTURE_WEBHOOK_SECRET never leaves the server.
 export async function POST(request: Request) {
+  let body: unknown;
   try {
-    const body = await request.json();
-    const secret = process.env.CAPTURE_WEBHOOK_SECRET || 'nexus_secure_capture_token_2026';
-    const host = request.headers.get('host') || 'localhost:3000';
-    const protocol = host.includes('localhost') ? 'http' : 'https';
-
-    const response = await fetch(`${protocol}://${host}/api/webhooks/capture`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-nexus-webhook-secret': secret,
-      },
-      body: JSON.stringify(body),
-    });
-
-    const data = await response.json();
-    return NextResponse.json(data, { status: response.status });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
+  return processCapture(body);
 }
