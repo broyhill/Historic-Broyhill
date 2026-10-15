@@ -110,7 +110,7 @@ Analyze the incoming lead and respond with a JSON object matching this structure
     });
 
     // Stage Campaign in AiContentPipeline for Human-in-the-Loop review
-    const campaign = await prisma.AiContentPipeline.create({
+    const campaign = await prisma.aiContentPipeline.create({
       data: {
         businessId: business.id,
         channel: 'EMAIL',

@@ -1,11 +1,11 @@
 "use client";
 import React, { useState } from "react";
 export default function CapturePage() {
-  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", company: "", phone: "", interest: "Grand Ballroom Gala & Reception", notes: "" });
+  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", company: "", phone: "", interest: "Magnolia Room", notes: "" });
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState(null);
-  const submit = async (e) => {
+  const [error, setError] = useState<string | null>(null);
+  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); setLoading(true); setError(null);
     try {
       const res = await fetch("/api/capture", {
@@ -13,12 +13,12 @@ export default function CapturePage() {
         body: JSON.stringify({
           first_name: form.firstName, last_name: form.lastName, email: form.email, company: form.company || "Private Inquiry",
           phone: form.phone || null, notes: "Interest: " + form.interest + ". Vision: " + (form.notes || "None provided"),
-          tags: ["In-Person NFC Tap", form.interest.includes("Gala") ? "High Net Worth" : "VIP"]
+          tags: ["In-Person NFC Tap", ...(["Magnolia Room", "The Boardrooms"].includes(form.interest) ? ["VIP", "High Net Worth"] : ["Standard Event"])]
         })
       });
       if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Failed to submit"); }
       setSubmitted(true);
-    } catch (err) { setError(err.message); } finally { setLoading(false); }
+    } catch (err) { setError(err instanceof Error ? err.message : "Failed to submit"); } finally { setLoading(false); }
   };
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 flex flex-col justify-center items-center px-4 py-12">
@@ -57,9 +57,10 @@ export default function CapturePage() {
             </div>
             <div><label className="block text-xs font-mono uppercase text-neutral-400 mb-1">Interest</label>
               <select value={form.interest} onChange={e => setForm({...form, interest: e.target.value})} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2 text-sm text-neutral-100">
-                <option>Grand Ballroom Gala & Reception</option>
-                <option>Executive Board Retreat & Hospitality</option>
-                <option>Historic Grounds Private Tour</option>
+                <option>Magnolia Room</option>
+                <option>The Boardrooms</option>
+                <option>The Dock</option>
+                <option>The Loft</option>
               </select>
             </div>
             <div><label className="block text-xs font-mono uppercase text-neutral-400 mb-1">Notes / Vision</label>
