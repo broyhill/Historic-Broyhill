@@ -116,7 +116,9 @@ Analyze the incoming lead and respond with a JSON object matching this structure
         channel: 'EMAIL',
         suggestedDraft,
         status: 'PENDING_REVIEW',
-        scheduledFor: new Date()
+        scheduledFor: new Date(),
+        // AiContentPipeline has no lead relation; record the recipient for dispatch on approval
+        metrics: { leadId: lead.id, recipientEmail: lead.email }
       }
     });
 
