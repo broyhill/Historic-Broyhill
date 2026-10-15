@@ -11,20 +11,34 @@ interface Campaign {
   publishedAt?: string;
 }
 
+interface Metrics {
+  totalLeads: number;
+  pendingReview: number;
+  publishedBroadcasts: number;
+  vipLeads: number;
+  reviewRate: string;
+}
+
 export default function AdminConsole() {
   const [tab, setTab] = useState<"queue" | "history">("queue");
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editedDraft, setEditedDraft] = useState("");
 
-  const loadCampaigns = async (targetTab: "queue" | "history") => {
+  const refreshData = async (targetTab: "queue" | "history") => {
     setLoading(true);
     try {
       const status = targetTab === "queue" ? "PENDING_REVIEW" : "PUBLISHED";
-      const res = await fetch(`/api/admin/campaigns?status=${status}`);
-      const data = await res.json();
-      if (data.campaigns) setCampaigns(data.campaigns);
+      const [campRes, metRes] = await Promise.all([
+        fetch(`/api/admin/campaigns?status=${status}`),
+        fetch("/api/admin/metrics")
+      ]);
+      const campData = await campRes.json();
+      const metData = await metRes.json();
+      if (campData.campaigns) setCampaigns(campData.campaigns);
+      if (metData.metrics) setMetrics(metData.metrics);
     } catch (e) {
       console.error(e);
     } finally {
@@ -32,7 +46,7 @@ export default function AdminConsole() {
     }
   };
 
-  useEffect(() => { loadCampaigns(tab); }, [tab]);
+  useEffect(() => { refreshData(tab); }, [tab]);
 
   const handleAction = async (id: string, action: "APPROVE" | "DISMISS") => {
     try {
@@ -45,7 +59,7 @@ export default function AdminConsole() {
       });
       if (res.ok) {
         setEditingId(null);
-        loadCampaigns(tab);
+        refreshData(tab);
       }
     } catch (e) {
       console.error(e);
@@ -54,8 +68,8 @@ export default function AdminConsole() {
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-neutral-800 gap-4">
+      <div className="max-w-5xl mx-auto space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-neutral-800 gap-4">
           <div>
             <h1 className="text-2xl font-serif tracking-wide text-neutral-100">✧ 5% Operations Console</h1>
             <p className="text-xs text-neutral-400 font-mono mt-1">Review staged AI outreach & audit published venue broadcasts</p>
@@ -64,20 +78,41 @@ export default function AdminConsole() {
             <div className="flex bg-neutral-900 border border-neutral-800 rounded-lg p-1">
               <button
                 onClick={() => setTab("queue")}
-                className={`px-4 py-1.5 text-xs font-mono rounded-md transition ${tab === "queue" ? "bg-amber-500 text-neutral-950 font-semibold" : "text-neutral-400"}`}
+                className={`px-4 py-1.5 text-xs font-mono rounded-md transition ${tab === "queue" ? "bg-amber-500 text-neutral-950 font-semibold" : "text-neutral-400 hover:text-neutral-200"}`}
               >
-                Review Queue
+                Review Queue ({metrics?.pendingReview ?? 0})
               </button>
               <button
                 onClick={() => setTab("history")}
-                className={`px-4 py-1.5 text-xs font-mono rounded-md transition ${tab === "history" ? "bg-amber-500 text-neutral-950 font-semibold" : "text-neutral-400"}`}
+                className={`px-4 py-1.5 text-xs font-mono rounded-md transition ${tab === "history" ? "bg-amber-500 text-neutral-950 font-semibold" : "text-neutral-400 hover:text-neutral-200"}`}
               >
-                Broadcast History
+                Broadcast History ({metrics?.publishedBroadcasts ?? 0})
               </button>
             </div>
-            <button onClick={() => loadCampaigns(tab)} className="p-2 border border-neutral-800 bg-neutral-900 rounded-lg text-neutral-400 hover:text-neutral-100">↻</button>
+            <button onClick={() => refreshData(tab)} className="p-2 border border-neutral-800 bg-neutral-900 rounded-lg text-neutral-400 hover:text-neutral-100">↻</button>
           </div>
         </div>
+
+        {metrics && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-neutral-900/60 border border-neutral-800 rounded-xl p-4">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 block">Total Ingested Leads</span>
+              <span className="text-2xl font-semibold text-neutral-100 font-mono mt-1 block">{metrics.totalLeads}</span>
+            </div>
+            <div className="bg-neutral-900/60 border border-neutral-800 rounded-xl p-4">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 block">VIP / High Net Worth</span>
+              <span className="text-2xl font-semibold text-amber-400 font-mono mt-1 block">{metrics.vipLeads}</span>
+            </div>
+            <div className="bg-neutral-900/60 border border-neutral-800 rounded-xl p-4">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 block">Awaiting Authorization</span>
+              <span className="text-2xl font-semibold text-amber-500 font-mono mt-1 block">{metrics.pendingReview}</span>
+            </div>
+            <div className="bg-neutral-900/60 border border-neutral-800 rounded-xl p-4">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 block">Clearance Rate</span>
+              <span className="text-2xl font-semibold text-emerald-400 font-mono mt-1 block">{metrics.reviewRate}</span>
+            </div>
+          </div>
+        )}
 
         {loading ? (
           <div className="p-12 text-center text-neutral-500 font-mono text-xs">Loading records...</div>
