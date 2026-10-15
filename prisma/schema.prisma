@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model BusinessProfile {
+  id              String              @id @default(uuid())
+  businessName    String
+  industry        String
+  referenceUrls   String[]            @default([])
+  designTokens    Json?
+  marketingTracks String[]            @default([])
+  createdAt       DateTime            @default(now())
+  campaigns       AiContentPipeline[]
+  leads           LeadProfile[]
+}
+
+model LeadProfile {
+  id             String          @id @default(uuid())
+  businessId     String
+  email          String          @unique
+  name           String?
+  company        String?
+  phone          String?
+  leadScore      Int             @default(0)
+  leadStatus     String          @default("PROSPECT")
+  primaryTrack   String
+  leadSource     String          @default("IN_PERSON_NFC")
+  estimatedValue Float?
+  customFields   Json?
+  notes          String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  activities     LeadActivity[]
+  business       BusinessProfile @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
+  @@index([email])
+}
+
+model LeadActivity {
+  id            String      @id @default(uuid())
+  leadId        String
+  activityType  String
+  scoreModifier Int
+  metadata      Json?
+  createdAt     DateTime    @default(now())
+  lead          LeadProfile @relation(fields: [leadId], references: [id], onDelete: Cascade)
+}
+
+model AiContentPipeline {
+  id             String          @id @default(uuid())
+  businessId     String
+  channel        String          @default("EMAIL")
+  suggestedDraft String
+  mediaUrls      Json?
+  status         String          @default("PENDING_REVIEW")
+  scheduledFor   DateTime        @default(now())
+  publishedAt    DateTime?
+  metrics        Json?
+  createdAt      DateTime        @default(now())
+  business       BusinessProfile @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+}
