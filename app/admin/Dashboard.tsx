@@ -12,12 +12,14 @@ export interface Metrics {
 
 export type Section = "dashboard" | "leads" | "queue" | "history" | "settings";
 
-function Stat({ label, value, tone = "default" }: { label: string; value: React.ReactNode; tone?: "default" | "amber" | "emerald" }) {
-  const color = tone === "amber" ? "text-amber-400" : tone === "emerald" ? "text-emerald-400" : "text-neutral-100";
+function Stat({ label, value, tone = "default" }: { label: string; value: React.ReactNode; tone?: "default" | "teal" | "amber" }) {
+  const color = tone === "teal" ? "text-[#1ab394]" : tone === "amber" ? "text-[#f5a623]" : "text-[#323a46]";
   return (
-    <div className="bg-neutral-900/60 border border-neutral-800 rounded-xl p-4">
-      <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 block">{label}</span>
-      <span className={`text-2xl font-semibold font-mono mt-1 block ${color}`}>{value}</span>
+    <div className="ibox">
+      <div className="ibox-content">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-[#9ba6b7] block">{label}</span>
+        <span className={`text-[28px] font-bold mt-1 block leading-none ${color}`}>{value}</span>
+      </div>
     </div>
   );
 }
@@ -30,37 +32,41 @@ export default function Dashboard({ metrics, onNavigate }: { metrics: Metrics | 
         <Stat label="Total Leads" value={m?.totalLeads ?? "—"} />
         <Stat label="VIP / High Net Worth" value={m?.vipLeads ?? "—"} tone="amber" />
         <Stat label="Awaiting Authorization" value={m?.pendingReview ?? "—"} tone="amber" />
-        <Stat label="Clearance Rate" value={m?.reviewRate ?? "—"} tone="emerald" />
+        <Stat label="Clearance Rate" value={m?.reviewRate ?? "—"} tone="teal" />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         {/* Pending outreach — the thing that needs the admin's attention */}
         <button
           onClick={() => onNavigate("queue")}
-          className="text-left bg-neutral-900/60 border border-neutral-800 rounded-xl p-5 hover:border-amber-700/60 hover:bg-neutral-900 transition group"
+          className="ibox text-left hover:border-[#1ab394]/50 transition group"
         >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-mono uppercase tracking-wider text-neutral-400">Review Queue</span>
-            <span className="text-neutral-600 group-hover:text-amber-400 transition">→</span>
+          <div className="ibox-content">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-[#9ba6b7]">Review Queue</span>
+              <span className="text-[#c3c9d1] group-hover:text-[#1ab394] transition">→</span>
+            </div>
+            <p className="mt-2 text-sm text-[#4c4c5c]">
+              {m && m.pendingReview > 0
+                ? `${m.pendingReview} draft${m.pendingReview === 1 ? "" : "s"} awaiting your authorization.`
+                : "No outreach is waiting for review."}
+            </p>
           </div>
-          <p className="mt-2 text-sm text-neutral-300">
-            {m && m.pendingReview > 0
-              ? `${m.pendingReview} draft${m.pendingReview === 1 ? "" : "s"} awaiting your authorization.`
-              : "No outreach is waiting for review."}
-          </p>
         </button>
 
         <button
           onClick={() => onNavigate("leads")}
-          className="text-left bg-neutral-900/60 border border-neutral-800 rounded-xl p-5 hover:border-sky-700/60 hover:bg-neutral-900 transition group"
+          className="ibox text-left hover:border-[#1c84c6]/50 transition group"
         >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-mono uppercase tracking-wider text-neutral-400">Lead Directory</span>
-            <span className="text-neutral-600 group-hover:text-sky-400 transition">→</span>
+          <div className="ibox-content">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-[#9ba6b7]">Lead Directory</span>
+              <span className="text-[#c3c9d1] group-hover:text-[#1c84c6] transition">→</span>
+            </div>
+            <p className="mt-2 text-sm text-[#4c4c5c]">
+              {m ? `${m.totalLeads} contact${m.totalLeads === 1 ? "" : "s"} on file. ` : ""}Search, filter, import a list, or export to CSV.
+            </p>
           </div>
-          <p className="mt-2 text-sm text-neutral-300">
-            {m ? `${m.totalLeads} contact${m.totalLeads === 1 ? "" : "s"} on file.` : "View, search, import, and export contacts."} Search, filter, import a list, or export to CSV.
-          </p>
         </button>
       </div>
     </div>

@@ -21,9 +21,6 @@ interface Lead {
 
 type SortKey = "name" | "company" | "leadScore" | "primaryTrack" | "createdAt";
 
-const money = (v: number | null) =>
-  v == null ? "—" : v.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
-
 export default function LeadsPanel() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [tracks, setTracks] = useState<string[]>([]);
@@ -158,68 +155,68 @@ export default function LeadsPanel() {
 
   const arrow = (key: SortKey) => (sortKey === key ? (sortDir === "asc" ? " ↑" : " ↓") : "");
 
-  const th = "px-3 py-2 text-left text-[10px] font-mono uppercase tracking-wider text-neutral-400 whitespace-nowrap";
-  const thSort = `${th} cursor-pointer select-none hover:text-neutral-200`;
-  const td = "px-3 py-2.5 text-xs text-neutral-300 align-middle";
+  const th = "px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-[#9ba6b7] whitespace-nowrap";
+  const thSort = `${th} cursor-pointer select-none hover:text-[#323a46]`;
+  const td = "px-3 py-2.5 text-xs text-[#4c4c5c] align-middle";
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col lg:flex-row lg:items-center gap-3">
         <div className="relative flex-1">
-          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 text-sm">⌕</span>
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#9ba6b7] text-sm">⌕</span>
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search name, company, email, or phone…"
-            className="w-full bg-neutral-900 border border-neutral-800 rounded-lg pl-9 pr-3 py-2.5 text-sm text-neutral-100 placeholder:text-neutral-600 focus:outline-none focus:border-amber-500"
+            className="ins-input w-full rounded-md pl-9 pr-3 py-2.5 text-sm"
           />
         </div>
-        <select value={track} onChange={(e) => setTrack(e.target.value)} className="bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2.5 text-xs font-mono text-neutral-300 focus:outline-none focus:border-amber-500">
+        <select value={track} onChange={(e) => setTrack(e.target.value)} className="ins-input rounded-md px-3 py-2.5 text-xs">
           <option value="ALL">All interests</option>
           {tracks.map((t) => <option key={t} value={t}>{t}</option>)}
         </select>
-        <select value={status} onChange={(e) => setStatus(e.target.value)} className="bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2.5 text-xs font-mono text-neutral-300 focus:outline-none focus:border-amber-500">
+        <select value={status} onChange={(e) => setStatus(e.target.value)} className="ins-input rounded-md px-3 py-2.5 text-xs">
           <option value="ALL">All statuses</option>
           {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
         <input ref={fileRef} type="file" accept=".csv,text/csv" onChange={onPickFile} className="hidden" />
         <button
           onClick={() => fileRef.current?.click()}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-neutral-700 bg-neutral-900 text-neutral-200 rounded-lg text-xs font-mono font-semibold hover:bg-neutral-800 transition whitespace-nowrap"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-[#e7e9eb] bg-white text-[#4c4c5c] rounded-md text-xs font-semibold hover:bg-[#f1f2f7] transition whitespace-nowrap"
         >
           ↑ Import CSV
         </button>
         <a
           href={`/api/admin/leads/export?${query}`}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-500 text-neutral-950 rounded-lg text-xs font-mono font-semibold hover:bg-amber-400 transition whitespace-nowrap"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#1ab394] text-white rounded-md text-xs font-semibold hover:bg-[#16987e] transition whitespace-nowrap"
         >
           ↓ Export CSV
         </a>
       </div>
 
       {importError && (
-        <div role="alert" className="rounded-lg border border-red-800 bg-red-950/40 px-3 py-2.5 text-xs text-red-300 font-mono">{importError}</div>
+        <div role="alert" className="rounded-md border border-[#f5c2c7] bg-[#fdeeee] px-3 py-2.5 text-xs text-[#c0392b]">{importError}</div>
       )}
       {importDone && (
-        <div className="rounded-lg border border-emerald-800 bg-emerald-950/40 px-3 py-2.5 text-xs text-emerald-300 font-mono">{importDone}</div>
+        <div className="rounded-md border border-[#9decd5] bg-[#daf8ef] px-3 py-2.5 text-xs text-[#09916b]">{importDone}</div>
       )}
 
-      <div className="text-[11px] font-mono text-neutral-500">
+      <div className="text-[11px] text-[#9ba6b7]">
         {loading ? "Loading leads…" : `${sorted.length} lead${sorted.length === 1 ? "" : "s"}${query ? " (filtered)" : ""}`}
       </div>
 
       {loading ? (
-        <div className="p-12 text-center text-neutral-500 font-mono text-xs">Loading records…</div>
+        <div className="p-12 text-center text-[#9ba6b7] text-xs">Loading records…</div>
       ) : sorted.length === 0 ? (
-        <div className="p-16 border border-neutral-900 rounded-2xl bg-neutral-900/30 text-center space-y-3">
-          <div className="w-10 h-10 rounded-full bg-neutral-800 text-neutral-400 flex items-center justify-center mx-auto">∅</div>
-          <h2 className="text-base font-medium text-neutral-200">No leads match</h2>
-          <p className="text-xs text-neutral-500">Try clearing the search or filters.</p>
+        <div className="ibox p-16 text-center space-y-3">
+          <div className="w-10 h-10 rounded-full bg-[#eef2f7] text-[#9ba6b7] flex items-center justify-center mx-auto">∅</div>
+          <h2 className="text-base font-semibold text-[#323a46]">No leads match</h2>
+          <p className="text-xs text-[#9ba6b7]">Try clearing the search or filters.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto border border-neutral-800 rounded-xl bg-neutral-900/60">
+        <div className="ibox overflow-x-auto">
           <table className="w-full border-collapse">
-            <thead className="bg-neutral-900/80 border-b border-neutral-800">
+            <thead className="bg-[#f8f9fb] border-b border-[#e7e9eb]">
               <tr>
                 <th className={thSort} onClick={() => toggleSort("name")}>Name{arrow("name")}</th>
                 <th className={thSort} onClick={() => toggleSort("company")}>Company{arrow("company")}</th>
@@ -230,26 +227,26 @@ export default function LeadsPanel() {
                 <th className={`${thSort} text-right`} onClick={() => toggleSort("createdAt")}>Captured{arrow("createdAt")}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-neutral-800/60">
+            <tbody className="divide-y divide-[#eef1f4]">
               {sorted.map((l) => (
-                <tr key={l.id} className="hover:bg-neutral-800/30">
-                  <td className={`${td} text-neutral-100 font-medium`}>{l.name || "—"}</td>
+                <tr key={l.id} className="hover:bg-[#f7f8fa]">
+                  <td className={`${td} text-[#323a46] font-semibold`}>{l.name || "—"}</td>
                   <td className={td}>{l.company || "—"}</td>
                   <td className={td}>
                     <div className="flex flex-col gap-0.5">
-                      <a href={`mailto:${l.email}`} className="text-neutral-300 hover:text-amber-400">{l.email}</a>
-                      {l.phone && <a href={`tel:${l.phone}`} className="text-neutral-500 hover:text-amber-400">{l.phone}</a>}
+                      <a href={`mailto:${l.email}`} className="text-[#4c4c5c] hover:text-[#1ab394]">{l.email}</a>
+                      {l.phone && <a href={`tel:${l.phone}`} className="text-[#9ba6b7] hover:text-[#1ab394]">{l.phone}</a>}
                       {l.linkedinId && (
-                        <a href={linkedinHref(l.linkedinId)} target="_blank" rel="noopener noreferrer" className="text-sky-400 hover:text-sky-300">LinkedIn ↗</a>
+                        <a href={linkedinHref(l.linkedinId)} target="_blank" rel="noopener noreferrer" className="text-[#1c84c6] hover:underline">LinkedIn ↗</a>
                       )}
                     </div>
                   </td>
-                  <td className={`${td} text-neutral-400`}>{l.primaryTrack}</td>
-                  <td className={`${td} text-right font-mono ${l.leadScore >= 80 ? "text-amber-400 font-semibold" : "text-neutral-300"}`}>{l.leadScore}</td>
+                  <td className={`${td} text-[#6c757d]`}>{l.primaryTrack}</td>
+                  <td className={`${td} text-right ${l.leadScore >= 80 ? "text-[#1ab394] font-bold" : "text-[#4c4c5c]"}`}>{l.leadScore}</td>
                   <td className={td}>
-                    <span className="inline-block px-2 py-0.5 rounded text-[10px] font-mono tracking-wider bg-neutral-800 border border-neutral-700 text-neutral-300">{l.leadStatus}</span>
+                    <span className="inline-block px-2 py-0.5 rounded text-[10px] font-medium tracking-wider bg-[#eef2f7] text-[#6c757d]">{l.leadStatus}</span>
                   </td>
-                  <td className={`${td} text-right font-mono text-neutral-500 whitespace-nowrap`}>{new Date(l.createdAt).toLocaleDateString()}</td>
+                  <td className={`${td} text-right text-[#9ba6b7] whitespace-nowrap`}>{new Date(l.createdAt).toLocaleDateString()}</td>
                 </tr>
               ))}
             </tbody>
@@ -258,48 +255,48 @@ export default function LeadsPanel() {
       )}
 
       {preview && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true" aria-label="Confirm import">
-          <div className="w-full max-w-lg bg-neutral-900 border border-neutral-700 rounded-2xl shadow-2xl p-6 space-y-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-label="Confirm import">
+          <div className="w-full max-w-lg bg-white border border-[#e7e9eb] rounded-lg shadow-2xl p-6 space-y-5">
             <div>
-              <h3 className="text-lg font-serif text-neutral-100">Import leads</h3>
-              <p className="text-xs font-mono text-neutral-500 mt-1 truncate">{preview.fileName}</p>
+              <h3 className="text-lg font-semibold text-[#323a46]">Import leads</h3>
+              <p className="text-xs text-[#9ba6b7] mt-1 truncate">{preview.fileName}</p>
             </div>
 
             <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-lg border border-emerald-800/60 bg-emerald-950/30 p-3 text-center">
-                <div className="text-2xl font-mono font-semibold text-emerald-400">{preview.counts.toCreate}</div>
-                <div className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 mt-0.5">New</div>
+              <div className="rounded-md border border-[#9decd5] bg-[#daf8ef] p-3 text-center">
+                <div className="text-2xl font-bold text-[#09916b]">{preview.counts.toCreate}</div>
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-[#6c757d] mt-0.5">New</div>
               </div>
-              <div className="rounded-lg border border-sky-800/60 bg-sky-950/30 p-3 text-center">
-                <div className="text-2xl font-mono font-semibold text-sky-400">{preview.counts.toUpdate}</div>
-                <div className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 mt-0.5">Update</div>
+              <div className="rounded-md border border-[#a4cee8] bg-[#ddedf6] p-3 text-center">
+                <div className="text-2xl font-bold text-[#1870a8]">{preview.counts.toUpdate}</div>
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-[#6c757d] mt-0.5">Update</div>
               </div>
-              <div className="rounded-lg border border-neutral-700 bg-neutral-800/40 p-3 text-center">
-                <div className="text-2xl font-mono font-semibold text-neutral-400">{preview.counts.skipped}</div>
-                <div className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 mt-0.5">Skipped</div>
+              <div className="rounded-md border border-[#e7e9eb] bg-[#f1f2f7] p-3 text-center">
+                <div className="text-2xl font-bold text-[#9ba6b7]">{preview.counts.skipped}</div>
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-[#6c757d] mt-0.5">Skipped</div>
               </div>
             </div>
 
-            <div className="rounded-lg border border-neutral-800 bg-neutral-950/50 p-3 space-y-1.5">
-              <div className="text-[10px] font-mono uppercase tracking-wider text-neutral-500 mb-1">Detected columns</div>
+            <div className="rounded-md border border-[#e7e9eb] bg-[#f8f9fb] p-3 space-y-1.5">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-[#9ba6b7] mb-1">Detected columns</div>
               {(["email", "name", "company", "phone", "linkedin"] as const).map((f) => (
-                <div key={f} className="flex items-center justify-between text-xs font-mono">
-                  <span className="text-neutral-400 capitalize">{f}</span>
-                  <span className={preview.columns[f] ? "text-neutral-200" : "text-neutral-600"}>
+                <div key={f} className="flex items-center justify-between text-xs">
+                  <span className="text-[#6c757d] capitalize">{f}</span>
+                  <span className={preview.columns[f] ? "text-[#323a46] font-medium" : "text-[#c3c9d1]"}>
                     {preview.columns[f] || "— not found"}
                   </span>
                 </div>
               ))}
             </div>
 
-            <p className="text-[11px] text-neutral-500 leading-relaxed">
-              Matches on email: existing contacts are updated, the rest are added as <span className="text-neutral-300">Client</span> records.
+            <p className="text-[11px] text-[#9ba6b7] leading-relaxed">
+              Matches on email: existing contacts are updated, the rest are added as <span className="text-[#6c757d] font-medium">Client</span> records.
               Rows without a valid email are skipped. Nothing is emailed.
             </p>
 
             <div className="flex items-center justify-end gap-3 pt-1">
-              <button onClick={() => setPreview(null)} disabled={importBusy} className="px-4 py-2 border border-neutral-700 rounded-lg text-xs font-mono text-neutral-300 hover:bg-neutral-800 disabled:opacity-60">Cancel</button>
-              <button onClick={commitImport} disabled={importBusy || (preview.counts.toCreate + preview.counts.toUpdate === 0)} className="px-4 py-2 bg-amber-500 text-neutral-950 rounded-lg text-xs font-mono font-semibold hover:bg-amber-400 disabled:opacity-60">
+              <button onClick={() => setPreview(null)} disabled={importBusy} className="px-4 py-2 border border-[#e7e9eb] rounded-md text-xs font-medium text-[#6c757d] hover:bg-[#f1f2f7] disabled:opacity-60">Cancel</button>
+              <button onClick={commitImport} disabled={importBusy || (preview.counts.toCreate + preview.counts.toUpdate === 0)} className="px-4 py-2 bg-[#1ab394] text-white rounded-md text-xs font-semibold hover:bg-[#16987e] disabled:opacity-60">
                 {importBusy ? "Importing…" : `Import ${preview.counts.toCreate + preview.counts.toUpdate} leads`}
               </button>
             </div>

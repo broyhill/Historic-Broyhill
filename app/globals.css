@@ -21,3 +21,23 @@ section[id] {
 .hb-body {
   font-family: var(--font-body), Georgia, 'Times New Roman', serif;
 }
+
+/* ───── Inspinia-inspired admin skin (internal console only) ─────
+   Palette borrowed from the Inspinia template: navy sidebar #1b2e4a,
+   light #f1f2f7 content, white ibox cards, teal-green #1ab394 accent. */
+.ins-app {
+  font-family: var(--font-admin), 'Open Sans', system-ui, -apple-system, sans-serif;
+  background: #f1f2f7;
+  color: #4c4c5c;
+}
+.ins-sidebar { background: #1b2e4a; }
+.ins-navlabel { color: #637a97; }
+.ins-navitem { color: #8ca3bd; transition: color .15s ease, background .15s ease; }
+.ins-navitem:hover { color: #e9ecf1; background: #1e3447; }
+.ins-navitem.is-active { color: #1ab394; background: #1e3447; box-shadow: inset 3px 0 0 #1ab394; }
+.ibox { background: #fff; border: 1px solid #e7e9eb; border-radius: .375rem; box-shadow: 0 .0625rem .125rem rgba(76,76,92,.06); }
+.ibox-title { padding: .9rem 1.25rem; border-bottom: 1px solid #e7e9eb; display: flex; align-items: center; justify-content: space-between; }
+.ibox-content { padding: 1.25rem; }
+.ins-input { background: #fff; border: 1px solid #e7e9eb; color: #4c4c5c; }
+.ins-input::placeholder { color: #9ba6b7; }
+.ins-input:focus { outline: none; border-color: #1ab394; box-shadow: 0 0 0 3px rgba(26,179,148,.15); }

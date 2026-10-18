@@ -29,18 +29,18 @@ export default function AdminLogin() {
   };
 
   return (
-    <main className="min-h-screen bg-neutral-950 text-neutral-100 flex flex-col justify-center items-center px-4 py-12">
-      <div className="w-full max-w-sm bg-neutral-900/80 border border-neutral-800 rounded-2xl p-8 shadow-2xl">
+    <main className="ins-app min-h-screen flex flex-col justify-center items-center px-4 py-12">
+      <div className="w-full max-w-sm bg-white border border-[#e7e9eb] rounded-lg p-8 shadow-lg">
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-serif tracking-wide text-neutral-100">✧ Operations Console</h1>
-          <p className="text-xs uppercase tracking-widest text-amber-400 font-mono mt-1">Historic Broyhill · Staff Access</p>
+          <h1 className="text-xl font-semibold text-[#323a46]">✦ Operations Console</h1>
+          <p className="text-[11px] uppercase tracking-widest text-[#1ab394] mt-1">Historic Broyhill · Staff Access</p>
         </div>
         <form onSubmit={submit} className="space-y-4">
           {error && (
-            <div role="alert" className="p-3 bg-red-950/40 border border-red-800 text-red-300 text-xs rounded-lg font-mono">{error}</div>
+            <div role="alert" className="p-3 bg-[#fdeeee] border border-[#f5c2c7] text-[#c0392b] text-xs rounded-md">{error}</div>
           )}
           <div>
-            <label htmlFor="passcode" className="block text-xs font-mono uppercase text-neutral-400 mb-1">Passcode</label>
+            <label htmlFor="passcode" className="block text-[11px] font-semibold uppercase tracking-wider text-[#9ba6b7] mb-1.5">Passcode</label>
             <input
               id="passcode"
               type="password"
@@ -49,13 +49,13 @@ export default function AdminLogin() {
               autoComplete="current-password"
               value={passcode}
               onChange={(e) => setPasscode(e.target.value)}
-              className="w-full min-h-[44px] bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2 text-sm text-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+              className="ins-input w-full min-h-[44px] rounded-md px-3 py-2 text-sm"
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="w-full min-h-[44px] py-3 bg-amber-500 hover:bg-amber-400 disabled:opacity-60 text-neutral-950 font-medium text-sm rounded-lg transition active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 motion-reduce:transition-none motion-reduce:active:scale-100"
+            className="w-full min-h-[44px] py-3 bg-[#1ab394] hover:bg-[#16987e] disabled:opacity-60 text-white font-semibold text-sm rounded-md transition active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1ab394]/50 motion-reduce:transition-none motion-reduce:active:scale-100"
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>

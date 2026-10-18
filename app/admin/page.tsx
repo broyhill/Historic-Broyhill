@@ -71,33 +71,44 @@ export default function AdminConsole() {
         key={key}
         onClick={() => go(key)}
         aria-current={active ? "page" : undefined}
-        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${active ? "bg-amber-500/10 text-amber-300 border border-amber-500/30" : "text-neutral-400 border border-transparent hover:text-neutral-100 hover:bg-neutral-800/60"}`}
+        className={`ins-navitem ${active ? "is-active" : ""} w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium`}
       >
         <NavIcon section={key} />
         <span className="flex-1 text-left">{label}</span>
         {badge !== undefined && badge > 0 && (
-          <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full ${key === "queue" ? "bg-amber-500 text-neutral-950" : "bg-neutral-800 text-neutral-300"}`}>{badge}</span>
+          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${key === "queue" ? "bg-[#1ab394] text-white" : "bg-white/10 text-[#aab8c5]"}`}>{badge}</span>
         )}
       </button>
     );
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-100">
+    <div className="ins-app min-h-screen">
       {/* Mobile backdrop */}
-      {navOpen && <div className="fixed inset-0 z-30 bg-black/60 lg:hidden" onClick={() => setNavOpen(false)} aria-hidden="true" />}
+      {navOpen && <div className="fixed inset-0 z-30 bg-black/40 lg:hidden" onClick={() => setNavOpen(false)} aria-hidden="true" />}
 
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-neutral-900/95 border-r border-neutral-800 flex flex-col transform transition-transform lg:translate-x-0 ${navOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="px-5 py-5 border-b border-neutral-800">
-          <h1 className="font-serif text-lg text-neutral-100 leading-tight">✧ Historic Broyhill</h1>
-          <p className="text-[10px] font-mono uppercase tracking-[0.18em] text-amber-400/80 mt-0.5">Operations Console</p>
+      <aside className={`ins-sidebar fixed inset-y-0 left-0 z-40 w-64 flex flex-col transform transition-transform lg:translate-x-0 ${navOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className="px-5 py-4 border-b border-white/10">
+          <h1 className="font-semibold text-[15px] text-white leading-tight">✦ Historic Broyhill</h1>
+          <p className="text-[10px] uppercase tracking-[0.18em] text-[#1ab394] mt-0.5">Operations Console</p>
         </div>
+
+        {/* User block */}
+        <div className="px-5 py-4 flex items-center gap-3 border-b border-white/10">
+          <div className="h-9 w-9 rounded-full bg-[#1ab394]/20 text-[#1ab394] grid place-items-center text-sm font-semibold">HB</div>
+          <div className="min-w-0">
+            <div className="text-[13px] font-semibold text-white truncate">Staff Member</div>
+            <div className="text-[11px] text-[#8ca3bd]">Signed in</div>
+          </div>
+        </div>
+
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+          <p className="ins-navlabel px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-[0.14em]">Navigation</p>
           {NAV.map((n) => navButton(n.key, n.label))}
         </nav>
-        <div className="p-3 border-t border-neutral-800">
-          <button onClick={signOut} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-neutral-400 hover:text-red-300 hover:bg-neutral-800/60 transition">
+        <div className="p-3 border-t border-white/10">
+          <button onClick={signOut} className="ins-navitem w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] hover:!text-red-300">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px]"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" /></svg>
             Sign Out
           </button>
@@ -106,14 +117,14 @@ export default function AdminConsole() {
 
       {/* Main */}
       <div className="lg:pl-64">
-        <header className="sticky top-0 z-20 flex items-center gap-3 px-4 md:px-8 py-4 bg-neutral-950/80 backdrop-blur border-b border-neutral-800">
-          <button onClick={() => setNavOpen(true)} className="lg:hidden p-2 -ml-2 text-neutral-400 hover:text-neutral-100" aria-label="Open navigation">
+        <header className="sticky top-0 z-20 flex items-center gap-3 px-4 md:px-8 h-[65px] bg-white border-b border-[#e7e9eb]">
+          <button onClick={() => setNavOpen(true)} className="lg:hidden p-2 -ml-2 text-[#6c757d] hover:text-[#323a46]" aria-label="Open navigation">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" className="h-5 w-5"><path d="M3 12h18M3 6h18M3 18h18" /></svg>
           </button>
           <div className="flex-1">
-            <h2 className="text-lg font-serif text-neutral-100">{TITLES[section]}</h2>
+            <h2 className="text-[17px] font-semibold text-[#323a46]">{TITLES[section]}</h2>
           </div>
-          <button onClick={refreshMetrics} className="p-2 border border-neutral-800 bg-neutral-900 rounded-lg text-neutral-400 hover:text-neutral-100" aria-label="Refresh">↻</button>
+          <button onClick={refreshMetrics} className="h-9 w-9 grid place-items-center border border-[#e7e9eb] bg-white rounded-md text-[#6c757d] hover:text-[#1ab394] hover:border-[#1ab394]/40" aria-label="Refresh">↻</button>
         </header>
 
         <main className="p-4 md:p-8 max-w-6xl">
@@ -132,28 +143,32 @@ export default function AdminConsole() {
 // (broyhill.net); no fabricated or editable settings.
 function SettingsPanel() {
   const row = (label: string, value: React.ReactNode) => (
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 py-2.5 border-b border-neutral-800/60 last:border-0">
-      <span className="text-xs font-mono uppercase tracking-wider text-neutral-500">{label}</span>
-      <span className="text-sm text-neutral-200">{value}</span>
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 py-2.5 border-b border-[#e7e9eb] last:border-0">
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-[#9ba6b7]">{label}</span>
+      <span className="text-sm text-[#323a46]">{value}</span>
     </div>
   );
   return (
     <div className="space-y-6 max-w-2xl">
-      <section className="bg-neutral-900/60 border border-neutral-800 rounded-xl p-5">
-        <h3 className="text-sm font-semibold text-neutral-200 mb-2">Session</h3>
-        <p className="text-xs text-neutral-500 leading-relaxed">
-          You are signed in with the staff passcode. Access expires automatically after 12 hours, or use
-          Sign Out in the sidebar to end this session now.
-        </p>
+      <section className="ibox">
+        <div className="ibox-title"><h3 className="text-sm font-semibold text-[#323a46]">Session</h3></div>
+        <div className="ibox-content">
+          <p className="text-[13px] text-[#6c757d] leading-relaxed">
+            You are signed in with the staff passcode. Access expires automatically after 12 hours, or use
+            Sign Out in the sidebar to end this session now.
+          </p>
+        </div>
       </section>
 
-      <section className="bg-neutral-900/60 border border-neutral-800 rounded-xl p-5">
-        <h3 className="text-sm font-semibold text-neutral-200 mb-3">Venue contact</h3>
-        {row("Address", "3540 Clemmons Road, Suite 111, Clemmons, NC 27012")}
-        {row("Phone", <a href="tel:+13367931191" className="text-amber-400 hover:text-amber-300">336-793-1191</a>)}
-        {row("Email", <a href="mailto:Info@Broyhill.net" className="text-amber-400 hover:text-amber-300">Info@Broyhill.net</a>)}
-        {row("Bookings", <a href="https://broyhill.skedda.com" target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:text-amber-300">broyhill.skedda.com ↗</a>)}
-        {row("Website", <a href="https://www.broyhill.net" target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:text-amber-300">www.broyhill.net ↗</a>)}
+      <section className="ibox">
+        <div className="ibox-title"><h3 className="text-sm font-semibold text-[#323a46]">Venue contact</h3></div>
+        <div className="ibox-content pt-1">
+          {row("Address", "3540 Clemmons Road, Suite 111, Clemmons, NC 27012")}
+          {row("Phone", <a href="tel:+13367931191" className="text-[#1ab394] hover:underline">336-793-1191</a>)}
+          {row("Email", <a href="mailto:Info@Broyhill.net" className="text-[#1ab394] hover:underline">Info@Broyhill.net</a>)}
+          {row("Bookings", <a href="https://broyhill.skedda.com" target="_blank" rel="noopener noreferrer" className="text-[#1ab394] hover:underline">broyhill.skedda.com ↗</a>)}
+          {row("Website", <a href="https://www.broyhill.net" target="_blank" rel="noopener noreferrer" className="text-[#1ab394] hover:underline">www.broyhill.net ↗</a>)}
+        </div>
       </section>
     </div>
   );
