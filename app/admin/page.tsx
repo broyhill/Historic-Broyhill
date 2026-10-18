@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { linkedinHref } from "@/lib/linkedin";
+import LeadsPanel from "./LeadsPanel";
 
 interface Lead {
   id: string;
@@ -21,15 +23,6 @@ interface Campaign {
   lead?: Lead | null;
 }
 
-// Normalize whatever was typed into the LinkedIn field into a usable profile URL
-function linkedinHref(v: string): string {
-  const t = v.trim();
-  if (/^https?:\/\//i.test(t)) return t;
-  if (/^(www\.)?linkedin\.com/i.test(t)) return `https://${t}`;
-  const handle = t.replace(/^@/, "").replace(/^\/?in\//i, "");
-  return `https://www.linkedin.com/in/${handle}`;
-}
-
 interface Metrics {
   totalLeads: number;
   pendingReview: number;
@@ -39,16 +32,24 @@ interface Metrics {
 }
 
 export default function AdminConsole() {
-  const [tab, setTab] = useState<"queue" | "history">("queue");
+  const [tab, setTab] = useState<"queue" | "history" | "leads">("queue");
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editedDraft, setEditedDraft] = useState("");
 
-  const refreshData = async (targetTab: "queue" | "history") => {
+  const refreshData = async (targetTab: "queue" | "history" | "leads") => {
     setLoading(true);
     try {
+      // The Leads tab renders its own directory; here we only refresh the metric strip.
+      if (targetTab === "leads") {
+        const metRes = await fetch("/api/admin/metrics");
+        if (metRes.status === 401) { window.location.assign("/admin/login"); return; }
+        const metData = await metRes.json();
+        if (metData.metrics) setMetrics(metData.metrics);
+        return;
+      }
       const status = targetTab === "queue" ? "PENDING_REVIEW" : "PUBLISHED";
       const [campRes, metRes] = await Promise.all([
         fetch(`/api/admin/campaigns?status=${status}`),
@@ -119,6 +120,12 @@ export default function AdminConsole() {
               >
                 Broadcast History ({metrics?.publishedBroadcasts ?? 0})
               </button>
+              <button
+                onClick={() => setTab("leads")}
+                className={`px-4 py-1.5 text-xs font-mono rounded-md transition ${tab === "leads" ? "bg-amber-500 text-neutral-950 font-semibold" : "text-neutral-400 hover:text-neutral-200"}`}
+              >
+                Leads ({metrics?.totalLeads ?? 0})
+              </button>
             </div>
             <button onClick={() => refreshData(tab)} className="p-2 border border-neutral-800 bg-neutral-900 rounded-lg text-neutral-400 hover:text-neutral-100">↻</button>
             <button onClick={signOut} className="px-3 py-2 border border-neutral-800 bg-neutral-900 rounded-lg text-xs font-mono text-neutral-400 hover:text-neutral-100">Sign Out</button>
@@ -146,7 +153,9 @@ export default function AdminConsole() {
           </div>
         )}
 
-        {loading ? (
+        {tab === "leads" ? (
+          <LeadsPanel />
+        ) : loading ? (
           <div className="p-12 text-center text-neutral-500 font-mono text-xs">Loading records...</div>
         ) : campaigns.length === 0 ? (
           <div className="p-16 border border-neutral-900 rounded-2xl bg-neutral-900/30 text-center space-y-3">
