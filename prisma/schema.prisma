@@ -28,6 +28,10 @@ model LeadProfile {
   businessId     String
   email          String          @unique
   name           String?
+  salutation     String?
+  firstName      String?
+  middleName     String?
+  lastName       String?
   company        String?
   phone          String?
   linkedinId     String?

@@ -40,6 +40,10 @@ export function buildLeadWhere({ q, track, status, gap }: LeadFilters): Prisma.L
 export const LEAD_SELECT = {
   id: true,
   name: true,
+  salutation: true,
+  firstName: true,
+  middleName: true,
+  lastName: true,
   company: true,
   email: true,
   phone: true,

@@ -10,7 +10,8 @@ function csvCell(value: unknown): string {
 }
 
 const HEADERS = [
-  "Name", "Company", "Email", "Phone", "LinkedIn", "Company LinkedIn",
+  "Salutation", "First Name", "Middle Name", "Last Name", "Full Name",
+  "Company", "Email", "Phone", "LinkedIn", "Company LinkedIn",
   "City", "State", "Score", "Status", "Interest", "Source", "Est. Value", "Captured",
 ];
 
@@ -31,7 +32,8 @@ export async function GET(request: Request) {
     });
 
     const rows = leads.map((l) => [
-      l.name, l.company, l.email, l.phone, l.linkedinId, l.companyLinkedin,
+      l.salutation, l.firstName, l.middleName, l.lastName, l.name,
+      l.company, l.email, l.phone, l.linkedinId, l.companyLinkedin,
       l.city, l.state, l.leadScore, l.leadStatus, l.primaryTrack, l.leadSource,
       l.estimatedValue, l.createdAt.toISOString(),
     ].map(csvCell).join(","));

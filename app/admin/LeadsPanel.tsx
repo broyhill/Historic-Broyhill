@@ -67,6 +67,32 @@ export default function LeadsPanel() {
   const [findSummary, setFindSummary] = useState<string | null>(null);
   const [findError, setFindError] = useState<string | null>(null);
 
+  // Split display names into salutation/first/middle/last
+  const [splitBusy, setSplitBusy] = useState(false);
+  const [splitNote, setSplitNote] = useState<string | null>(null);
+
+  const runSplitNames = async () => {
+    setSplitBusy(true);
+    setSplitNote(null);
+    let updated = 0;
+    try {
+      for (let i = 0; i < 40; i++) {
+        const res = await fetch("/api/admin/split-names", { method: "POST" });
+        if (res.status === 401) { window.location.assign("/admin/login"); return; }
+        const data = await res.json();
+        if (!res.ok) { setSplitNote(data.error || "Could not split names."); return; }
+        updated += data.updated || 0;
+        if (data.done || (data.remaining ?? 0) === 0) break;
+      }
+      setSplitNote(`Split ${updated} names into first / middle / last. They're in the CSV export.`);
+      setReloadKey((k) => k + 1);
+    } catch (err) {
+      setSplitNote(err instanceof Error ? err.message : "Could not split names.");
+    } finally {
+      setSplitBusy(false);
+    }
+  };
+
   const runFindPeople = async () => {
     setFindBusy(true);
     setFindError(null);
@@ -265,8 +291,8 @@ export default function LeadsPanel() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col lg:flex-row lg:items-center gap-3">
-        <div className="relative flex-1">
+      <div className="flex flex-col lg:flex-row lg:flex-wrap lg:items-center gap-3">
+        <div className="relative lg:flex-1 lg:min-w-[220px]">
           <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#9ba6b7] text-sm">⌕</span>
           <input
             value={q}
@@ -316,7 +342,21 @@ export default function LeadsPanel() {
         >
           {findBusy ? "Searching…" : "🔎 Find people (web · 10)"}
         </button>
+        <button
+          onClick={runSplitNames}
+          disabled={splitBusy}
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-[#e7e9eb] bg-white text-[#4c4c5c] rounded-md text-xs font-semibold hover:bg-[#f1f2f7] transition whitespace-nowrap disabled:opacity-60"
+        >
+          {splitBusy ? "Splitting…" : "Split names"}
+        </button>
       </div>
+
+      {splitNote && (
+        <div className="rounded-md border border-[#e7e9eb] bg-[#f8f9fb] px-3 py-2.5 text-xs text-[#4c4c5c] flex items-center justify-between gap-3">
+          <span>{splitNote}</span>
+          <button onClick={() => setSplitNote(null)} className="text-[#9ba6b7] hover:text-[#323a46]">✕</button>
+        </div>
+      )}
 
       {findError && (
         <div role="alert" className="rounded-md border border-[#f5c2c7] bg-[#fdeeee] px-3 py-2.5 text-xs text-[#c0392b]">{findError}</div>
