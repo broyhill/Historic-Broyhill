@@ -11,6 +11,9 @@ interface Lead {
   email: string;
   phone: string | null;
   linkedinId: string | null;
+  companyLinkedin: string | null;
+  city: string | null;
+  state: string | null;
   leadScore: number;
   leadStatus: string;
   primaryTrack: string;
@@ -49,6 +52,42 @@ export default function LeadsPanel() {
   const [importBusy, setImportBusy] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
   const [importDone, setImportDone] = useState<string | null>(null);
+
+  // AI enrichment: loop the endpoint (each call makes progress) until done
+  const [enrichPhase, setEnrichPhase] = useState<"idle" | "confirm" | "running" | "done">("idle");
+  const [enrichRemaining, setEnrichRemaining] = useState<number | null>(null);
+  const [enrichUpdated, setEnrichUpdated] = useState(0);
+  const [enrichNote, setEnrichNote] = useState<string | null>(null);
+
+  const runEnrichment = async () => {
+    setEnrichPhase("running");
+    setEnrichUpdated(0);
+    setEnrichNote(null);
+    let updated = 0;
+    let aiAvailable = true;
+    try {
+      // Safety cap so a bug can never loop forever
+      for (let i = 0; i < 200; i++) {
+        const res = await fetch("/api/admin/enrich", { method: "POST" });
+        if (res.status === 401) { window.location.assign("/admin/login"); return; }
+        const data = await res.json();
+        if (!res.ok) { setEnrichNote(data.error || "Enrichment failed."); setEnrichPhase("idle"); return; }
+        updated += data.leadsUpdated || 0;
+        aiAvailable = data.aiAvailable !== false;
+        setEnrichUpdated(updated);
+        setEnrichRemaining(data.remaining ?? 0);
+        if (data.done || (data.remaining ?? 0) === 0) break;
+      }
+      setEnrichPhase("done");
+      setEnrichNote(aiAvailable
+        ? `Enriched ${updated} corporate contacts with company name, city/state, and company LinkedIn.`
+        : `Filled company names for ${updated} contacts. Add an OPENAI_API_KEY in Vercel for full enrichment (LinkedIn + city/state).`);
+      setReloadKey((k) => k + 1);
+    } catch (err) {
+      setEnrichNote(err instanceof Error ? err.message : "Enrichment failed.");
+      setEnrichPhase("idle");
+    }
+  };
 
   // Debounce the search box so we don't hit the API on every keystroke
   useEffect(() => {
@@ -192,7 +231,45 @@ export default function LeadsPanel() {
         >
           ↓ Export CSV
         </a>
+        <button
+          onClick={() => setEnrichPhase("confirm")}
+          disabled={enrichPhase === "running"}
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-[#1c84c6] bg-[#eef6fc] text-[#1870a8] rounded-md text-xs font-semibold hover:bg-[#ddedf6] transition whitespace-nowrap disabled:opacity-60"
+        >
+          ✦ Enrich from email
+        </button>
       </div>
+
+      {enrichPhase === "confirm" && (
+        <div className="rounded-md border border-[#a4cee8] bg-[#f3f9fd] p-4 space-y-3">
+          <p className="text-sm text-[#2b4a5e]">
+            Fill in <strong>company name, city/state, and company LinkedIn</strong> for your contacts with
+            a work email, using AI to identify the company from each email domain. Personal emails
+            (gmail, yahoo…) are skipped. Nothing is emailed, and existing data isn&apos;t overwritten.
+          </p>
+          <div className="flex items-center gap-3">
+            <button onClick={runEnrichment} className="px-4 py-2 bg-[#1c84c6] text-white rounded-md text-xs font-semibold hover:bg-[#1870a8]">Run enrichment</button>
+            <button onClick={() => setEnrichPhase("idle")} className="px-4 py-2 border border-[#e7e9eb] rounded-md text-xs font-medium text-[#6c757d] hover:bg-[#f1f2f7]">Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {enrichPhase === "running" && (
+        <div className="rounded-md border border-[#a4cee8] bg-[#f3f9fd] px-3 py-2.5 text-xs text-[#1870a8] font-medium flex items-center gap-2">
+          <span className="inline-block h-3 w-3 rounded-full border-2 border-[#1c84c6] border-t-transparent animate-spin" />
+          Enriching… {enrichUpdated} contacts updated{enrichRemaining != null ? ` · ${enrichRemaining} leads left to scan` : ""}
+        </div>
+      )}
+
+      {enrichPhase === "done" && enrichNote && (
+        <div className="rounded-md border border-[#9decd5] bg-[#daf8ef] px-3 py-2.5 text-xs text-[#09916b] flex items-center justify-between gap-3">
+          <span>✦ {enrichNote}</span>
+          <button onClick={() => setEnrichPhase("idle")} className="text-[#09916b]/70 hover:text-[#09916b]">✕</button>
+        </div>
+      )}
+      {enrichPhase === "idle" && enrichNote && (
+        <div role="alert" className="rounded-md border border-[#f5c2c7] bg-[#fdeeee] px-3 py-2.5 text-xs text-[#c0392b]">{enrichNote}</div>
+      )}
 
       {importError && (
         <div role="alert" className="rounded-md border border-[#f5c2c7] bg-[#fdeeee] px-3 py-2.5 text-xs text-[#c0392b]">{importError}</div>
@@ -231,7 +308,15 @@ export default function LeadsPanel() {
               {sorted.map((l) => (
                 <tr key={l.id} className="hover:bg-[#f7f8fa]">
                   <td className={`${td} text-[#323a46] font-semibold`}>{l.name || "—"}</td>
-                  <td className={td}>{l.company || "—"}</td>
+                  <td className={td}>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[#4c4c5c]">{l.company || "—"}</span>
+                      {(l.city || l.state) && <span className="text-[#9ba6b7]">{[l.city, l.state].filter(Boolean).join(", ")}</span>}
+                      {l.companyLinkedin && (
+                        <a href={l.companyLinkedin} target="_blank" rel="noopener noreferrer" className="text-[#1c84c6] hover:underline">Company ↗</a>
+                      )}
+                    </div>
+                  </td>
                   <td className={td}>
                     <div className="flex flex-col gap-0.5">
                       <a href={`mailto:${l.email}`} className="text-[#4c4c5c] hover:text-[#1ab394]">{l.email}</a>

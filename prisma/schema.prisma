@@ -31,6 +31,10 @@ model LeadProfile {
   company        String?
   phone          String?
   linkedinId     String?
+  companyLinkedin String?
+  city           String?
+  state          String?
+  enrichedAt     DateTime?
   leadScore      Int             @default(0)
   leadStatus     String          @default("PROSPECT")
   primaryTrack   String
