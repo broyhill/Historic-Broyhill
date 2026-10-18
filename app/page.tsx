@@ -76,6 +76,7 @@ export default function Home() {
           <a href="#top" className="hb-display text-lg tracking-wide text-[#f4ecda]">Historic Broyhill</a>
           <nav className="hidden items-center gap-7 text-[15px] text-[#cdd5d9] md:flex">
             <a href="#venues" className="hover:text-white">Event Venues</a>
+            <a href="#tour" className="hover:text-white">Virtual Tour</a>
             <a href="#offices" className="hover:text-white">Offices</a>
             <a href="#studio" className="hover:text-white">Podcast Studio</a>
             <a href="#visit" className="hover:text-white">Visit</a>
@@ -143,6 +144,29 @@ export default function Home() {
                 <li key={i} className="flex gap-2"><span className="text-[#c2a15a]">·</span>{i}</li>
               ))}
             </ul>
+          </div>
+        </div>
+      </section>
+
+      {/* Virtual tour */}
+      <section id="tour" className="bg-[#182c3e] text-[#e9e2d3]">
+        <div className="mx-auto max-w-6xl px-5 py-16 md:py-24">
+          <div className="max-w-2xl">
+            <Eyebrow light>Explore the venue</Eyebrow>
+            <h2 className="hb-display mt-4 text-3xl text-[#f4ecda] md:text-[2.6rem]">Walk the Historic Broyhill in 3D.</h2>
+            <p className="mt-4 text-[17px] leading-relaxed text-[#bcc6c9]">
+              Take a self-guided virtual tour — step through the spaces from anywhere, at your own pace.
+            </p>
+          </div>
+          <div className="mt-8 overflow-hidden rounded-xl border border-white/10 bg-black/20 shadow-2xl">
+            <iframe
+              title="Historic Broyhill — 3D virtual tour"
+              src="https://my.matterport.com/show/?m=AenPk2dALQ7&play=1&qs=1"
+              allow="fullscreen; xr-spatial-tracking"
+              allowFullScreen
+              loading="lazy"
+              className="h-[72vw] max-h-[600px] min-h-[340px] w-full"
+            />
           </div>
         </div>
       </section>
@@ -229,7 +253,12 @@ export default function Home() {
               <p><a href="https://broyhill.skedda.com/booking" className="inline-block rounded-md bg-[#c2a15a] px-5 py-2.5 text-sm font-semibold uppercase tracking-[0.1em] text-[#182c3e] transition hover:bg-[#d2b268]">Book now →</a></p>
               <p className="pt-2">3540 Clemmons Road, Suite 111 · Clemmons, NC 27012</p>
               <p>General: <a href="tel:+13367931191" className="hover:text-white">336-793-1191</a> · <a href="mailto:Info@Broyhill.net" className="hover:text-white">Info@Broyhill.net</a></p>
-              <p>Office suites: <a href="mailto:Kristin@Broyhill.net" className="hover:text-white">Kristin@Broyhill.net</a> · <a href="https://www.instagram.com/historicbroyhill/" className="text-[#d6b574] hover:text-white">@historicbroyhill</a></p>
+              <p>Office suites: <a href="mailto:Kristin@Broyhill.net" className="hover:text-white">Kristin@Broyhill.net</a></p>
+              <p>
+                <a href="https://www.instagram.com/historicbroyhill/" className="text-[#d6b574] hover:text-white">Instagram</a>
+                {" · "}
+                <a href="https://www.facebook.com/share/1EqXF8Xgpd/" className="text-[#d6b574] hover:text-white">Facebook</a>
+              </p>
             </div>
           </div>
           <div className="rounded-xl bg-[#f6f1e7] p-6 text-[#273440] sm:p-8">
