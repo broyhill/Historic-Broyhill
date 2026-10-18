@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { linkedinHref } from "@/lib/linkedin";
+import { parseCsv, mapRowsToLeads, type MappedLead } from "@/lib/csv";
 
 interface Lead {
   id: string;
@@ -36,6 +37,22 @@ export default function LeadsPanel() {
   const [sortKey, setSortKey] = useState<SortKey>("createdAt");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
+  // Reload the directory after a commit without touching the search/filter state
+  const [reloadKey, setReloadKey] = useState(0);
+
+  // CSV import flow: pick file -> parse -> preview counts -> confirm -> commit
+  const fileRef = useRef<HTMLInputElement>(null);
+  interface ImportPreview {
+    fileName: string;
+    leads: MappedLead[];
+    columns: Record<string, string | null>;
+    counts: { total: number; toCreate: number; toUpdate: number; skipped: number };
+  }
+  const [preview, setPreview] = useState<ImportPreview | null>(null);
+  const [importBusy, setImportBusy] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importDone, setImportDone] = useState<string | null>(null);
+
   // Debounce the search box so we don't hit the API on every keystroke
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQ(q), 300);
@@ -67,7 +84,60 @@ export default function LeadsPanel() {
       .catch((e) => console.error(e))
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [query]);
+  }, [query, reloadKey]);
+
+  const onPickFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting the same file later
+    if (!file) return;
+    setImportError(null);
+    setImportDone(null);
+    try {
+      const text = await file.text();
+      const { leads, skipped, columns } = mapRowsToLeads(parseCsv(text));
+      if (!columns.email) { setImportError("No email column found in that file. A column named Email is required."); return; }
+      if (leads.length === 0) { setImportError(`No rows with a valid email were found (${skipped} skipped).`); return; }
+      const res = await fetch("/api/admin/leads/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rows: leads, commit: false }),
+      });
+      if (res.status === 401) { window.location.assign("/admin/login"); return; }
+      const data = await res.json();
+      if (!res.ok) { setImportError(data.error || "Could not read that file."); return; }
+      // Rows with no valid email are dropped during parsing, so fold that count
+      // into the server's skipped total for an honest preview.
+      const counts = { ...data.counts, skipped: data.counts.skipped + skipped };
+      setPreview({ fileName: file.name, leads, columns, counts });
+    } catch (err) {
+      setImportError(err instanceof Error ? err.message : "Could not read that file.");
+    }
+  };
+
+  const commitImport = async () => {
+    if (!preview) return;
+    setImportBusy(true);
+    setImportError(null);
+    try {
+      const res = await fetch("/api/admin/leads/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rows: preview.leads, commit: true }),
+      });
+      if (res.status === 401) { window.location.assign("/admin/login"); return; }
+      const data = await res.json();
+      if (!res.ok) { setImportError(data.error || "Import failed."); return; }
+      const c = data.counts;
+      const skipped = preview.counts.skipped; // includes rows dropped during parsing
+      setImportDone(`Imported ${preview.fileName}: ${c.toCreate} added, ${c.toUpdate} updated${skipped ? `, ${skipped} skipped` : ""}.`);
+      setPreview(null);
+      setReloadKey((k) => k + 1);
+    } catch (err) {
+      setImportError(err instanceof Error ? err.message : "Import failed.");
+    } finally {
+      setImportBusy(false);
+    }
+  };
 
   const sorted = useMemo(() => {
     const rows = [...leads];
@@ -112,6 +182,13 @@ export default function LeadsPanel() {
           <option value="ALL">All statuses</option>
           {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
+        <input ref={fileRef} type="file" accept=".csv,text/csv" onChange={onPickFile} className="hidden" />
+        <button
+          onClick={() => fileRef.current?.click()}
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-neutral-700 bg-neutral-900 text-neutral-200 rounded-lg text-xs font-mono font-semibold hover:bg-neutral-800 transition whitespace-nowrap"
+        >
+          ↑ Import CSV
+        </button>
         <a
           href={`/api/admin/leads/export?${query}`}
           className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-500 text-neutral-950 rounded-lg text-xs font-mono font-semibold hover:bg-amber-400 transition whitespace-nowrap"
@@ -119,6 +196,13 @@ export default function LeadsPanel() {
           ↓ Export CSV
         </a>
       </div>
+
+      {importError && (
+        <div role="alert" className="rounded-lg border border-red-800 bg-red-950/40 px-3 py-2.5 text-xs text-red-300 font-mono">{importError}</div>
+      )}
+      {importDone && (
+        <div className="rounded-lg border border-emerald-800 bg-emerald-950/40 px-3 py-2.5 text-xs text-emerald-300 font-mono">{importDone}</div>
+      )}
 
       <div className="text-[11px] font-mono text-neutral-500">
         {loading ? "Loading leads…" : `${sorted.length} lead${sorted.length === 1 ? "" : "s"}${query ? " (filtered)" : ""}`}
@@ -170,6 +254,56 @@ export default function LeadsPanel() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {preview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true" aria-label="Confirm import">
+          <div className="w-full max-w-lg bg-neutral-900 border border-neutral-700 rounded-2xl shadow-2xl p-6 space-y-5">
+            <div>
+              <h3 className="text-lg font-serif text-neutral-100">Import leads</h3>
+              <p className="text-xs font-mono text-neutral-500 mt-1 truncate">{preview.fileName}</p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              <div className="rounded-lg border border-emerald-800/60 bg-emerald-950/30 p-3 text-center">
+                <div className="text-2xl font-mono font-semibold text-emerald-400">{preview.counts.toCreate}</div>
+                <div className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 mt-0.5">New</div>
+              </div>
+              <div className="rounded-lg border border-sky-800/60 bg-sky-950/30 p-3 text-center">
+                <div className="text-2xl font-mono font-semibold text-sky-400">{preview.counts.toUpdate}</div>
+                <div className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 mt-0.5">Update</div>
+              </div>
+              <div className="rounded-lg border border-neutral-700 bg-neutral-800/40 p-3 text-center">
+                <div className="text-2xl font-mono font-semibold text-neutral-400">{preview.counts.skipped}</div>
+                <div className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 mt-0.5">Skipped</div>
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-neutral-800 bg-neutral-950/50 p-3 space-y-1.5">
+              <div className="text-[10px] font-mono uppercase tracking-wider text-neutral-500 mb-1">Detected columns</div>
+              {(["email", "name", "company", "phone", "linkedin"] as const).map((f) => (
+                <div key={f} className="flex items-center justify-between text-xs font-mono">
+                  <span className="text-neutral-400 capitalize">{f}</span>
+                  <span className={preview.columns[f] ? "text-neutral-200" : "text-neutral-600"}>
+                    {preview.columns[f] || "— not found"}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <p className="text-[11px] text-neutral-500 leading-relaxed">
+              Matches on email: existing contacts are updated, the rest are added as <span className="text-neutral-300">Client</span> records.
+              Rows without a valid email are skipped. Nothing is emailed.
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-1">
+              <button onClick={() => setPreview(null)} disabled={importBusy} className="px-4 py-2 border border-neutral-700 rounded-lg text-xs font-mono text-neutral-300 hover:bg-neutral-800 disabled:opacity-60">Cancel</button>
+              <button onClick={commitImport} disabled={importBusy || (preview.counts.toCreate + preview.counts.toUpdate === 0)} className="px-4 py-2 bg-amber-500 text-neutral-950 rounded-lg text-xs font-mono font-semibold hover:bg-amber-400 disabled:opacity-60">
+                {importBusy ? "Importing…" : `Import ${preview.counts.toCreate + preview.counts.toUpdate} leads`}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
