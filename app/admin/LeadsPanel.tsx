@@ -60,6 +60,34 @@ export default function LeadsPanel() {
   const [enrichUpdated, setEnrichUpdated] = useState(0);
   const [enrichNote, setEnrichNote] = useState<string | null>(null);
 
+  // Web-search person finder (batch + review)
+  interface FoundPerson { email: string; company: string | null; name: string | null; title: string | null; linkedin: string | null; confidence: string; source: string | null; applied: boolean; }
+  const [findBusy, setFindBusy] = useState(false);
+  const [findResults, setFindResults] = useState<FoundPerson[] | null>(null);
+  const [findSummary, setFindSummary] = useState<string | null>(null);
+  const [findError, setFindError] = useState<string | null>(null);
+
+  const runFindPeople = async () => {
+    setFindBusy(true);
+    setFindError(null);
+    try {
+      const res = await fetch("/api/admin/find-person", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ limit: 10 }),
+      });
+      if (res.status === 401) { window.location.assign("/admin/login"); return; }
+      const data = await res.json();
+      if (!res.ok) { setFindError(data.error || "Search failed."); return; }
+      setFindResults(data.results || []);
+      setFindSummary(`Searched ${data.searched} · ${data.applied} filled in · ${data.remaining} nameless corporate leads left`);
+      if (data.apiError) setFindError(`OpenAI note: ${data.apiError}`);
+      setReloadKey((k) => k + 1);
+    } catch (err) {
+      setFindError(err instanceof Error ? err.message : "Search failed.");
+    } finally {
+      setFindBusy(false);
+    }
+  };
+
   const runEnrichment = async () => {
     setEnrichPhase("running");
     setEnrichUpdated(0);
@@ -246,7 +274,65 @@ export default function LeadsPanel() {
         >
           ✦ Enrich from email
         </button>
+        <button
+          onClick={runFindPeople}
+          disabled={findBusy}
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-[#7754f6] bg-[#f4f0ff] text-[#5b3fc4] rounded-md text-xs font-semibold hover:bg-[#ebe4ff] transition whitespace-nowrap disabled:opacity-60"
+        >
+          {findBusy ? "Searching…" : "🔎 Find people (web · 10)"}
+        </button>
       </div>
+
+      {findError && (
+        <div role="alert" className="rounded-md border border-[#f5c2c7] bg-[#fdeeee] px-3 py-2.5 text-xs text-[#c0392b]">{findError}</div>
+      )}
+
+      {findResults && (
+        <div className="ibox">
+          <div className="ibox-title">
+            <h3 className="text-sm font-semibold text-[#323a46]">Web search results</h3>
+            <div className="flex items-center gap-3">
+              <span className="text-[11px] text-[#9ba6b7]">{findSummary}</span>
+              <button onClick={() => setFindResults(null)} className="text-[#9ba6b7] hover:text-[#323a46]">✕</button>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead className="bg-[#f8f9fb] border-b border-[#e7e9eb]">
+                <tr>
+                  <th className={th}>Email</th>
+                  <th className={th}>Found</th>
+                  <th className={th}>Title</th>
+                  <th className={th}>LinkedIn</th>
+                  <th className={th}>Confidence</th>
+                  <th className={th}>Saved</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#eef1f4]">
+                {findResults.map((r, i) => (
+                  <tr key={i} className="hover:bg-[#f7f8fa]">
+                    <td className={`${td} text-[#6c757d]`}>{r.email}</td>
+                    <td className={`${td} text-[#323a46] font-medium`}>
+                      {r.name || <span className="text-[#c3c9d1]">—</span>}
+                      {r.source && <a href={r.source} target="_blank" rel="noopener noreferrer" className="ml-2 text-[#1c84c6] hover:underline">src ↗</a>}
+                    </td>
+                    <td className={`${td} text-[#6c757d]`}>{r.title || "—"}</td>
+                    <td className={td}>{r.linkedin ? <a href={r.linkedin} target="_blank" rel="noopener noreferrer" className="text-[#1c84c6] hover:underline">profile ↗</a> : "—"}</td>
+                    <td className={td}>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${r.confidence === "high" ? "bg-[#daf8ef] text-[#09916b]" : r.confidence === "medium" ? "bg-[#feeede] text-[#d9822b]" : "bg-[#eef2f7] text-[#9ba6b7]"}`}>{r.confidence}</span>
+                    </td>
+                    <td className={td}>{r.applied ? <span className="text-[#09916b]">✓</span> : <span className="text-[#c3c9d1]">—</span>}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="ibox-content flex items-center justify-between">
+            <p className="text-[11px] text-[#9ba6b7]">Only high/medium confidence matches are saved. Review the sources, then run the next batch.</p>
+            <button onClick={runFindPeople} disabled={findBusy} className="px-4 py-2 bg-[#7754f6] text-white rounded-md text-xs font-semibold hover:bg-[#5b3fc4] disabled:opacity-60">{findBusy ? "Searching…" : "Find 10 more"}</button>
+          </div>
+        </div>
+      )}
 
       {enrichPhase === "confirm" && (
         <div className="rounded-md border border-[#a4cee8] bg-[#f3f9fd] p-4 space-y-3">

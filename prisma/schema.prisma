@@ -35,6 +35,7 @@ model LeadProfile {
   city           String?
   state          String?
   enrichedAt     DateTime?
+  personSearchedAt DateTime?
   leadScore      Int             @default(0)
   leadStatus     String          @default("PROSPECT")
   primaryTrack   String

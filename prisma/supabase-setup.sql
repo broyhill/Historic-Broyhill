@@ -28,6 +28,7 @@ CREATE TABLE "LeadProfile" (
     "city" TEXT,
     "state" TEXT,
     "enrichedAt" TIMESTAMP(3),
+    "personSearchedAt" TIMESTAMP(3),
     "leadScore" INTEGER NOT NULL DEFAULT 0,
     "leadStatus" TEXT NOT NULL DEFAULT 'PROSPECT',
     "primaryTrack" TEXT NOT NULL,
