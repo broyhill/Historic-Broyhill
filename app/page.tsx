@@ -63,10 +63,6 @@ function Photo({ caption, className = "", onDark = false }: { caption: string; c
   );
 }
 
-const Confirm = () => (
-  <span className="ml-1 rounded bg-[#c2a15a]/15 px-1.5 py-0.5 align-middle text-[10px] font-semibold uppercase tracking-wider text-[#8f6f2f]">confirm</span>
-);
-
 export default function Home() {
   return (
     <main className="hb-body bg-[#f6f1e7] text-[#273440]">
@@ -89,13 +85,14 @@ export default function Home() {
       <section id="top" className="bg-[#182c3e] text-[#e9e2d3]">
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-16 md:grid-cols-[1.05fr_0.95fr] md:py-24">
           <div>
-            <Eyebrow light>Clemmons, North Carolina · a 1920s landmark</Eyebrow>
+            <Eyebrow light>Clemmons, North Carolina · the Old Clemmons School, est. 1925</Eyebrow>
             <h1 className="hb-display mt-5 text-4xl leading-[1.08] text-[#f4ecda] sm:text-5xl md:text-[3.3rem]">
               Where the walls hold generations of memories.
             </h1>
             <p className="mt-5 max-w-xl text-[18px] leading-relaxed text-[#bcc6c9]">
-              A restored 1920s schoolhouse, minutes from downtown Winston-Salem — now three distinctive
-              event venues, Class A executive offices, a virtual office program, and a turnkey podcast studio.
+              The former Old Clemmons School — built in 1925, renovated in 2006, minutes from downtown
+              Winston-Salem. Now three distinctive event venues, Class A executive offices, a virtual office
+              program, and a turnkey podcast studio.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <a href="#visit" className="rounded-md bg-[#c2a15a] px-6 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#182c3e] transition hover:bg-[#d2b268]">Request a tour</a>
@@ -103,6 +100,24 @@ export default function Home() {
             </div>
           </div>
           <Photo onDark caption="The Historic Broyhill at dusk — the landmark exterior" className="aspect-[5/4]" />
+        </div>
+      </section>
+
+      {/* Heritage */}
+      <section className="border-b border-[#e4dac6] bg-[#efe7d6]">
+        <div className="mx-auto max-w-6xl px-5 py-14 md:py-16">
+          <div className="grid gap-8 md:grid-cols-[0.82fr_1.18fr] md:items-center">
+            <div>
+              <Eyebrow>Our story</Eyebrow>
+              <h2 className="hb-display mt-3 text-2xl text-[#182c3e] md:text-3xl">The former Old Clemmons School, since 1925.</h2>
+            </div>
+            <p className="text-[16px] leading-relaxed text-[#5a6672]">
+              Built in 1925 as the Old Clemmons School and lovingly renovated in 2006, this landmark keeps
+              the character of its original architecture — arched doorways, tall windows, a checkerboard
+              foyer — while welcoming a new century of celebrations, businesses, and community gatherings.
+              This building houses memories. It houses dreams.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -114,7 +129,7 @@ export default function Home() {
           <p className="mt-4 text-[17px] leading-relaxed text-[#5a6672]">
             Showers, birthdays, graduations, anniversaries, wedding receptions — bring your celebration,
             meeting, or community gathering to the heart of Clemmons, with onsite event planners to help
-            with the details. Rental rates on request <Confirm />.
+            with the details. Rental rates on request.
           </p>
         </div>
         <div className="mt-10 grid gap-6 md:grid-cols-3">
@@ -181,7 +196,7 @@ export default function Home() {
               <h3 className="hb-display text-xl text-[#182c3e]">Executive office suites</h3>
               <p className="mt-3 text-[15px] leading-relaxed text-[#5a6672]">
                 Premium, move-in-ready offices in a landmark setting — home to accountants, attorneys,
-                financial and insurance firms, and counseling practices. Sizes and availability on request <Confirm />.
+                financial and insurance firms, and counseling practices. Sizes and availability on request.
               </p>
               <a href="mailto:Kristin@Broyhill.net" className="mt-4 inline-block text-sm font-semibold text-[#182c3e] hover:text-[#a8853f]">Ask about availability →</a>
             </div>
@@ -221,7 +236,7 @@ export default function Home() {
             <h2 className="hb-display mt-4 text-3xl text-[#182c3e] md:text-[2.6rem]">A turnkey studio, ready when you are.</h2>
             <p className="mt-4 text-[17px] leading-relaxed text-[#5a6672]">
               Top-quality, user-friendly equipment with an engineer on hand — book a session and record
-              your podcast, interview, or promotion without the setup. Equipment list and rates on request <Confirm />.
+              your podcast, interview, or promotion without the setup. Equipment list and rates on request.
             </p>
             <a href="#visit" className="mt-6 inline-block rounded-md border border-[#182c3e]/25 px-6 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#182c3e] transition hover:border-[#182c3e]/50">Book the studio</a>
           </div>
@@ -272,7 +287,7 @@ export default function Home() {
         <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-4 px-5 py-8 sm:flex-row sm:items-center">
           <div>
             <p className="hb-display text-base tracking-wide text-[#e9e2d3]">Historic Broyhill</p>
-            <p className="mt-1 text-xs">A restored 1920s landmark in Clemmons, North Carolina.</p>
+            <p className="mt-1 text-xs">The former Old Clemmons School, built 1925 · Clemmons, North Carolina.</p>
           </div>
           <p className="text-xs">Events: Sonja Kennedy · 336-908-8382 · <a href="mailto:Info@Broyhill.net" className="hover:text-[#e9e2d3]">Info@Broyhill.net</a></p>
         </div>
