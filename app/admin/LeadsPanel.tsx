@@ -34,6 +34,7 @@ export default function LeadsPanel() {
   const [debouncedQ, setDebouncedQ] = useState("");
   const [track, setTrack] = useState("ALL");
   const [status, setStatus] = useState("ALL");
+  const [gap, setGap] = useState("ALL");
   const [sortKey, setSortKey] = useState<SortKey>("createdAt");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
@@ -100,8 +101,9 @@ export default function LeadsPanel() {
     if (debouncedQ.trim()) p.set("q", debouncedQ.trim());
     if (track !== "ALL") p.set("track", track);
     if (status !== "ALL") p.set("status", status);
+    if (gap !== "ALL") p.set("gap", gap);
     return p.toString();
-  }, [debouncedQ, track, status]);
+  }, [debouncedQ, track, status, gap]);
 
   useEffect(() => {
     let cancelled = false;
@@ -217,6 +219,12 @@ export default function LeadsPanel() {
         <select value={status} onChange={(e) => setStatus(e.target.value)} className="ins-input rounded-md px-3 py-2.5 text-xs">
           <option value="ALL">All statuses</option>
           {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <select value={gap} onChange={(e) => setGap(e.target.value)} className="ins-input rounded-md px-3 py-2.5 text-xs" title="Find incomplete leads">
+          <option value="ALL">All leads</option>
+          <option value="no-name">Missing name</option>
+          <option value="no-company">Missing company</option>
+          <option value="has-company-linkedin">Has company LinkedIn</option>
         </select>
         <input ref={fileRef} type="file" accept=".csv,text/csv" onChange={onPickFile} className="hidden" />
         <button

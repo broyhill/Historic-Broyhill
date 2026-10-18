@@ -11,6 +11,7 @@ export async function GET(request: Request) {
       q: searchParams.get("q"),
       track: searchParams.get("track"),
       status: searchParams.get("status"),
+      gap: searchParams.get("gap"),
     });
 
     // The rows the table shows, plus the distinct values that populate the

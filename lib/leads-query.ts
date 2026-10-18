@@ -6,21 +6,33 @@ export interface LeadFilters {
   q?: string | null;
   track?: string | null;
   status?: string | null;
+  // "no-name" / "no-company" surface leads missing that field (e.g. email-only
+  // contacts). "has-company-linkedin" shows enriched ones.
+  gap?: string | null;
 }
 
-export function buildLeadWhere({ q, track, status }: LeadFilters): Prisma.LeadProfileWhereInput {
+export function buildLeadWhere({ q, track, status, gap }: LeadFilters): Prisma.LeadProfileWhereInput {
   const where: Prisma.LeadProfileWhereInput = {};
+  const and: Prisma.LeadProfileWhereInput[] = [];
+
   const term = q?.trim();
   if (term) {
-    where.OR = [
-      { name: { contains: term, mode: "insensitive" } },
-      { company: { contains: term, mode: "insensitive" } },
-      { email: { contains: term, mode: "insensitive" } },
-      { phone: { contains: term, mode: "insensitive" } },
-    ];
+    and.push({
+      OR: [
+        { name: { contains: term, mode: "insensitive" } },
+        { company: { contains: term, mode: "insensitive" } },
+        { email: { contains: term, mode: "insensitive" } },
+        { phone: { contains: term, mode: "insensitive" } },
+      ],
+    });
   }
   if (track && track !== "ALL") where.primaryTrack = track;
   if (status && status !== "ALL") where.leadStatus = status;
+  if (gap === "no-name") and.push({ OR: [{ name: null }, { name: "" }] });
+  else if (gap === "no-company") and.push({ OR: [{ company: null }, { company: "" }] });
+  else if (gap === "has-company-linkedin") where.companyLinkedin = { not: null };
+
+  if (and.length) where.AND = and;
   return where;
 }
 
