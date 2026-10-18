@@ -1,187 +1,189 @@
 import InquiryForm from "./components/InquiryForm";
 
 /* Historic Broyhill — public site.
-   Warm, heritage-premium theme (distinct from the dark staff console).
-   Content is from the owner's own material; unverified facts are marked [CONFIRM]
-   and images are TODO-PHOTO placeholders until real photos are supplied. No lodging. */
+   Brand match (owner brochure): deep navy + cream + gold, Playfair Display + EB Garamond.
+   Content is the owner's own; unverified facts are [CONFIRM]; images are TODO-PHOTO. No lodging. */
 
-const SPACES = [
+const VENUES = [
   {
-    name: "Magnolia Room",
+    num: "01",
+    kicker: "Celebrate",
+    name: "The Magnolia Room",
     capacity: "20–120 seated · up to 140 for a standing reception",
-    blurb: "Our signature hall for ceremonies, receptions, rehearsal dinners, and milestone gatherings, with overflow to the lobby lounge and courtyard patio.",
+    blurb:
+      "Our signature hall for ceremonies, receptions, rehearsal dinners, and milestone celebrations. Roaming receptions accommodate upwards of 140 guests — ask about the lobby, courtyard, and other common areas.",
     photo: "The Magnolia Room set for a reception",
   },
   {
-    name: "The Boardrooms",
-    capacity: "By the day or half-day · [CONFIRM] capacity",
-    blurb: "Boardroom tables, upholstered seating, whiteboards, and Wi-Fi — open to tenants and the public for meetings and working sessions.",
-    photo: "A Boardroom set for a meeting",
-  },
-  {
-    name: "The Dock",
-    capacity: "Outdoor · [CONFIRM] capacity",
-    blurb: "A large covered stage with open-air seating — made for smaller outdoor events, live music, and food-truck evenings.",
-    photo: "The Dock's covered outdoor stage",
-  },
-  {
+    num: "02",
+    kicker: "Connect",
     name: "The Loft",
-    capacity: "Up to 20 · est. 2023",
-    blurb: "An intimate suite — boardroom or lounge seating, a private bath, and a coffee bar — available lock-and-key for multi-day meetings.",
+    capacity: "Up to 20 · for smaller gatherings",
+    blurb:
+      "A private space for corporate meetings, small gatherings, and training seminars. Boardroom or lounge setting, a private bathroom and coffee bar, and multi-day meeting options — comfortable and entirely your own.",
     photo: "The Loft lounge seating",
+  },
+  {
+    num: "03",
+    kicker: "Gather",
+    name: "The Dock",
+    capacity: "Outdoor · capacity varies with layout",
+    blurb:
+      "Our outside patio area — a covered stage and a flat lot for seating, made for smaller outdoor events and live music. The rear grounds offer room for community gatherings and food trucks.",
+    photo: "The Dock's covered outdoor stage",
   },
 ];
 
-function Eyebrow({ children }: { children: React.ReactNode }) {
-  return <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#b0894f]">{children}</p>;
+const INCLUDED = [
+  "Tables & chairs, with setup and breakdown",
+  "TV with connections for presentations",
+  "Projector available upon request",
+  "Private bathrooms & parking",
+  "Use of designated event areas",
+];
+
+function Eyebrow({ children, light = false }: { children: React.ReactNode; light?: boolean }) {
+  return (
+    <p className={`text-[11px] font-semibold uppercase tracking-[0.22em] ${light ? "text-[#d6b574]" : "text-[#a8853f]"}`}>
+      {children}
+    </p>
+  );
 }
 
-function Photo({ caption, className = "" }: { caption: string; className?: string }) {
+function Photo({ caption, className = "", onDark = false }: { caption: string; className?: string; onDark?: boolean }) {
   return (
-    <div className={`relative overflow-hidden rounded-xl border border-[#e0d6c2] bg-[#efe7d6] ${className}`}>
-      <div className="absolute inset-0" style={{ backgroundImage: "radial-gradient(circle at 30% 25%, #e7dcc6 0, transparent 60%), radial-gradient(circle at 75% 80%, #e2d6bd 0, transparent 55%)" }} />
+    <div className={`relative overflow-hidden rounded-lg ${onDark ? "border border-white/10 bg-white/[0.04]" : "border border-[#e2d8c3] bg-[#ece2cf]"} ${className}`}>
+      <div className="absolute inset-0 opacity-70" style={{ backgroundImage: "radial-gradient(circle at 28% 22%, rgba(194,161,90,0.18) 0, transparent 60%), radial-gradient(circle at 78% 82%, rgba(194,161,90,0.12) 0, transparent 55%)" }} />
       <div className="relative flex h-full min-h-[180px] flex-col items-center justify-center gap-1.5 px-4 text-center">
-        <span className="text-[#b0894f]/80 text-lg">◢</span>
-        <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#a2906f]">Photo</span>
-        <span className="text-xs text-[#8c7d5f]">{caption}</span>
+        <span className="text-[#c2a15a] text-lg">◢</span>
+        <span className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${onDark ? "text-[#c2a15a]" : "text-[#a8853f]"}`}>Photo</span>
+        <span className={`text-xs ${onDark ? "text-[#aeb9c0]" : "text-[#8c7d5f]"}`}>{caption}</span>
       </div>
     </div>
   );
 }
 
 const Confirm = () => (
-  <span className="ml-1 rounded bg-[#b0894f]/12 px-1.5 py-0.5 align-middle text-[10px] font-semibold uppercase tracking-wider text-[#9a7739]">confirm</span>
+  <span className="ml-1 rounded bg-[#c2a15a]/15 px-1.5 py-0.5 align-middle text-[10px] font-semibold uppercase tracking-wider text-[#8f6f2f]">confirm</span>
 );
 
 export default function Home() {
   return (
-    <main className="bg-[#faf6ee] text-[#2a3942]">
+    <main className="hb-body bg-[#f6f1e7] text-[#273440]">
       {/* Nav */}
-      <header className="sticky top-0 z-40 border-b border-[#e7ddc9] bg-[#faf6ee]/85 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#182c3e]/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5">
-          <a href="#top" className="font-serif text-lg tracking-wide text-[#13303f]">
-            Historic Broyhill
-          </a>
-          <nav className="hidden items-center gap-7 text-sm text-[#4b5a63] md:flex">
-            <a href="#spaces" className="hover:text-[#13303f]">Event Spaces</a>
-            <a href="#offices" className="hover:text-[#13303f]">Offices</a>
-            <a href="#studio" className="hover:text-[#13303f]">Podcast Studio</a>
-            <a href="#visit" className="hover:text-[#13303f]">Visit</a>
+          <a href="#top" className="hb-display text-lg tracking-wide text-[#f4ecda]">Historic Broyhill</a>
+          <nav className="hidden items-center gap-7 text-[15px] text-[#cdd5d9] md:flex">
+            <a href="#venues" className="hover:text-white">Event Venues</a>
+            <a href="#offices" className="hover:text-white">Offices</a>
+            <a href="#studio" className="hover:text-white">Podcast Studio</a>
+            <a href="#visit" className="hover:text-white">Visit</a>
           </nav>
-          <a href="#visit" className="rounded-lg bg-[#13303f] px-4 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-[#f7f1e4] transition hover:bg-[#1b4256]">
-            Request a tour
-          </a>
+          <a href="#visit" className="rounded-md bg-[#c2a15a] px-4 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-[#182c3e] transition hover:bg-[#d2b268]">Request a tour</a>
         </div>
       </header>
 
-      {/* Hero */}
-      <section id="top" className="relative overflow-hidden">
+      {/* Hero — navy, like the brochure */}
+      <section id="top" className="bg-[#182c3e] text-[#e9e2d3]">
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-16 md:grid-cols-[1.05fr_0.95fr] md:py-24">
           <div>
-            <Eyebrow>Clemmons, North Carolina · a 1920s landmark</Eyebrow>
-            <h1 className="mt-4 font-serif text-4xl leading-[1.08] text-[#13303f] sm:text-5xl md:text-[3.4rem]">
+            <Eyebrow light>Clemmons, North Carolina · a 1920s landmark</Eyebrow>
+            <h1 className="hb-display mt-5 text-4xl leading-[1.08] text-[#f4ecda] sm:text-5xl md:text-[3.3rem]">
               Where the walls hold generations of memories.
             </h1>
-            <p className="mt-5 max-w-xl text-[17px] leading-relaxed text-[#4b5a63]">
-              A restored 1920s schoolhouse, minutes from downtown Winston-Salem — now home to
-              Southern-charm event spaces, Class A executive offices, a virtual office program,
-              and a turnkey podcast studio.
+            <p className="mt-5 max-w-xl text-[18px] leading-relaxed text-[#bcc6c9]">
+              A restored 1920s schoolhouse, minutes from downtown Winston-Salem — now three distinctive
+              event venues, Class A executive offices, a virtual office program, and a turnkey podcast studio.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <a href="#visit" className="rounded-lg bg-[#8f1f1f] px-6 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#f7f1e4] transition hover:bg-[#a52828]">
-                Request a tour
-              </a>
-              <a href="#spaces" className="rounded-lg border border-[#13303f]/25 px-6 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#13303f] transition hover:border-[#13303f]/50">
-                Explore the spaces
-              </a>
+              <a href="#visit" className="rounded-md bg-[#c2a15a] px-6 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#182c3e] transition hover:bg-[#d2b268]">Request a tour</a>
+              <a href="#venues" className="rounded-md border border-white/25 px-6 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#e9e2d3] transition hover:border-white/55">Explore the venues</a>
             </div>
           </div>
-          <Photo caption="The checkerboard foyer — chandelier & arched entry" className="aspect-[4/5] md:aspect-[4/5]" />
+          <Photo onDark caption="The Historic Broyhill at dusk — the landmark exterior" className="aspect-[5/4]" />
         </div>
       </section>
 
-      {/* Heritage */}
-      <section className="border-y border-[#e7ddc9] bg-[#f3ecdd]">
-        <div className="mx-auto max-w-6xl px-5 py-16 md:py-20">
-          <div className="grid gap-10 md:grid-cols-[0.9fr_1.1fr] md:items-center">
-            <div>
-              <Eyebrow>Our story</Eyebrow>
-              <h2 className="mt-4 font-serif text-3xl leading-tight text-[#13303f] md:text-[2.5rem]">
-                This building houses memories. It houses dreams.
-              </h2>
-            </div>
-            <div className="space-y-4 text-[16px] leading-relaxed text-[#4b5a63]">
-              <p>
-                Nearly a century ago <Confirm /> this was a Clemmons schoolhouse. Ed Broyhill
-                reimagined it <span className="whitespace-nowrap">around 2006</span> <Confirm /> as a
-                home for small businesses and celebrations — keeping the character of the original
-                architecture while bringing in modern amenities.
-              </p>
-              <p>
-                Today it blends the tradition of the Clemmons community with executive office suites,
-                meeting rooms, event spaces, and a reception venue — the perfect Southern-charm
-                backdrop for your next gathering, with onsite event planners to help with the details.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Event spaces */}
-      <section id="spaces" className="mx-auto max-w-6xl px-5 py-16 md:py-24">
+      {/* Venues */}
+      <section id="venues" className="mx-auto max-w-6xl px-5 py-16 md:py-24">
         <div className="max-w-2xl">
-          <Eyebrow>Event spaces</Eyebrow>
-          <h2 className="mt-4 font-serif text-3xl text-[#13303f] md:text-[2.5rem]">Gather in a space with a story.</h2>
-          <p className="mt-4 text-[16px] leading-relaxed text-[#4b5a63]">
-            Four distinct settings for weddings, receptions, reunions, corporate celebrations, and
-            meetings — from a grand hall to an open-air stage. Pricing available on request <Confirm />.
+          <Eyebrow>Three venues · one special place</Eyebrow>
+          <h2 className="hb-display mt-4 text-3xl text-[#182c3e] md:text-[2.6rem]">A setting for your next occasion.</h2>
+          <p className="mt-4 text-[17px] leading-relaxed text-[#5a6672]">
+            Showers, birthdays, graduations, anniversaries, wedding receptions — bring your celebration,
+            meeting, or community gathering to the heart of Clemmons, with onsite event planners to help
+            with the details. Rental rates on request <Confirm />.
           </p>
         </div>
-        <div className="mt-10 grid gap-6 sm:grid-cols-2">
-          {SPACES.map((s) => (
-            <article key={s.name} className="group overflow-hidden rounded-2xl border border-[#e7ddc9] bg-white/60 transition hover:shadow-[0_18px_40px_-24px_rgba(19,48,63,0.45)]">
-              <Photo caption={s.photo} className="aspect-[16/10] rounded-none border-0 border-b border-[#e7ddc9]" />
-              <div className="p-6">
-                <h3 className="font-serif text-xl text-[#13303f]">{s.name}</h3>
-                <p className="mt-1 text-[13px] font-medium uppercase tracking-[0.08em] text-[#b0894f]">{s.capacity}</p>
-                <p className="mt-3 text-[15px] leading-relaxed text-[#4b5a63]">{s.blurb}</p>
-                <a href="#visit" className="mt-4 inline-block text-sm font-semibold text-[#8f1f1f] hover:underline">Inquire about {s.name} →</a>
+        <div className="mt-10 grid gap-6 md:grid-cols-3">
+          {VENUES.map((v) => (
+            <article key={v.name} className="flex flex-col overflow-hidden rounded-xl border border-[#e4dac6] bg-white/60 transition hover:shadow-[0_18px_44px_-26px_rgba(24,44,62,0.5)]">
+              <Photo caption={v.photo} className="aspect-[16/10] rounded-none border-0 border-b border-[#e4dac6]" />
+              <div className="flex flex-1 flex-col p-6">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#a8853f]">{v.num} / {v.kicker}</p>
+                <h3 className="hb-display mt-2 text-2xl text-[#182c3e]">{v.name}</h3>
+                <p className="mt-1 text-[13px] font-medium uppercase tracking-[0.06em] text-[#8f6f2f]">{v.capacity}</p>
+                <p className="mt-3 flex-1 text-[15px] leading-relaxed text-[#5a6672]">{v.blurb}</p>
+                <a href="#visit" className="mt-4 text-sm font-semibold text-[#182c3e] hover:text-[#a8853f]">Inquire about {v.name} →</a>
               </div>
             </article>
           ))}
         </div>
+
+        {/* Included with your event */}
+        <div className="mt-10 rounded-xl border border-[#e4dac6] bg-[#efe7d6] p-6 sm:p-8">
+          <div className="grid gap-6 md:grid-cols-[0.8fr_1.2fr] md:items-center">
+            <div>
+              <Eyebrow>Included with your event</Eyebrow>
+              <p className="hb-display mt-2 text-xl italic text-[#182c3e]">Historic charm. Memorable gatherings.</p>
+            </div>
+            <ul className="grid gap-x-6 gap-y-2 text-[15px] text-[#4b5661] sm:grid-cols-2">
+              {INCLUDED.map((i) => (
+                <li key={i} className="flex gap-2"><span className="text-[#c2a15a]">·</span>{i}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
       </section>
 
-      {/* Offices & virtual office */}
-      <section id="offices" className="border-y border-[#e7ddc9] bg-[#f3ecdd]">
+      {/* Offices */}
+      <section id="offices" className="border-y border-[#e4dac6] bg-[#efe7d6]">
         <div className="mx-auto max-w-6xl px-5 py-16 md:py-24">
           <Eyebrow>Work here</Eyebrow>
-          <h2 className="mt-4 font-serif text-3xl text-[#13303f] md:text-[2.5rem]">Class A offices with character.</h2>
-          <div className="mt-10 grid gap-6 md:grid-cols-2">
-            <div className="rounded-2xl border border-[#e0d6c2] bg-white/60 p-7">
-              <h3 className="font-serif text-xl text-[#13303f]">Executive office suites</h3>
-              <p className="mt-3 text-[15px] leading-relaxed text-[#4b5a63]">
+          <h2 className="hb-display mt-4 text-3xl text-[#182c3e] md:text-[2.6rem]">Class A offices with character.</h2>
+          <div className="mt-10 grid gap-6 md:grid-cols-3">
+            <div className="rounded-xl border border-[#e2d8c3] bg-white/60 p-7">
+              <h3 className="hb-display text-xl text-[#182c3e]">Executive office suites</h3>
+              <p className="mt-3 text-[15px] leading-relaxed text-[#5a6672]">
                 Premium, move-in-ready offices in a landmark setting — home to accountants, attorneys,
-                financial and insurance firms, and counseling practices. Suite sizes and availability
-                on request <Confirm />.
+                financial and insurance firms, and counseling practices. Sizes and availability on request <Confirm />.
               </p>
-              <a href="mailto:Kristin@Broyhill.net" className="mt-4 inline-block text-sm font-semibold text-[#8f1f1f] hover:underline">Ask about availability →</a>
+              <a href="mailto:Kristin@Broyhill.net" className="mt-4 inline-block text-sm font-semibold text-[#182c3e] hover:text-[#a8853f]">Ask about availability →</a>
             </div>
-            <div className="rounded-2xl border border-[#e0d6c2] bg-white/60 p-7">
+            <div className="rounded-xl border border-[#e2d8c3] bg-white/60 p-7">
+              <h3 className="hb-display text-xl text-[#182c3e]">The Boardrooms</h3>
+              <p className="mt-3 text-[15px] leading-relaxed text-[#5a6672]">
+                Meeting rooms by the day or half-day — boardroom tables, upholstered seating, whiteboards,
+                and Wi-Fi. Open to tenants and the public for working sessions and presentations.
+              </p>
+              <a href="#visit" className="mt-4 inline-block text-sm font-semibold text-[#182c3e] hover:text-[#a8853f]">Reserve a room →</a>
+            </div>
+            <div className="rounded-xl border border-[#e2d8c3] bg-white/60 p-7">
               <div className="flex items-baseline justify-between">
-                <h3 className="font-serif text-xl text-[#13303f]">Virtual Office Program</h3>
-                <span className="font-serif text-xl text-[#b0894f]">$150<span className="text-sm text-[#8c7d5f]">/mo</span></span>
+                <h3 className="hb-display text-xl text-[#182c3e]">Virtual Office</h3>
+                <span className="hb-display text-xl text-[#a8853f]">$150<span className="text-sm text-[#8c7d5f]">/mo</span></span>
               </div>
               <p className="mt-1 text-xs uppercase tracking-wider text-[#8c7d5f]">12-month term</p>
-              <ul className="mt-4 space-y-1.5 text-[15px] text-[#4b5a63]">
-                <li>· A professional business address</li>
-                <li>· Wi-Fi, coffee &amp; tea, and a lobby for your guests</li>
-                <li>· Copier/scanner account — 50 color + 100 B&amp;W pages monthly</li>
-                <li>· 2 hours in the large conference room</li>
+              <ul className="mt-4 space-y-1.5 text-[15px] text-[#5a6672]">
+                <li>· Professional business address</li>
+                <li>· Wi-Fi, coffee &amp; tea, lobby for guests</li>
+                <li>· Copier — 50 color + 100 B&amp;W monthly</li>
+                <li>· 2 hrs large conference room</li>
                 <li>· Two 6-seat breakout rooms (as available)</li>
                 <li>· One key fob (extra fobs $50)</li>
               </ul>
-              <a href="#visit" className="mt-4 inline-block text-sm font-semibold text-[#8f1f1f] hover:underline">Get started →</a>
+              <a href="#visit" className="mt-4 inline-block text-sm font-semibold text-[#182c3e] hover:text-[#a8853f]">Get started →</a>
             </div>
           </div>
         </div>
@@ -192,57 +194,58 @@ export default function Home() {
         <div className="grid items-center gap-10 md:grid-cols-[1.1fr_0.9fr]">
           <div>
             <Eyebrow>The HB Podcast Studio</Eyebrow>
-            <h2 className="mt-4 font-serif text-3xl text-[#13303f] md:text-[2.5rem]">A turnkey studio, ready when you are.</h2>
-            <p className="mt-4 text-[16px] leading-relaxed text-[#4b5a63]">
-              Top-quality, user-friendly equipment with an engineer on hand — book a session and
-              record your podcast, interview, or promotion without the setup. Equipment list and
-              rates on request <Confirm />.
+            <h2 className="hb-display mt-4 text-3xl text-[#182c3e] md:text-[2.6rem]">A turnkey studio, ready when you are.</h2>
+            <p className="mt-4 text-[17px] leading-relaxed text-[#5a6672]">
+              Top-quality, user-friendly equipment with an engineer on hand — book a session and record
+              your podcast, interview, or promotion without the setup. Equipment list and rates on request <Confirm />.
             </p>
-            <a href="#visit" className="mt-6 inline-block rounded-lg border border-[#13303f]/25 px-6 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#13303f] transition hover:border-[#13303f]/50">
-              Book the studio
-            </a>
+            <a href="#visit" className="mt-6 inline-block rounded-md border border-[#182c3e]/25 px-6 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#182c3e] transition hover:border-[#182c3e]/50">Book the studio</a>
           </div>
           <Photo caption="The podcast studio — mics, boxwood wall" className="aspect-[4/3]" />
         </div>
       </section>
 
-      {/* Visit / inquiry */}
-      <section id="visit" className="border-t border-[#e7ddc9] bg-[#13303f] text-[#e9e2d3]">
-        <div className="mx-auto grid max-w-6xl gap-12 px-5 py-16 md:grid-cols-[1fr_1fr] md:py-24">
+      {/* Visit */}
+      <section id="visit" className="bg-[#182c3e] text-[#e9e2d3]">
+        <div className="mx-auto grid max-w-6xl gap-12 px-5 py-16 md:grid-cols-2 md:py-24">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#d9b877]">Plan your visit</p>
-            <h2 className="mt-4 font-serif text-3xl leading-tight text-white md:text-[2.5rem]">Come see the Historic Broyhill.</h2>
-            <p className="mt-4 max-w-md text-[16px] leading-relaxed text-[#bcc6c9]">
-              Tell us a little about what you have in mind and we'll arrange a tour. Prefer to book a
-              space directly? Use our booking portal.
+            <Eyebrow light>Let's plan your event</Eyebrow>
+            <h2 className="hb-display mt-4 text-3xl leading-tight text-[#f4ecda] md:text-[2.6rem]">Start with a tour.</h2>
+            <p className="mt-4 max-w-md text-[17px] leading-relaxed text-[#bcc6c9]">
+              See the spaces, share your vision, and explore the options for your gathering. Prefer to book
+              directly? Use our booking portal.
             </p>
-            <div className="mt-8 space-y-3 text-[15px]">
-              <p><a href="https://broyhill.skedda.com/booking" className="inline-block rounded-lg bg-[#b0894f] px-5 py-2.5 text-sm font-semibold uppercase tracking-[0.1em] text-[#13303f] transition hover:bg-[#c29a58]">Book now →</a></p>
-              <p className="pt-2 text-[#bcc6c9]">3540 Clemmons Road, Suite 111<br />Clemmons, NC 27012</p>
-              <p className="text-[#bcc6c9]">
-                <a href="tel:+13367931191" className="hover:text-white">336-793-1191</a> ·{" "}
-                <a href="mailto:Info@Broyhill.net" className="hover:text-white">Info@Broyhill.net</a>
+
+            <div className="mt-7 border-t border-white/12 pt-6">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#d6b574]">Event Director</p>
+              <p className="hb-display mt-1 text-2xl text-[#f4ecda]">Sonja Kennedy</p>
+              <p className="mt-1 text-[15px]">
+                <a href="tel:+13369088382" className="hover:text-white">336-908-8382</a> ·{" "}
+                <a href="mailto:bledsoesonja1@gmail.com" className="hover:text-white">bledsoesonja1@gmail.com</a>
               </p>
-              <p className="text-[#bcc6c9]">Office suites: <a href="mailto:Kristin@Broyhill.net" className="hover:text-white">Kristin@Broyhill.net</a></p>
-              <p><a href="https://www.instagram.com/historicbroyhill/" className="text-[#d9b877] hover:text-white">@historicbroyhill</a></p>
+            </div>
+
+            <div className="mt-6 space-y-2 text-[15px] text-[#bcc6c9]">
+              <p><a href="https://broyhill.skedda.com/booking" className="inline-block rounded-md bg-[#c2a15a] px-5 py-2.5 text-sm font-semibold uppercase tracking-[0.1em] text-[#182c3e] transition hover:bg-[#d2b268]">Book now →</a></p>
+              <p className="pt-2">3540 Clemmons Road, Suite 111 · Clemmons, NC 27012</p>
+              <p>General: <a href="tel:+13367931191" className="hover:text-white">336-793-1191</a> · <a href="mailto:Info@Broyhill.net" className="hover:text-white">Info@Broyhill.net</a></p>
+              <p>Office suites: <a href="mailto:Kristin@Broyhill.net" className="hover:text-white">Kristin@Broyhill.net</a> · <a href="https://www.instagram.com/historicbroyhill/" className="text-[#d6b574] hover:text-white">@historicbroyhill</a></p>
             </div>
           </div>
-          <div className="rounded-2xl bg-[#faf6ee] p-6 text-[#2a3942] sm:p-8">
+          <div className="rounded-xl bg-[#f6f1e7] p-6 text-[#273440] sm:p-8">
             <InquiryForm />
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#0e2733] text-[#9fb0b6]">
+      <footer className="bg-[#101f2d] text-[#9fb0b6]">
         <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-4 px-5 py-8 sm:flex-row sm:items-center">
           <div>
-            <p className="font-serif text-base tracking-wide text-[#e9e2d3]">Historic Broyhill</p>
+            <p className="hb-display text-base tracking-wide text-[#e9e2d3]">Historic Broyhill</p>
             <p className="mt-1 text-xs">A restored 1920s landmark in Clemmons, North Carolina.</p>
           </div>
-          <p className="text-xs">
-            336-793-1191 · <a href="mailto:Info@Broyhill.net" className="hover:text-[#e9e2d3]">Info@Broyhill.net</a>
-          </p>
+          <p className="text-xs">Events: Sonja Kennedy · 336-908-8382 · <a href="mailto:Info@Broyhill.net" className="hover:text-[#e9e2d3]">Info@Broyhill.net</a></p>
         </div>
       </footer>
     </main>

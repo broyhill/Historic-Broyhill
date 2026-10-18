@@ -3,10 +3,10 @@
 import React, { useState } from "react";
 
 const INTERESTS = [
-  "Magnolia Room",
-  "The Boardrooms",
-  "The Dock",
+  "The Magnolia Room",
   "The Loft",
+  "The Dock",
+  "The Boardrooms",
   "Executive office suite",
   "Virtual Office Program",
   "The HB Podcast Studio",
@@ -48,14 +48,14 @@ export default function InquiryForm() {
     }
   };
 
-  const field = "w-full min-h-[44px] rounded-lg border border-[#d8cdb8] bg-white/70 px-3.5 py-2.5 text-[15px] text-[#1b2a36] placeholder:text-[#9a8f78] focus:outline-none focus:border-[#b0894f] focus:ring-2 focus:ring-[#b0894f]/30";
+  const field = "w-full min-h-[44px] rounded-lg border border-[#d8cdb8] bg-white/70 px-3.5 py-2.5 text-[15px] text-[#1b2a36] placeholder:text-[#9a8f78] focus:outline-none focus:border-[#c2a15a] focus:ring-2 focus:ring-[#c2a15a]/30";
   const label = "block text-[11px] font-semibold uppercase tracking-[0.14em] text-[#7a6f58] mb-1.5";
 
   if (submitted) {
     return (
       <div className="rounded-2xl border border-[#d8cdb8] bg-[#fbf7ef] p-8 text-center">
         <div className="mx-auto mb-3 grid h-11 w-11 place-items-center rounded-full bg-[#1f4d2e]/10 text-[#1f4d2e] text-xl">✓</div>
-        <h3 className="font-serif text-xl text-[#13303f]">Thank you, {form.name.split(" ")[0] || "friend"}.</h3>
+        <h3 className="hb-display text-xl text-[#182c3e]">Thank you, {form.name.split(" ")[0] || "friend"}.</h3>
         <p className="mt-2 text-[15px] text-[#4b5a63]">
           Our team will be in touch shortly about {form.interest.toLowerCase()}. For anything urgent, call{" "}
           <a href="tel:+13367931191" className="font-medium text-[#8f1f1f] underline">336-793-1191</a>.
@@ -99,7 +99,7 @@ export default function InquiryForm() {
         <label htmlFor="iq-message" className={label}>Tell us about your plans</label>
         <textarea id="iq-message" rows={3} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} className={field} placeholder="A fall reception for about 80 guests…" />
       </div>
-      <button type="submit" disabled={loading} className="w-full min-h-[48px] rounded-lg bg-[#13303f] px-5 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-[#f7f1e4] transition hover:bg-[#1b4256] disabled:opacity-60 active:scale-[0.99] motion-reduce:active:scale-100">
+      <button type="submit" disabled={loading} className="w-full min-h-[48px] rounded-lg bg-[#182c3e] px-5 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-[#f4ecda] transition hover:bg-[#22384c] disabled:opacity-60 active:scale-[0.99] motion-reduce:active:scale-100">
         {loading ? "Sending…" : "Request a tour"}
       </button>
       <p className="text-center text-xs text-[#7a6f58]">We'll reply by email, usually within a business day.</p>
