@@ -29,7 +29,25 @@ export async function GET(request: Request) {
       take: 50,
       include: { business: { select: { businessName: true } } }
     });
-    return NextResponse.json({ success: true, campaigns });
+
+    // Attach the originating lead (name, company, LinkedIn, score) to each card for the console
+    const leadIds = Array.from(new Set(
+      campaigns
+        .map((c) => (c.metrics && typeof c.metrics === "object" && !Array.isArray(c.metrics)) ? (c.metrics as Record<string, any>).leadId : null)
+        .filter((id): id is string => typeof id === "string")
+    ));
+    const leads = leadIds.length
+      ? await prisma.leadProfile.findMany({
+          where: { id: { in: leadIds } },
+          select: { id: true, name: true, company: true, email: true, linkedinId: true, leadScore: true }
+        })
+      : [];
+    const leadById = new Map(leads.map((l) => [l.id, l]));
+    const enriched = campaigns.map((c) => {
+      const m = (c.metrics && typeof c.metrics === "object" && !Array.isArray(c.metrics)) ? c.metrics as Record<string, any> : {};
+      return { ...c, lead: typeof m.leadId === "string" ? (leadById.get(m.leadId) ?? null) : null };
+    });
+    return NextResponse.json({ success: true, campaigns: enriched });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
