@@ -2,6 +2,15 @@
 
 import React, { useEffect, useState } from "react";
 
+interface Lead {
+  id: string;
+  name: string | null;
+  company: string | null;
+  email: string;
+  linkedinId: string | null;
+  leadScore: number;
+}
+
 interface Campaign {
   id: string;
   channel: string;
@@ -9,6 +18,16 @@ interface Campaign {
   status: string;
   createdAt: string;
   publishedAt?: string;
+  lead?: Lead | null;
+}
+
+// Normalize whatever was typed into the LinkedIn field into a usable profile URL
+function linkedinHref(v: string): string {
+  const t = v.trim();
+  if (/^https?:\/\//i.test(t)) return t;
+  if (/^(www\.)?linkedin\.com/i.test(t)) return `https://${t}`;
+  const handle = t.replace(/^@/, "").replace(/^\/?in\//i, "");
+  return `https://www.linkedin.com/in/${handle}`;
 }
 
 interface Metrics {
@@ -149,6 +168,23 @@ export default function AdminConsole() {
                     {c.status}
                   </span>
                 </div>
+
+                {c.lead && (
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-mono">
+                    <span className="text-neutral-100 font-semibold">{c.lead.name || c.lead.email}</span>
+                    {c.lead.company && (<><span className="text-neutral-700">·</span><span className="text-neutral-400">{c.lead.company}</span></>)}
+                    <span className="text-neutral-700">·</span>
+                    <span className="text-amber-400">Score {c.lead.leadScore}</span>
+                    <span className="text-neutral-700">·</span>
+                    {c.lead.linkedinId ? (
+                      <a href={linkedinHref(c.lead.linkedinId)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sky-400 hover:text-sky-300 underline underline-offset-2">
+                        LinkedIn ↗
+                      </a>
+                    ) : (
+                      <span className="text-neutral-600">no LinkedIn</span>
+                    )}
+                  </div>
+                )}
 
                 {editingId === c.id ? (
                   <textarea

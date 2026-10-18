@@ -13,6 +13,7 @@ export async function processCapture(body: any) {
     const company = body.company || name;
     const notes = body.notes || '';
     const tags = Array.isArray(body.tags) ? body.tags.join(', ') : (body.tags || '');
+    const linkedinId = body.linkedin_id?.trim() || null;
 
     if (!email) {
       return NextResponse.json({ error: 'Missing email' }, { status: 400 });
@@ -74,7 +75,7 @@ ${EMAIL_SIGNATURE}`
               },
               {
                 role: 'user',
-                content: `Lead Details:\nName: ${name}\nCompany: ${company}\nNotes: ${notes}\nInternal tags (for scoring only; never mention): ${tags}`
+                content: `Lead Details:\nName: ${name}\nCompany: ${company}\nLinkedIn: ${linkedinId || 'Not provided'}\nNotes: ${notes}\nInternal tags (for scoring only; never mention): ${tags}`
               }
             ],
             temperature: 0.7
@@ -103,6 +104,7 @@ ${EMAIL_SIGNATURE}`
         name,
         company,
         phone,
+        linkedinId,
         leadScore,
         primaryTrack,
         notes,
@@ -114,6 +116,7 @@ ${EMAIL_SIGNATURE}`
         name,
         company,
         phone,
+        linkedinId,
         leadScore,
         primaryTrack,
         leadSource: 'IN_PERSON_NFC',

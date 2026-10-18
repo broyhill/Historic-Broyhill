@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 export default function CapturePage() {
-  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", company: "", phone: "", interest: "Magnolia Room", notes: "" });
+  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", company: "", phone: "", linkedin: "", interest: "Magnolia Room", notes: "" });
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -12,7 +12,7 @@ export default function CapturePage() {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           first_name: form.firstName, last_name: form.lastName, email: form.email, company: form.company || "Private Inquiry",
-          phone: form.phone || null, notes: "Interest: " + form.interest + ". Vision: " + (form.notes || "None provided"),
+          phone: form.phone || null, linkedin_id: form.linkedin.trim() || null, notes: "Interest: " + form.interest + ". Vision: " + (form.notes || "None provided"),
           tags: ["In-Person NFC Tap", ...(["Magnolia Room", "The Boardrooms"].includes(form.interest) ? ["VIP", "High Net Worth"] : ["Standard Event"])]
         })
       });
@@ -54,6 +54,9 @@ export default function CapturePage() {
               <div><label className="block text-xs font-mono uppercase text-neutral-400 mb-1">Phone</label>
                 <input value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2 text-sm text-neutral-100" placeholder="+1 555-019-2834" />
               </div>
+            </div>
+            <div><label className="block text-xs font-mono uppercase text-neutral-400 mb-1">LinkedIn</label>
+              <input value={form.linkedin} onChange={e => setForm({...form, linkedin: e.target.value})} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2 text-sm text-neutral-100" placeholder="linkedin.com/in/jamesmadison" />
             </div>
             <div><label className="block text-xs font-mono uppercase text-neutral-400 mb-1">Interest</label>
               <select value={form.interest} onChange={e => setForm({...form, interest: e.target.value})} className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2 text-sm text-neutral-100">

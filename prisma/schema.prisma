@@ -27,6 +27,7 @@ model LeadProfile {
   name           String?
   company        String?
   phone          String?
+  linkedinId     String?
   leadScore      Int             @default(0)
   leadStatus     String          @default("PROSPECT")
   primaryTrack   String
