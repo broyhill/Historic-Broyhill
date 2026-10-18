@@ -7,6 +7,10 @@ import { parseCsv, mapRowsToLeads, type MappedLead } from "@/lib/csv";
 interface Lead {
   id: string;
   name: string | null;
+  salutation: string | null;
+  firstName: string | null;
+  middleName: string | null;
+  lastName: string | null;
   company: string | null;
   email: string;
   phone: string | null;
@@ -22,7 +26,7 @@ interface Lead {
   createdAt: string;
 }
 
-type SortKey = "name" | "company" | "leadScore" | "primaryTrack" | "createdAt";
+type SortKey = "firstName" | "lastName" | "name" | "company" | "leadScore" | "primaryTrack" | "createdAt";
 
 export default function LeadsPanel() {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -467,7 +471,8 @@ export default function LeadsPanel() {
           <table className="w-full border-collapse">
             <thead className="bg-[#f8f9fb] border-b border-[#e7e9eb]">
               <tr>
-                <th className={thSort} onClick={() => toggleSort("name")}>Name{arrow("name")}</th>
+                <th className={thSort} onClick={() => toggleSort("firstName")}>First Name{arrow("firstName")}</th>
+                <th className={thSort} onClick={() => toggleSort("lastName")}>Last Name{arrow("lastName")}</th>
                 <th className={thSort} onClick={() => toggleSort("company")}>Company{arrow("company")}</th>
                 <th className={th}>Contact</th>
                 <th className={thSort} onClick={() => toggleSort("primaryTrack")}>Interest{arrow("primaryTrack")}</th>
@@ -479,7 +484,10 @@ export default function LeadsPanel() {
             <tbody className="divide-y divide-[#eef1f4]">
               {sorted.map((l) => (
                 <tr key={l.id} className="hover:bg-[#f7f8fa]">
-                  <td className={`${td} text-[#323a46] font-semibold`}>{l.name || "—"}</td>
+                  <td className={`${td} text-[#323a46] font-semibold`} title={l.name || undefined}>
+                    {[l.salutation, l.firstName].filter(Boolean).join(" ") || (l.name ? l.name.split(" ")[0] : "—")}
+                  </td>
+                  <td className={`${td} text-[#323a46]`}>{l.lastName || "—"}</td>
                   <td className={td}>
                     <div className="flex flex-col gap-0.5">
                       <span className="text-[#4c4c5c]">{l.company || "—"}</span>
