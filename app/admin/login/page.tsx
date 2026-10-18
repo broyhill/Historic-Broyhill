@@ -32,7 +32,7 @@ export default function AdminLogin() {
     <main className="min-h-screen bg-neutral-950 text-neutral-100 flex flex-col justify-center items-center px-4 py-12">
       <div className="w-full max-w-sm bg-neutral-900/80 border border-neutral-800 rounded-2xl p-8 shadow-2xl">
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-serif tracking-wide text-neutral-100">✧ 5% Operations Console</h1>
+          <h1 className="text-2xl font-serif tracking-wide text-neutral-100">✧ Operations Console</h1>
           <p className="text-xs uppercase tracking-widest text-amber-400 font-mono mt-1">Historic Broyhill · Staff Access</p>
         </div>
         <form onSubmit={submit} className="space-y-4">

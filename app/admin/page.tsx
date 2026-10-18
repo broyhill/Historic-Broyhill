@@ -102,7 +102,7 @@ export default function AdminConsole() {
       <div className="max-w-5xl mx-auto space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-neutral-800 gap-4">
           <div>
-            <h1 className="text-2xl font-serif tracking-wide text-neutral-100">✧ 5% Operations Console</h1>
+            <h1 className="text-2xl font-serif tracking-wide text-neutral-100">✧ Operations Console</h1>
             <p className="text-xs text-neutral-400 font-mono mt-1">Review staged AI outreach & audit published venue broadcasts</p>
           </div>
           <div className="flex items-center space-x-2">
