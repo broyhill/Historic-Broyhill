@@ -88,6 +88,41 @@ export default function LeadsPanel() {
     }
   };
 
+  // Loop the batch endpoint until there are no nameless corporate leads left,
+  // accumulating the matches it fills in so they can be reviewed.
+  const runFindAll = async () => {
+    setFindBusy(true);
+    setFindError(null);
+    let searched = 0;
+    let applied = 0;
+    const filled: FoundPerson[] = [];
+    try {
+      for (let i = 0; i < 80; i++) {
+        const res = await fetch("/api/admin/find-person", {
+          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ limit: 10 }),
+        });
+        if (res.status === 401) { window.location.assign("/admin/login"); return; }
+        const data = await res.json();
+        if (!res.ok) { setFindError(data.error || "Search failed."); break; }
+        searched += data.searched || 0;
+        applied += data.applied || 0;
+        for (const r of (data.results || [])) if (r.applied) filled.push(r);
+        setFindResults([...filled]);
+        setFindSummary(`Searched ${searched} · ${applied} found · ${data.remaining} left…`);
+        // A persistent API error with nothing applied means a broken config —
+        // stop rather than burn through the whole list.
+        if (data.apiError && (data.applied || 0) === 0) { setFindError(`OpenAI note: ${data.apiError}`); break; }
+        if ((data.remaining ?? 0) === 0) { setFindSummary(`Done — searched ${searched}, found ${applied} people.`); break; }
+        await new Promise((r) => setTimeout(r, 400));
+      }
+      setReloadKey((k) => k + 1);
+    } catch (err) {
+      setFindError(err instanceof Error ? err.message : "Search failed.");
+    } finally {
+      setFindBusy(false);
+    }
+  };
+
   const runEnrichment = async () => {
     setEnrichPhase("running");
     setEnrichUpdated(0);
@@ -327,9 +362,12 @@ export default function LeadsPanel() {
               </tbody>
             </table>
           </div>
-          <div className="ibox-content flex items-center justify-between">
-            <p className="text-[11px] text-[#9ba6b7]">Only high/medium confidence matches are saved. Review the sources, then run the next batch.</p>
-            <button onClick={runFindPeople} disabled={findBusy} className="px-4 py-2 bg-[#7754f6] text-white rounded-md text-xs font-semibold hover:bg-[#5b3fc4] disabled:opacity-60">{findBusy ? "Searching…" : "Find 10 more"}</button>
+          <div className="ibox-content flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <p className="text-[11px] text-[#9ba6b7]">Only high/medium confidence matches are saved. Review the sources, then keep going.</p>
+            <div className="flex items-center gap-2">
+              <button onClick={runFindPeople} disabled={findBusy} className="px-4 py-2 border border-[#7754f6] text-[#5b3fc4] rounded-md text-xs font-semibold hover:bg-[#f4f0ff] disabled:opacity-60">{findBusy ? "Searching…" : "Find 10 more"}</button>
+              <button onClick={runFindAll} disabled={findBusy} className="px-4 py-2 bg-[#7754f6] text-white rounded-md text-xs font-semibold hover:bg-[#5b3fc4] disabled:opacity-60">{findBusy ? "Searching…" : "Find all remaining"}</button>
+            </div>
           </div>
         </div>
       )}
