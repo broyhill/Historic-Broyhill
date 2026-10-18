@@ -22,18 +22,6 @@ Rules:
 - linkedin must be an individual profile (/in/), never a company page. Null if not confidently found.
 - Never invent a name, title, or URL. If unsure, low confidence with nulls.`;
 
-// Pull the first supporting URL out of the model's web-search annotations.
-function firstCitation(message: any): string | null {
-  const ann = message?.annotations;
-  if (Array.isArray(ann)) {
-    for (const a of ann) {
-      const url = a?.url_citation?.url || a?.url;
-      if (typeof url === "string" && url.startsWith("http")) return url;
-    }
-  }
-  return null;
-}
-
 function parseJson(text: string): any {
   const cleaned = text.replace(/```json\s*|\s*```/g, "").trim();
   const start = cleaned.indexOf("{");
@@ -42,35 +30,58 @@ function parseJson(text: string): any {
   try { return JSON.parse(cleaned.slice(start, end + 1)); } catch { return {}; }
 }
 
+// Pull the assistant text and the first supporting URL out of a Responses API
+// result (output[].content[] of type output_text, with url_citation annotations).
+function extractFromResponses(data: any): { text: string; citation: string | null } {
+  let text = "";
+  let citation: string | null = null;
+  for (const item of data.output ?? []) {
+    if (item.type === "message" && Array.isArray(item.content)) {
+      for (const c of item.content) {
+        if ((c.type === "output_text" || typeof c.text === "string") && typeof c.text === "string") {
+          text += c.text;
+          for (const a of c.annotations ?? []) {
+            const url = a?.url_citation?.url || (a?.type === "url_citation" ? a?.url : null) || a?.url;
+            if (!citation && typeof url === "string" && url.startsWith("http")) citation = url;
+          }
+        }
+      }
+    }
+  }
+  if (!text && typeof data.output_text === "string") text = data.output_text;
+  return { text, citation };
+}
+
 export async function findPerson(email: string, companyHint: string | null): Promise<PersonResult> {
   const key = process.env.OPENAI_API_KEY;
   if (!key || key.includes("your-openai-api-key")) {
     return { name: null, title: null, linkedin: null, confidence: "low", source: null, error: "no_openai_key" };
   }
+  // Overridable in case the account needs a different search-capable model.
+  const model = process.env.OPENAI_SEARCH_MODEL || "gpt-4o-mini";
 
   try {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    // Responses API with the web_search tool (the search-preview chat models
+    // were shut down mid-2026).
+    const res = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        // Search-preview models run a live web search as part of the completion.
-        model: "gpt-4o-mini-search-preview",
-        web_search_options: {},
-        messages: [
-          { role: "system", content: SYSTEM },
-          { role: "user", content: `Email: ${email}${companyHint ? `\nCompany: ${companyHint}` : ""}\nIdentify this person.` },
-        ],
+        model,
+        tools: [{ type: "web_search" }],
+        instructions: SYSTEM,
+        input: `Email: ${email}${companyHint ? `\nCompany: ${companyHint}` : ""}\nIdentify this person. Respond ONLY with the JSON object.`,
       }),
     });
 
     if (!res.ok) {
       const body = await res.text().catch(() => "");
-      return { name: null, title: null, linkedin: null, confidence: "low", source: null, error: `api_${res.status}: ${body.slice(0, 160)}` };
+      return { name: null, title: null, linkedin: null, confidence: "low", source: null, error: `api_${res.status}: ${body.slice(0, 200)}` };
     }
 
     const data = await res.json();
-    const message = data.choices?.[0]?.message;
-    const parsed = parseJson(message?.content || "{}");
+    const { text, citation } = extractFromResponses(data);
+    const parsed = parseJson(text || "{}");
     const conf = ["high", "medium", "low"].includes(parsed.confidence) ? parsed.confidence : "low";
     const linkedin = typeof parsed.linkedin === "string" && /linkedin\.com\/in\//i.test(parsed.linkedin) ? parsed.linkedin : null;
 
@@ -79,7 +90,7 @@ export async function findPerson(email: string, companyHint: string | null): Pro
       title: parsed.title || null,
       linkedin,
       confidence: conf,
-      source: (typeof parsed.source === "string" && parsed.source.startsWith("http") ? parsed.source : null) || firstCitation(message),
+      source: (typeof parsed.source === "string" && parsed.source.startsWith("http") ? parsed.source : null) || citation,
     };
   } catch (e) {
     return { name: null, title: null, linkedin: null, confidence: "low", source: null, error: (e as Error).message };
