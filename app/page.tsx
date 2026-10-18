@@ -13,6 +13,7 @@ const VENUES = [
     blurb:
       "Our signature hall for ceremonies, receptions, rehearsal dinners, and milestone celebrations. Roaming receptions accommodate upwards of 140 guests — ask about the lobby, courtyard, and other common areas.",
     photo: "The Magnolia Room set for a reception",
+    src: "/photos/magnolia.jpg",
   },
   {
     num: "02",
@@ -22,6 +23,7 @@ const VENUES = [
     blurb:
       "A private space for corporate meetings, small gatherings, and training seminars. Boardroom or lounge setting, a private bathroom and coffee bar, and multi-day meeting options — comfortable and entirely your own.",
     photo: "The Loft lounge seating",
+    src: "",
   },
   {
     num: "03",
@@ -31,6 +33,7 @@ const VENUES = [
     blurb:
       "Our outside patio area — a covered stage and a flat lot for seating, made for smaller outdoor events and live music. The rear grounds offer room for community gatherings and food trucks.",
     photo: "The Dock's covered outdoor stage",
+    src: "",
   },
 ];
 
@@ -50,15 +53,22 @@ function Eyebrow({ children, light = false }: { children: React.ReactNode; light
   );
 }
 
-function Photo({ caption, className = "", onDark = false }: { caption: string; className?: string; onDark?: boolean }) {
+function Photo({ caption, className = "", onDark = false, src }: { caption: string; className?: string; onDark?: boolean; src?: string }) {
   return (
     <div className={`relative overflow-hidden rounded-lg ${onDark ? "border border-white/10 bg-white/[0.04]" : "border border-[#e2d8c3] bg-[#ece2cf]"} ${className}`}>
-      <div className="absolute inset-0 opacity-70" style={{ backgroundImage: "radial-gradient(circle at 28% 22%, rgba(194,161,90,0.18) 0, transparent 60%), radial-gradient(circle at 78% 82%, rgba(194,161,90,0.12) 0, transparent 55%)" }} />
-      <div className="relative flex h-full min-h-[180px] flex-col items-center justify-center gap-1.5 px-4 text-center">
-        <span className="text-[#c2a15a] text-lg">◢</span>
-        <span className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${onDark ? "text-[#c2a15a]" : "text-[#a8853f]"}`}>Photo</span>
-        <span className={`text-xs ${onDark ? "text-[#aeb9c0]" : "text-[#8c7d5f]"}`}>{caption}</span>
-      </div>
+      {src ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={src} alt={caption} className="absolute inset-0 h-full w-full object-cover" />
+      ) : (
+        <>
+          <div className="absolute inset-0 opacity-70" style={{ backgroundImage: "radial-gradient(circle at 28% 22%, rgba(194,161,90,0.18) 0, transparent 60%), radial-gradient(circle at 78% 82%, rgba(194,161,90,0.12) 0, transparent 55%)" }} />
+          <div className="relative flex h-full min-h-[180px] flex-col items-center justify-center gap-1.5 px-4 text-center">
+            <span className="text-[#c2a15a] text-lg">◢</span>
+            <span className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${onDark ? "text-[#c2a15a]" : "text-[#a8853f]"}`}>Photo</span>
+            <span className={`text-xs ${onDark ? "text-[#aeb9c0]" : "text-[#8c7d5f]"}`}>{caption}</span>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -99,7 +109,7 @@ export default function Home() {
               <a href="#venues" className="rounded-md border border-white/25 px-6 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#e9e2d3] transition hover:border-white/55">Explore the venues</a>
             </div>
           </div>
-          <Photo onDark caption="The Historic Broyhill at dusk — the landmark exterior" className="aspect-[5/4]" />
+          <Photo onDark caption="The Historic Broyhill at dusk — the landmark exterior" src="/photos/exterior.jpg" className="aspect-[5/4]" />
         </div>
       </section>
 
@@ -135,7 +145,7 @@ export default function Home() {
         <div className="mt-10 grid gap-6 md:grid-cols-3">
           {VENUES.map((v) => (
             <article key={v.name} className="flex flex-col overflow-hidden rounded-xl border border-[#e4dac6] bg-white/60 transition hover:shadow-[0_18px_44px_-26px_rgba(24,44,62,0.5)]">
-              <Photo caption={v.photo} className="aspect-[16/10] rounded-none border-0 border-b border-[#e4dac6]" />
+              <Photo caption={v.photo} src={v.src || undefined} className="aspect-[16/10] rounded-none border-0 border-b border-[#e4dac6]" />
               <div className="flex flex-1 flex-col p-6">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#a8853f]">{v.num} / {v.kicker}</p>
                 <h3 className="hb-display mt-2 text-2xl text-[#182c3e]">{v.name}</h3>
