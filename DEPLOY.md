@@ -2,29 +2,31 @@
 
 Three parts, each doing one job:
 **GitHub** (code) → **Vercel** (runs it) → **Supabase** (database, HTTPS/keyed).
-No raw Postgres ports, no keyless endpoints. The app authenticates to the
-database with the password inside `DATABASE_URL` (it uses Prisma, not the
-Supabase JS keys — so you do **not** need the anon/service_role keys here).
+No raw Postgres ports, no keyless endpoints. The app connects with Prisma over the
+pooled connection string that the Supabase↔Vercel integration injects — it uses the
+`POSTGRES_PRISMA_URL` / `POSTGRES_URL_NON_POOLING` variables, **not** the Supabase JS
+anon/service_role keys, and **not** a hand-pasted password.
 
 ---
 
-## 1. Supabase — clean project (its own org)
-1. In Supabase, switch to (or create) a **Historic Broyhill** organization — *not* the BroyhillGOP org.
-2. **New project** → name `historic-broyhill`, region **East US (us-east-1)**, set a strong DB password and save it.
-3. **Create the tables:** open **SQL Editor** → paste the contents of
-   [`prisma/supabase-setup.sql`](prisma/supabase-setup.sql) → **Run**.
-   (Creates every table incl. the LinkedIn field, and seeds the `broyhill-01` business record.)
+## 1. Supabase — the project
+The `supabase-historic-broyhill` project already exists (created via the Vercel
+Marketplace integration). **Create the tables:** open it in Supabase → **SQL Editor**
+→ paste the contents of [`prisma/supabase-setup.sql`](prisma/supabase-setup.sql) →
+**Run**. (Creates every table incl. the LinkedIn field, and seeds the `broyhill-01`
+business record. Ignore the integration's `notes`-table quickstart — we use this SQL.)
 
-## 2. Supabase — get the two connection strings
-Top bar → **Connect** → **ORMs / Prisma**. Copy the two it shows and replace
-`[YOUR-PASSWORD]` with your DB password **percent-encoded** (e.g. `@` → `%40`):
+## 2. Connect Supabase to the Vercel project (auto-wires the database)
+Because this Supabase is **managed via the Vercel Marketplace**, you don't copy any
+connection string by hand. In **Vercel → Integrations → Supabase**, find
+**`supabase-historic-broyhill`** → **Connect to Project** → pick the Vercel project
+that runs this app.
 
-```
-DATABASE_URL = postgresql://postgres.<REF>:<ENCODED_PW>@aws-0-<REGION>.pooler.supabase.com:6543/postgres?pgbouncer=true
-DIRECT_URL   = postgresql://postgres.<REF>:<ENCODED_PW>@aws-0-<REGION>.pooler.supabase.com:5432/postgres
-```
-- `DATABASE_URL` = **transaction pooler** (port 6543) — what Vercel's serverless functions use.
-- `DIRECT_URL` = **session** (port 5432) — used for schema/migrations.
+That injects the connection into Vercel as `POSTGRES_PRISMA_URL` (transaction pooler,
+pgbouncer) and `POSTGRES_URL_NON_POOLING` (direct connection). **The app's Prisma
+schema already reads those exact names**, so nothing else is needed for the database —
+no secret is ever pasted by hand. (The integration also injects `SUPABASE_*` keys; the
+app doesn't use them.)
 
 ## 3. Vercel — new project (separate from BroyhillGOP)
 1. **Add New → Project → Import** `broyhill/Historic-Broyhill`.
@@ -32,14 +34,15 @@ DIRECT_URL   = postgresql://postgres.<REF>:<ENCODED_PW>@aws-0-<REGION>.pooler.su
 3. Production branch = `main` (merge the feature branch into `main` first, or use the branch's auto **preview URL** to test).
 
 ## 4. Vercel — environment variables (Production + Preview)
+The database vars (`POSTGRES_PRISMA_URL`, `POSTGRES_URL_NON_POOLING`) are injected
+automatically by step 2 — **don't add those by hand.** You only set:
+
 | Variable | Value / source |
 |---|---|
-| `DATABASE_URL` | from step 2 (pooler, 6543) |
-| `DIRECT_URL` | from step 2 (session, 5432) |
-| `OPENAI_API_KEY` | platform.openai.com → API keys (`sk-...`) — powers lead scoring + email drafting |
+| `ADMIN_SECRET_KEY` | a strong passphrase **you choose** — it's the staff console login passcode (**required**) |
+| `OPENAI_API_KEY` | platform.openai.com → API keys (`sk-...`) — powers lead scoring + email drafting (optional; without it, leads save with a default draft) |
 | `RESEND_API_KEY` | resend.com (`re_...`) — sends the emails (optional; without it, drafts stage but don't send) |
-| `ADMIN_SECRET_KEY` | a strong passphrase **you choose** — it's the staff console login passcode |
-| `CAPTURE_WEBHOOK_SECRET` | any long random string |
+| `CAPTURE_WEBHOOK_SECRET` | any long random string (optional) |
 | `EMAIL_FROM` | e.g. `Historic Broyhill <outreach@broyhill.net>` (domain must be verified in Resend to send live) |
 
 ## 5. Deploy + verify

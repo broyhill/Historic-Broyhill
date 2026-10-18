@@ -4,8 +4,11 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  // Names injected automatically by the Supabase↔Vercel integration:
+  // POSTGRES_PRISMA_URL = transaction pooler (pgbouncer) for serverless queries,
+  // POSTGRES_URL_NON_POOLING = direct connection for migrations.
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
 model BusinessProfile {
