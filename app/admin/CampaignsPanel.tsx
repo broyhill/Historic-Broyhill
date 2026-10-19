@@ -2,8 +2,11 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  VENUE_ADDRESS, MAX_TEST_ADDRESSES, completeness, isEmail, previewChecks, reviewLinks, subjectChecks,
+  VENUE_ADDRESS, MAX_TEST_ADDRESSES, completeness, fillFirstName, isEmail, previewChecks, reviewLinks, subjectChecks, unresolvedTags,
 } from "@/lib/campaign-rules";
+import { CAMPAIGN_TEMPLATES } from "@/lib/campaign-templates";
+
+interface SavedTemplate { id: string; name: string; subject: string; previewText: string; body: string }
 
 interface Campaign {
   id: string; name: string; status: string; subject: string; previewText: string;
@@ -107,6 +110,20 @@ function Editor({ id, onBack }: { id: string; onBack: () => void }) {
   const [brief, setBrief] = useState({ goal: "", callToAction: "", callToActionLink: "", include: "" });
   const [rewrite, setRewrite] = useState("");
   const [testTo, setTestTo] = useState("");
+  const [saved, setSaved] = useState<SavedTemplate[]>([]);
+  const [tplName, setTplName] = useState("");
+
+  const loadSaved = useCallback(() => {
+    api("/api/admin/email-campaigns?templates=1").then((d) => setSaved(d.templates || [])).catch(() => {});
+  }, []);
+  useEffect(() => { if (open === "design") loadSaved(); }, [open, loadSaved]);
+
+  // Using a template copies it into this email; the original is never changed.
+  const useTemplate = (t: { name: string; subject: string; previewText: string; body: string }) => {
+    if (c && c.body.trim() && !window.confirm(`Replace the current subject and body with "${t.name}"? Your other settings stay.`)) return;
+    edit({ subject: t.subject, previewText: t.previewText, body: t.body, designType: "plain" });
+    setNotice(`"${t.name}" is loaded. Fill in any {{blanks}}, then click Save.`);
+  };
 
   useEffect(() => {
     api(`/api/admin/email-campaigns/${id}`).then((d) => setC(d.campaign)).catch((e) => setError(e.message));
@@ -132,6 +149,7 @@ function Editor({ id, onBack }: { id: string; onBack: () => void }) {
   if (!c || !done) return <p className="text-[13px] text-[#9ba6b7]">{error || "Loading…"}</p>;
 
   const links = reviewLinks(c.body);
+  const blanks = unresolvedTags(`${c.subject}\n${c.previewText}\n${c.body}`);
   const f = c.recipientFilter || {};
   const allDone = Object.values(done).every(Boolean);
 
@@ -211,6 +229,32 @@ function Editor({ id, onBack }: { id: string; onBack: () => void }) {
 
           {open === s.key && s.key === "design" && (
             <div className="ibox-content space-y-4">
+              <div className="space-y-2">
+                <div className="text-[12px] font-semibold text-[#6c757d]">Start from a template</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {CAMPAIGN_TEMPLATES.map((t) => (
+                    <button key={t.id} onClick={() => useTemplate(t)} className="text-left rounded-md border border-[#e7e9eb] px-3 py-2 hover:border-[#1ab394]/50">
+                      <span className="block text-[11px] uppercase tracking-wider text-[#9ba6b7]">{t.category}</span>
+                      <span className="block text-[13.5px] font-semibold text-[#323a46]">{t.name}</span>
+                      <span className="block text-[12px] text-[#6c757d]">{t.description}</span>
+                    </button>
+                  ))}
+                </div>
+                {saved.length > 0 && <div className="text-[12px] font-semibold text-[#6c757d] pt-1">My templates</div>}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {saved.map((t) => (
+                    <div key={t.id} className="rounded-md border border-[#e7e9eb] px-3 py-2 flex items-start gap-2">
+                      <button onClick={() => useTemplate(t)} className="flex-1 text-left">
+                        <span className="block text-[13.5px] font-semibold text-[#323a46]">{t.name}</span>
+                        <span className="block text-[12px] text-[#6c757d] truncate">{t.subject || "No subject"}</span>
+                      </button>
+                      <button aria-label={`Delete template ${t.name}`} className="text-[12px] text-[#9ba6b7] hover:text-red-600"
+                        onClick={() => { if (window.confirm(`Delete the template "${t.name}"? Campaigns made from it are not affected.`)) run("tpl-del", async () => { await api(`/api/admin/email-campaigns/${t.id}`, { method: "DELETE" }); loadSaved(); }); }}>Delete</button>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[11.5px] text-[#9ba6b7]">A template is only a starting point. Changing your email never changes the template.</p>
+              </div>
               <div className="rounded-md border border-dashed border-[#1ab394]/50 p-3 space-y-2">
                 <div className="text-[12px] font-semibold text-[#1ab394]">✦ Let Claude draft it</div>
                 <input value={brief.goal} onChange={(e) => setBrief({ ...brief, goal: e.target.value })} placeholder="What is this email for? (required)" className={inputCls} maxLength={1000} />
@@ -233,7 +277,15 @@ function Editor({ id, onBack }: { id: string; onBack: () => void }) {
                   edit({ body: (await ai({ action: "rewrite", instruction: rewrite })).body }); setRewrite(""); setNotice("Rewritten. Read it, then click Save.");
                 })}>{busy === "rewrite" ? "Rewriting…" : "✦ Rewrite"}</button>
               </div>
-              <button className={btnPrimary} disabled={busy !== null} onClick={() => save({ body: c.body, subject: c.subject, previewText: c.previewText, designType: "plain" })}>Save</button>
+              <div className="flex gap-2 flex-wrap items-center">
+                <button className={btnPrimary} disabled={busy !== null} onClick={() => save({ body: c.body, subject: c.subject, previewText: c.previewText, designType: "plain" })}>Save</button>
+                <input value={tplName} onChange={(e) => setTplName(e.target.value)} placeholder="Name to save this email as a template" className={`${inputCls} flex-1 min-w-[12rem]`} maxLength={120} />
+                <button className={btnGhost} disabled={busy !== null || !tplName.trim() || !c.body.trim()} onClick={() => run("tpl", async () => {
+                  await save({ body: c.body, subject: c.subject, previewText: c.previewText, designType: "plain" }, "");
+                  await api(`/api/admin/email-campaigns/${id}/save-as-template`, { method: "POST", body: JSON.stringify({ name: tplName }) });
+                  setTplName(""); loadSaved(); setNotice("Saved as a template.");
+                })}>Save as template</button>
+              </div>
             </div>
           )}
 
@@ -241,11 +293,17 @@ function Editor({ id, onBack }: { id: string; onBack: () => void }) {
             <div className="ibox-content space-y-4">
               <div className="rounded-md bg-[#f1f2f7] p-4 text-[13.5px] text-[#323a46] whitespace-pre-wrap leading-relaxed">
                 <div className="text-[11px] uppercase tracking-wider text-[#9ba6b7]">Preview</div>
-                <div className="font-semibold mt-1">{c.subject || "(no subject)"}</div>
-                <div className="text-[12px] text-[#6c757d]">{c.fromName} &lt;{c.fromEmail}&gt;{c.previewText ? ` · ${c.previewText}` : ""}</div>
-                <div className="mt-3">{c.body || "(no body yet)"}</div>
+                <div className="font-semibold mt-1">{fillFirstName(c.subject, null) || "(no subject)"}</div>
+                <div className="text-[12px] text-[#6c757d]">{c.fromName} &lt;{c.fromEmail}&gt;{c.previewText ? ` · ${fillFirstName(c.previewText, null)}` : ""}</div>
+                <div className="mt-3">{fillFirstName(c.body, null) || "(no body yet)"}</div>
+                <div className="mt-2 text-[11.5px] text-[#9ba6b7]">{"{{firstName}}"} shows as "there" here; each recipient's own first name is used when a list send is turned on.</div>
                 <div className="mt-4 pt-3 border-t border-[#d9dde3] text-[12px] text-[#6c757d]">{VENUE_ADDRESS}</div>
               </div>
+              {blanks.length > 0 && (
+                <div className="rounded-md border border-[#f5a623]/60 bg-[#fffaf0] px-3 py-2 text-[12.5px] text-[#b7791f]">
+                  Fill in these blanks before this campaign can be ready: {blanks.map((t) => `{{${t}}}`).join(", ")}
+                </div>
+              )}
               <div>
                 <div className="text-[12px] font-semibold text-[#6c757d] mb-1">Link review</div>
                 {links.links.length === 0 && <p className="text-[12.5px] text-[#9ba6b7]">No links in the email.</p>}

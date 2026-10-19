@@ -56,6 +56,20 @@ export function reviewLinks(body: string): { links: string[]; issues: LinkIssue[
   return { links, issues };
 }
 
+// Merge tags. {{firstName}} is filled per recipient; any other {{tag}} is a blank staff must fill in.
+export const PERSONAL_TAG = "firstName";
+const TAG_RE = /\{\{\s*([A-Za-z][A-Za-z0-9_]*)\s*\}\}/g;
+
+export function unresolvedTags(text: string): string[] {
+  const found = new Set<string>();
+  for (const m of text.matchAll(TAG_RE)) if (m[1] !== PERSONAL_TAG) found.add(m[1]);
+  return Array.from(found);
+}
+
+export function fillFirstName(text: string, firstName: string | null | undefined): string {
+  return text.replace(TAG_RE, (whole, tag) => (tag === PERSONAL_TAG ? (firstName?.trim() || "there") : whole));
+}
+
 export interface CampaignLike {
   subject: string;
   previewText: string;
@@ -80,7 +94,9 @@ export function completeness(c: CampaignLike): Completeness {
   const sender = c.fromName.trim().length > 0 && isEmail(c.fromEmail) && (!c.replyTo || isEmail(c.replyTo));
   const recipients = c.recipientCount > 0;
   const design = c.body.trim().length > 0;
-  const review = design && reviewLinks(c.body).issues.length === 0;
+  const review = design
+    && reviewLinks(c.body).issues.length === 0
+    && unresolvedTags(`${c.subject}\n${c.previewText}\n${c.body}`).length === 0;
   return { subject, sender, recipients, design, review };
 }
 

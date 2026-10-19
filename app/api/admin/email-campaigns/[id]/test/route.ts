@@ -3,7 +3,7 @@ import { Resend } from "resend";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { ensureCampaignTable } from "@/lib/campaigns-db";
-import { isEmail, MAX_TEST_ADDRESSES, VENUE_ADDRESS } from "@/lib/campaign-rules";
+import { fillFirstName, isEmail, MAX_TEST_ADDRESSES, unresolvedTags, VENUE_ADDRESS } from "@/lib/campaign-rules";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -21,6 +21,9 @@ export async function POST(request: Request, { params }: Ctx) {
     if (!c) return NextResponse.json({ error: "Campaign not found." }, { status: 404 });
     if (!c.subject.trim() || !c.body.trim()) return NextResponse.json({ error: "Add a subject and body before sending a test." }, { status: 400 });
 
+    const blanks = unresolvedTags(`${c.subject}\n${c.previewText}\n${c.body}`);
+    if (blanks.length) return NextResponse.json({ error: `Fill in these blanks first: ${blanks.map((t) => `{{${t}}}`).join(", ")}` }, { status: 400 });
+
     const b = await request.json().catch(() => ({}));
     const to: string[] = Array.from(new Set((Array.isArray(b.to) ? b.to : []).map((v: unknown) => String(v).trim().toLowerCase()).filter(Boolean)));
     if (!to.length) return NextResponse.json({ error: "Enter at least one email address." }, { status: 400 });
@@ -33,8 +36,8 @@ export async function POST(request: Request, { params }: Ctx) {
       `[TEST SEND — this was not sent to your list]`,
       `From name on the real send: ${c.fromName || "(not set)"} <${c.fromEmail || "not set"}>`,
       "",
-      c.previewText ? `Preview text: ${c.previewText}\n` : "",
-      c.body.trim(),
+      c.previewText ? `Preview text: ${fillFirstName(c.previewText, null)}\n` : "",
+      fillFirstName(c.body.trim(), null),
       "",
       "--",
       VENUE_ADDRESS,
@@ -47,7 +50,7 @@ export async function POST(request: Request, { params }: Ctx) {
           from: process.env.EMAIL_FROM || "Historic Broyhill <onboarding@resend.dev>",
           to: address,
           replyTo: c.replyTo || c.fromEmail || undefined,
-          subject: `[TEST] ${c.subject.trim()}`,
+          subject: `[TEST] ${fillFirstName(c.subject.trim(), null)}`,
           text,
         });
         if (error || !data) return NextResponse.json({ error: `Email service refused the test: ${error?.message || "no message id"}` }, { status: 502 });

@@ -51,7 +51,8 @@ export async function PATCH(request: Request, { params }: Ctx) {
     if (b.aiBrief && typeof b.aiBrief === "object") data.aiBrief = b.aiBrief;
 
     const merged = { ...existing, ...data } as typeof existing;
-    data.status = isReady(completeness(merged)) ? "READY" : "DRAFT";
+    // A saved template stays a template; only campaigns flip between DRAFT and READY.
+    if (existing.status !== "TEMPLATE") data.status = isReady(completeness(merged)) ? "READY" : "DRAFT";
 
     const updated = await prisma.emailCampaign.update({ where: { id }, data });
     return NextResponse.json({ success: true, campaign: view(updated) });
