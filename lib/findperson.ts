@@ -1,4 +1,6 @@
-// Person lookup from a work email, using OpenAI's web-search models.
+import { claudeEnabled, claudeWebSearch } from "@/lib/ai";
+
+// Person lookup from a work email, using Claude's web search (OpenAI's as a fallback).
 // For each email it searches the live web to identify the individual and
 // returns their name, title, and personal LinkedIn with a source + confidence.
 // It is instructed never to guess — low confidence + nulls when unsure.
@@ -52,7 +54,32 @@ function extractFromResponses(data: any): { text: string; citation: string | nul
   return { text, citation };
 }
 
+function toResult(parsed: any, citation: string | null): PersonResult {
+  const conf = ["high", "medium", "low"].includes(parsed.confidence) ? parsed.confidence : "low";
+  const linkedin = typeof parsed.linkedin === "string" && /linkedin\.com\/in\//i.test(parsed.linkedin) ? parsed.linkedin : null;
+  return {
+    name: parsed.name || null,
+    title: parsed.title || null,
+    linkedin,
+    confidence: conf,
+    source: (typeof parsed.source === "string" && parsed.source.startsWith("http") ? parsed.source : null) || citation,
+  };
+}
+
 export async function findPerson(email: string, companyHint: string | null): Promise<PersonResult> {
+  // Claude with its server-side web search tool (preferred when ANTHROPIC_API_KEY is set)
+  if (claudeEnabled()) {
+    try {
+      const { text, citation } = await claudeWebSearch({
+        system: SYSTEM,
+        user: `Email: ${email}${companyHint ? `\nCompany: ${companyHint}` : ""}\nIdentify this person. Respond ONLY with the JSON object.`,
+      });
+      return toResult(parseJson(text || "{}"), citation);
+    } catch (e) {
+      return { name: null, title: null, linkedin: null, confidence: "low", source: null, error: (e as Error).message };
+    }
+  }
+
   const key = process.env.OPENAI_API_KEY;
   if (!key || key.includes("your-openai-api-key")) {
     return { name: null, title: null, linkedin: null, confidence: "low", source: null, error: "no_openai_key" };

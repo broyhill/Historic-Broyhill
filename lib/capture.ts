@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { claudeEnabled, claudeJson } from '@/lib/ai';
 
 const EMAIL_SIGNATURE = 'Warm regards,\nHistoric Broyhill Concierge Team\ned@broyhill.net';
 
@@ -32,22 +34,7 @@ export async function processCapture(body: any) {
     let primaryTrack = 'VIP';
     let suggestedDraft = `Subject: Your inquiry with Historic Broyhill\n\nDear ${name},\n\nThank you for reaching out to Historic Broyhill. We have received your inquiry and will follow up shortly with details.\n\n${EMAIL_SIGNATURE}`;
 
-    // Direct OpenAI API Call with Structured JSON Mode
-    if (process.env.OPENAI_API_KEY && !process.env.OPENAI_API_KEY.includes('your-openai-api-key')) {
-      try {
-        const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'gpt-4o-mini',
-            response_format: { type: 'json_object' },
-            messages: [
-              {
-                role: 'system',
-                content: `You are an executive outreach director for ${business.businessName}. Available tracks: ${business.marketingTracks.join(', ')}.
+    const aiSystem = `You are an executive outreach director for ${business.businessName}. Available tracks: ${business.marketingTracks.join(', ')}.
 
 Venue facts (use ONLY these; they are the only verified details):
 - ${business.businessName} is a 1920s school building in Clemmons, NC (3540 Clemmons Road), converted to offices and event space around 2006.
@@ -71,12 +58,39 @@ suggestedDraft format:
 - Line 2 is blank.
 - Then a personalized 2-3 paragraph email body referencing the lead's notes, requested space, and company.
 - End the email with exactly this signature and nothing after it:
-${EMAIL_SIGNATURE}`
-              },
-              {
-                role: 'user',
-                content: `Lead Details:\nName: ${name}\nCompany: ${company}\nLinkedIn: ${linkedinId || 'Not provided'}\nNotes: ${notes}\nInternal tags (for scoring only; never mention): ${tags}`
-              }
+${EMAIL_SIGNATURE}`;
+    const aiUser = `Lead Details:\nName: ${name}\nCompany: ${company}\nLinkedIn: ${linkedinId || 'Not provided'}\nNotes: ${notes}\nInternal tags (for scoring only; never mention): ${tags}`;
+
+    // Claude (preferred when ANTHROPIC_API_KEY is set), with OpenAI as a fallback
+    if (claudeEnabled()) {
+      try {
+        const parsed = await claudeJson({
+          system: aiSystem,
+          user: aiUser,
+          schema: z.object({ leadScore: z.number(), primaryTrack: z.string(), suggestedDraft: z.string() }),
+        });
+        if (parsed) {
+          if (Number.isFinite(parsed.leadScore)) leadScore = Math.min(100, Math.max(1, Math.round(parsed.leadScore)));
+          if (business.marketingTracks.includes(parsed.primaryTrack)) primaryTrack = parsed.primaryTrack;
+          if (parsed.suggestedDraft.trim()) suggestedDraft = parsed.suggestedDraft;
+        }
+      } catch (aiErr: any) {
+        console.warn('Claude call bypassed:', aiErr.message);
+      }
+    } else if (process.env.OPENAI_API_KEY && !process.env.OPENAI_API_KEY.includes('your-openai-api-key')) {
+      try {
+        const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            response_format: { type: 'json_object' },
+            messages: [
+              { role: 'system', content: aiSystem },
+              { role: 'user', content: aiUser }
             ],
             temperature: 0.7
           })
