@@ -1,5 +1,8 @@
+import { z } from "zod";
+import { claudeEnabled, claudeJson } from "@/lib/ai";
+
 // Company enrichment from an email domain.
-// Uses OpenAI when OPENAI_API_KEY is set (fills company name, company LinkedIn,
+// Uses Claude when ANTHROPIC_API_KEY is set (else OpenAI when OPENAI_API_KEY is set) (fills company name, company LinkedIn,
 // HQ city/state with a confidence flag), and falls back to a plain
 // domain-derived company name otherwise. It never invents a street address,
 // and it leaves fields blank rather than guessing when confidence is low.
@@ -53,9 +56,41 @@ export async function enrichDomains(domains: string[]): Promise<Map<string, Enri
   if (unique.length === 0) return out;
 
   const key = process.env.OPENAI_API_KEY;
-  const haveAI = key && !key.includes("your-openai-api-key");
+  const haveOpenAI = key && !key.includes("your-openai-api-key");
+  const useClaude = claudeEnabled();
 
-  if (haveAI) {
+  if (useClaude) {
+    try {
+      const parsed = await claudeJson({
+        system: SYSTEM,
+        user: `Domains:\n${unique.join("\n")}`,
+        schema: z.object({
+          results: z.array(z.object({
+            domain: z.string(),
+            company: z.string().nullable(),
+            companyLinkedin: z.string().nullable(),
+            city: z.string().nullable(),
+            state: z.string().nullable(),
+            confidence: z.string(),
+          })),
+        }),
+        maxTokens: 4000,
+      });
+      for (const r of parsed?.results ?? []) {
+        const d = String(r.domain || "").toLowerCase();
+        if (!d) continue;
+        out.set(d, {
+          company: r.company || null,
+          companyLinkedin: r.companyLinkedin || null,
+          city: r.city || null,
+          state: r.state ? String(r.state).toUpperCase().slice(0, 2) : null,
+          confidence: ["high", "medium", "low"].includes(r.confidence) ? (r.confidence as Enrichment["confidence"]) : "low",
+        });
+      }
+    } catch (e) {
+      console.warn("enrichDomains Claude call failed:", (e as Error).message);
+    }
+  } else if (haveOpenAI) {
     try {
       const res = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
