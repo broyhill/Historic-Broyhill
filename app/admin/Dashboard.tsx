@@ -10,7 +10,7 @@ export interface Metrics {
   reviewRate: string;
 }
 
-export type Section = "dashboard" | "leads" | "queue" | "history" | "campaigns" | "templates" | "ask" | "settings";
+export type Section = "dashboard" | "leads" | "queue" | "history" | "campaigns" | "templates" | "photos" | "ask" | "settings";
 
 function Stat({ label, value, tone = "default" }: { label: string; value: React.ReactNode; tone?: "default" | "teal" | "amber" }) {
   const color = tone === "teal" ? "text-[#1ab394]" : tone === "amber" ? "text-[#f5a623]" : "text-[#323a46]";

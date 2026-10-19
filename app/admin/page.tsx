@@ -6,6 +6,7 @@ import ReviewPanel from "./ReviewPanel";
 import AskPanel from "./AskPanel";
 import CampaignsPanel from "./CampaignsPanel";
 import TemplatesPanel from "./TemplatesPanel";
+import PhotosPanel from "./PhotosPanel";
 import Dashboard, { type Metrics, type Section } from "./Dashboard";
 
 // --- Nav icons (inline so there's no icon dependency) ---
@@ -16,6 +17,7 @@ const icons: Record<Section, React.ReactNode> = {
   history: <path d="M3 11l19-9-9 19-2-8-8-2z" />,
   campaigns: <path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM22 6l-10 7L2 6" />,
   templates: <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h5" />,
+  photos: <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />,
   ask: <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />,
   settings: <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />,
 };
@@ -34,6 +36,7 @@ const NAV: { key: Section; label: string }[] = [
   { key: "leads", label: "Leads" },
   { key: "campaigns", label: "Campaigns" },
   { key: "templates", label: "Templates" },
+  { key: "photos", label: "Photo Library" },
   { key: "queue", label: "Review Queue" },
   { key: "history", label: "Broadcasts" },
   { key: "settings", label: "Settings" },
@@ -46,6 +49,7 @@ const TITLES: Record<Section, string> = {
   history: "Broadcast History",
   campaigns: "Email Campaigns",
   templates: "Templates",
+  photos: "Photo Library",
   ask: "Ask Claude",
   settings: "Settings",
 };
@@ -147,6 +151,7 @@ export default function AdminConsole() {
           {section === "history" && <ReviewPanel mode="history" />}
           {section === "campaigns" && <CampaignsPanel />}
           {section === "templates" && <TemplatesPanel />}
+          {section === "photos" && <PhotosPanel />}
           {section === "ask" && <AskPanel onChanged={refreshMetrics} seed={askSeed} />}
           {section === "settings" && <SettingsPanel />}
         </main>

@@ -41,6 +41,8 @@ export default function TemplatesPanel() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [library, setLibrary] = useState<{ url: string; name: string; folder: string }[]>([]);
 
   const load = useCallback(async (ch: Channel) => {
     try { setSaved((await api(`/api/admin/email-campaigns?templates=1&channel=${ch}`)).templates || []); }
@@ -144,6 +146,20 @@ export default function TemplatesPanel() {
           {channel === "mms" && (<>
             <label className="block text-[12px] font-semibold text-[#6c757d]">Picture link (https://… .jpg, .png or .gif)
               <input value={draft.mediaUrl} onChange={(e) => edit({ mediaUrl: e.target.value })} className={`${inputCls} mt-1 font-normal`} maxLength={500} /></label>
+            <button type="button" className={btnGhost} onClick={() => {
+              setPickerOpen((o) => !o);
+              if (!pickerOpen) api("/api/admin/photos").then((d) => setLibrary(d.photos || [])).catch((e) => setError(e.message));
+            }}>{pickerOpen ? "Close library" : "Choose from photo library"}</button>
+            {pickerOpen && (
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                {library.length === 0 && <p className="col-span-full text-[12.5px] text-[#9ba6b7]">No photos in the library yet (or storage isn't connected).</p>}
+                {library.map((p) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <button key={p.url} type="button" title={`${p.folder} / ${p.name}`} onClick={() => { edit({ mediaUrl: p.url }); setPickerOpen(false); }}
+                    className="rounded-md overflow-hidden border border-[#e7e9eb] hover:border-[#1ab394]"><img src={p.url} alt={p.name} className="w-full aspect-square object-cover" loading="lazy" /></button>
+                ))}
+              </div>
+            )}
             <Checks items={draft.mediaUrl && !draft.mediaUrl.includes("{{") ? mediaChecks(draft.mediaUrl) : []} />
             <p className="text-[11.5px] text-[#9ba6b7]">Keep pictures small (carriers often limit them to about 1 MB). The link is checked for format only.</p>
           </>)}
