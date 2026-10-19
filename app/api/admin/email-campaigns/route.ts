@@ -9,11 +9,16 @@ import { completeness } from "@/lib/campaign-rules";
 export async function GET(request: Request) {
   try {
     await ensureCampaignTable();
-    if (new URL(request.url).searchParams.get("templates") === "1") {
-      const templates = await prisma.emailCampaign.findMany({
-        where: { status: "TEMPLATE" }, orderBy: { updatedAt: "desc" }, take: 100,
-        select: { id: true, name: true, subject: true, previewText: true, body: true, updatedAt: true },
+    const params = new URL(request.url).searchParams;
+    if (params.get("templates") === "1") {
+      // Channel is kept in designType: plain/html = email, "sms", "mms". Media link for MMS lives in aiBrief.mediaUrl.
+      const channel = params.get("channel") || "email";
+      const rows = await prisma.emailCampaign.findMany({
+        where: { status: "TEMPLATE", designType: channel === "email" ? { in: ["plain", "html"] } : channel },
+        orderBy: { updatedAt: "desc" }, take: 100,
+        select: { id: true, name: true, subject: true, previewText: true, body: true, aiBrief: true, updatedAt: true },
       });
+      const templates = rows.map(({ aiBrief, ...t }) => ({ ...t, mediaUrl: (aiBrief && typeof aiBrief === "object" && !Array.isArray(aiBrief) && typeof (aiBrief as any).mediaUrl === "string") ? (aiBrief as any).mediaUrl as string : "" }));
       return NextResponse.json({ success: true, templates });
     }
     const rows = await prisma.emailCampaign.findMany({ where: { status: { not: "TEMPLATE" } }, orderBy: { updatedAt: "desc" }, take: 100 });

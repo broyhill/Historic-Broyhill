@@ -87,3 +87,50 @@ ${SIGN_OFF}`,
 ];
 
 export const getTemplate = (id: string) => CAMPAIGN_TEMPLATES.find((t) => t.id === id);
+
+// Text-message starters. Every marketing text names the venue and says how to opt out.
+// Same merge-tag rules as email. MMS templates also carry a picture link, which starts as a blank.
+export interface TextTemplate {
+  id: string;
+  channel: "sms" | "mms";
+  name: string;
+  category: CampaignTemplate["category"] | "Reminder";
+  description: string;
+  body: string;
+  mediaUrl?: string;
+}
+
+export const TEXT_TEMPLATES: TextTemplate[] = [
+  {
+    id: "sms-tour-invite", channel: "sms", name: "Tour invitation", category: "Invitation",
+    description: "Invite someone to visit.",
+    body: "Hi {{firstName}}, it's Historic Broyhill in Clemmons. Want to see the building in person? Book a visit: {{bookingLink}} Reply STOP to opt out.",
+  },
+  {
+    id: "sms-inquiry-follow-up", channel: "sms", name: "Inquiry follow-up", category: "Follow-up",
+    description: "Acknowledge an inquiry.",
+    body: "Hi {{firstName}}, thanks for asking Historic Broyhill about {{inquiryTopic}}. Our team will follow up with details. Reply STOP to opt out.",
+  },
+  {
+    id: "sms-event-reminder", channel: "sms", name: "Event reminder", category: "Reminder",
+    description: "Remind guests of an event.",
+    body: "Reminder from Historic Broyhill: {{eventName}} is {{eventDate}}. We look forward to seeing you! Reply STOP to opt out.",
+  },
+  {
+    id: "sms-thank-you", channel: "sms", name: "Thank you after an event", category: "Thank you",
+    description: "Thank guests after they visit.",
+    body: "Thanks for joining us at Historic Broyhill, {{firstName}}! Thinking of hosting your own event? Just reply here. Reply STOP to opt out.",
+  },
+  {
+    id: "mms-venue-photo", channel: "mms", name: "Venue photo invitation", category: "Invitation",
+    description: "A picture plus an invitation to visit.",
+    body: "Hi {{firstName}}, here's a look at Historic Broyhill in Clemmons. Come see it in person: {{bookingLink}} Reply STOP to opt out.",
+    mediaUrl: "{{photoUrl}}",
+  },
+  {
+    id: "mms-event-flyer", channel: "mms", name: "Event flyer", category: "Invitation",
+    description: "Send a flyer image for an event.",
+    body: "{{eventName}} at Historic Broyhill, {{eventDate}}. Details are on the flyer. Reply STOP to opt out.",
+    mediaUrl: "{{flyerUrl}}",
+  },
+];
