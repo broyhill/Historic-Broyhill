@@ -26,10 +26,10 @@ function NavIcon({ section }: { section: Section }) {
 
 const NAV: { key: Section; label: string }[] = [
   { key: "dashboard", label: "Dashboard" },
+  { key: "ask", label: "Ask Claude" },
   { key: "leads", label: "Leads" },
   { key: "queue", label: "Review Queue" },
   { key: "history", label: "Broadcasts" },
-  { key: "ask", label: "Ask Claude" },
   { key: "settings", label: "Settings" },
 ];
 
@@ -46,6 +46,7 @@ export default function AdminConsole() {
   const [section, setSection] = useState<Section>("dashboard");
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [navOpen, setNavOpen] = useState(false); // mobile drawer
+  const [askSeed, setAskSeed] = useState<string | undefined>(); // question typed on the Dashboard
 
   const refreshMetrics = useCallback(async () => {
     try {
@@ -60,7 +61,7 @@ export default function AdminConsole() {
 
   useEffect(() => { refreshMetrics(); }, [refreshMetrics, section]);
 
-  const go = (s: Section) => { setSection(s); setNavOpen(false); };
+  const go = (s: Section) => { setSection(s); setNavOpen(false); setAskSeed(undefined); };
 
   const signOut = async () => {
     try { await fetch("/api/admin/auth", { method: "DELETE" }); }
@@ -132,11 +133,11 @@ export default function AdminConsole() {
         </header>
 
         <main className="p-4 md:p-8 max-w-6xl">
-          {section === "dashboard" && <Dashboard metrics={metrics} onNavigate={go} />}
+          {section === "dashboard" && <Dashboard metrics={metrics} onNavigate={go} onAsk={(q) => { go("ask"); setAskSeed(q); }} />}
           {section === "leads" && <LeadsPanel />}
           {section === "queue" && <ReviewPanel mode="queue" onChanged={refreshMetrics} />}
           {section === "history" && <ReviewPanel mode="history" />}
-          {section === "ask" && <AskPanel onChanged={refreshMetrics} />}
+          {section === "ask" && <AskPanel onChanged={refreshMetrics} seed={askSeed} />}
           {section === "settings" && <SettingsPanel />}
         </main>
       </div>

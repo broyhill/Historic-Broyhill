@@ -27,7 +27,7 @@ const SUGGESTIONS = [
 // Staff assistant. It looks things up and stages drafts on its own; any change
 // to existing data shows up as a card the user must Confirm. It cannot send
 // or approve outreach: that stays on the Review Queue page.
-export default function AskPanel({ onChanged }: { onChanged?: () => void }) {
+export default function AskPanel({ onChanged, seed }: { onChanged?: () => void; seed?: string }) {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -67,6 +67,13 @@ export default function AskPanel({ onChanged }: { onChanged?: () => void }) {
       setBusy(false);
     }
   };
+
+  // A question typed on the Dashboard is sent once when this page opens.
+  const seeded = useRef(false);
+  useEffect(() => {
+    if (seed && !seeded.current) { seeded.current = true; send(seed); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seed]);
 
   const updatePending = (msgIndex: number, id: string, patch: Partial<Pending>) =>
     setMessages((prev) => prev.map((m, i) =>
