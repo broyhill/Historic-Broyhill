@@ -9,7 +9,7 @@ export const claudeEnabled = () => Boolean(process.env.ANTHROPIC_API_KEY);
 export const CLAUDE_MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-5-5";
 
 let client: Anthropic | null = null;
-function getClient() {
+export function getClient() {
   if (!client) client = new Anthropic({ timeout: 60_000, maxRetries: 2 });
   return client;
 }
