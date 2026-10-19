@@ -81,3 +81,25 @@ model AiContentPipeline {
 
   @@index([status])
 }
+
+// Email campaign draft (the Campaign Monitor-style checklist: subject, sender,
+// recipients, design, review). Phase 1 never sends to a list; see lib/campaigns-db.ts,
+// which creates this table idempotently on first use (CREATE TABLE IF NOT EXISTS).
+model EmailCampaign {
+  id              String    @id @default(uuid())
+  name            String
+  status          String    @default("DRAFT") // DRAFT | READY
+  subject         String    @default("")
+  previewText     String    @default("")
+  fromName        String    @default("")
+  fromEmail       String    @default("")
+  replyTo         String?
+  recipientFilter Json?
+  recipientCount  Int       @default(0)
+  designType      String    @default("plain") // plain | html
+  body            String    @default("")
+  aiBrief         Json?
+  testSends       Json?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
