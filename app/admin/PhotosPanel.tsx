@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { upload as uploadToStorage } from "@vercel/blob/client";
-import { MAX_VIDEO_BYTES, SUGGESTED_FOLDERS, cleanFileName, cleanFolder, contentTypeFor, isVideoName, photoPath } from "@/lib/photos";
+import { MAX_PHOTO_BYTES, MAX_VIDEO_BYTES, SUGGESTED_FOLDERS, cleanFileName, cleanFolder, contentTypeFor, isVideoName, photoPath } from "@/lib/photos";
 
 interface Photo { url: string; folder: string; name: string; size: number; uploadedAt: string }
 interface Folder { name: string; count: number }
@@ -22,25 +22,6 @@ async function call(url: string, init?: RequestInit) {
 const json = (method: string, body: unknown): RequestInit => ({ method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
 
 const kb = (n: number) => (n >= 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
-
-// Big phone photos are shrunk in the browser before upload: about 1600 px on the long side keeps them sharp
-// on screen and small enough for picture messages. GIFs and already-small files are sent as they are.
-async function prepare(file: File): Promise<File> {
-  if (file.type === "image/gif" || file.size < 900 * 1024 || !/^image\/(jpeg|png|webp)$/.test(file.type)) return file;
-  try {
-    const bmp = await createImageBitmap(file);
-    const scale = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.round(bmp.width * scale); canvas.height = Math.round(bmp.height * scale);
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return file;
-    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(bmp, 0, 0, canvas.width, canvas.height);
-    const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, "image/jpeg", 0.85));
-    if (!blob || blob.size >= file.size) return file;
-    return new File([blob], file.name.replace(/\.[^.]+$/, "") + ".jpg", { type: "image/jpeg" });
-  } catch { return file; }
-}
 
 export default function PhotosPanel() {
   const [folders, setFolders] = useState<Folder[]>([]);
@@ -94,16 +75,13 @@ export default function PhotosPanel() {
       const failed: string[] = [];
       const one = async (f: File) => {
         const clean = cleanFileName(f.name);
-        if (isVideoName(clean)) {
-          if (f.size > MAX_VIDEO_BYTES) throw new Error(`over ${MAX_VIDEO_BYTES / 1024 / 1024} MB`);
-          await uploadToStorage(photoPath(cleanFolder(target), clean), f, {
-            access: "public", handleUploadUrl: "/api/admin/photos/upload", multipart: true, contentType: contentTypeFor(clean),
-          });
-        } else {
-          const small = await prepare(f);
-          const fd = new FormData(); fd.append("folder", target); fd.append("file", small);
-          await call("/api/admin/photos", { method: "POST", body: fd });
-        }
+        const video = isVideoName(clean);
+        const max = video ? MAX_VIDEO_BYTES : MAX_PHOTO_BYTES;
+        if (f.size > max) throw new Error(`over ${max / 1024 / 1024} MB`);
+        // Pictures and videos both go straight to storage at full size, so nothing is shrunk or capped at 4 MB.
+        await uploadToStorage(photoPath(cleanFolder(target), clean), f, {
+          access: "public", handleUploadUrl: "/api/admin/photos/upload", multipart: f.size > 8 * 1024 * 1024, contentType: contentTypeFor(clean),
+        });
       };
       const worker = async () => {
         while (next < todo.length) {
@@ -194,7 +172,7 @@ export default function PhotosPanel() {
           {error && <p className="text-[13px] text-red-600" role="alert">{error}</p>}
           {progress && <p className="text-[13px] text-[#6c757d]">Uploading {progress}</p>}
           {notice && !error && <p className="text-[13px] text-[#1ab394]">{notice}</p>}
-          <p className="text-[11.5px] text-[#9ba6b7]">Photos: JPG, PNG, GIF or WebP, up to 4 MB (larger ones are shrunk automatically). Videos: MP4, MOV or WebM, up to 200 MB. For picture messages, aim for under 1 MB; videos are for links and websites, not texts. Only upload your own real photos and videos.</p>
+          <p className="text-[11.5px] text-[#9ba6b7]">Photos: JPG, PNG, GIF or WebP, up to 40 MB each, kept at full size. Videos: MP4, MOV or WebM, up to 200 MB. For picture messages, aim for under 1 MB; videos are for links and websites, not texts. Only upload your own real photos and videos.</p>
         </div></section>
 
         {shown.length === 0 && <p className="text-[13px] text-[#9ba6b7]">{current === ALL ? "No photos yet. Click Upload a whole folder, or drag files here." : "This folder is empty. Click Upload photos."}</p>}
