@@ -154,6 +154,23 @@ export default function Home() {
               This building houses memories. It houses dreams.
             </p>
           </div>
+
+          <div className="mt-10 grid gap-4 sm:grid-cols-3">
+            {[
+              { src: "/photos/heritage-then.jpg", alt: "The school auditorium long ago, with a choir on the stage beneath draped curtains", label: "Then", note: "The school auditorium" },
+              { src: "/photos/heritage-music.jpg", alt: "A band playing on the stage of the arched hall during an evening event", label: "Over the years", note: "An evening of live music" },
+              { src: "/photos/heritage-hall.jpg", alt: "The arched hall set with round tables, flowers and candles for a celebration", label: "And now", note: "The hall, set for a celebration" },
+            ].map((p) => (
+              <figure key={p.src} className="overflow-hidden rounded-lg border border-[#e2d8c3] bg-white">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={p.src} alt={p.alt} loading="lazy" className="aspect-[4/3] w-full object-cover" />
+                <figcaption className="px-4 py-3">
+                  <span className="block text-[11px] font-semibold uppercase tracking-[0.16em] text-[#a8853f]">{p.label}</span>
+                  <span className="block text-[14px] text-[#5a6672]">{p.note}</span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
         </div>
       </section>
 
