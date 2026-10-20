@@ -53,12 +53,35 @@ function Eyebrow({ children, light = false }: { children: React.ReactNode; light
   );
 }
 
-function Photo({ caption, className = "", onDark = false, src }: { caption: string; className?: string; onDark?: boolean; src?: string }) {
+// Front-page photo: the whole exterior, its edges softly faded into the navy page, with the logo over the lawn.
+function HeroPhoto() {
+  const fade = "radial-gradient(ellipse 72% 76% at 50% 48%, #000 60%, transparent 100%)";
+  return (
+    <div className="relative w-full" style={{ aspectRatio: "2048 / 1072" }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/photos/exterior.jpg"
+        alt="The Historic Broyhill at dusk — the landmark exterior with its white columns"
+        className="absolute inset-0 h-full w-full object-cover"
+        style={{ WebkitMaskImage: fade, maskImage: fade }}
+      />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/photos/logo-cream.png"
+        alt="Historic Broyhill"
+        className="absolute left-1/2 w-[40%] max-w-[540px] -translate-x-1/2"
+        style={{ top: "76%", filter: "drop-shadow(0 2px 12px rgba(0,0,0,0.6))" }}
+      />
+    </div>
+  );
+}
+
+function Photo({ caption, className = "", onDark = false, src, position = "center" }: { caption: string; className?: string; onDark?: boolean; src?: string; position?: string }) {
   return (
     <div className={`relative overflow-hidden rounded-lg ${onDark ? "border border-white/10 bg-white/[0.04]" : "border border-[#e2d8c3] bg-[#ece2cf]"} ${className}`}>
       {src ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={src} alt={caption} className="absolute inset-0 h-full w-full object-cover" />
+        <img src={src} alt={caption} className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: position }} />
       ) : (
         <>
           <div className="absolute inset-0 opacity-70" style={{ backgroundImage: "radial-gradient(circle at 28% 22%, rgba(194,161,90,0.18) 0, transparent 60%), radial-gradient(circle at 78% 82%, rgba(194,161,90,0.12) 0, transparent 55%)" }} />
@@ -93,7 +116,7 @@ export default function Home() {
 
       {/* Hero — navy, like the brochure */}
       <section id="top" className="bg-[#182c3e] text-[#e9e2d3]">
-        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-16 md:grid-cols-[1.05fr_0.95fr] md:py-24">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-16 md:py-24">
           <div>
             <Eyebrow light>Clemmons, North Carolina · the Old Clemmons School, est. 1925</Eyebrow>
             <h1 className="hb-display mt-5 text-4xl leading-[1.08] text-[#f4ecda] sm:text-5xl md:text-[3.3rem]">
@@ -109,7 +132,7 @@ export default function Home() {
               <a href="#venues" className="rounded-md border border-white/25 px-6 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#e9e2d3] transition hover:border-white/55">Explore the venues</a>
             </div>
           </div>
-          <Photo onDark caption="The Historic Broyhill at dusk — the landmark exterior" src="/photos/exterior.jpg" className="aspect-[5/4]" />
+          <HeroPhoto />
         </div>
       </section>
 
