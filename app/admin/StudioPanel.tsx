@@ -237,6 +237,23 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
               </div>
             )}
           </div>
+
+          <div className="px-1 pt-2 text-[14px] font-semibold text-[#323a46]">Instructions on how to use</div>
+          <div className="space-y-2 rounded-2xl border border-[#e7e9eb] bg-white p-2">
+            <Fold n="01" title="Start with a draft or a template" open>Type what the email is for under Draft on the right and press Draft, or open one of My templates under the preview. Everything Claude writes is a suggestion you can change.</Fold>
+            <Fold n="02" title="Build it block by block">Add a heading, text, picture, button, divider or spacer. Click a block to edit it, and use the arrows to move it. Pictures come from your Photo Library.</Fold>
+            <Fold n="03" title="Ask Claude for a more designed version">Press Redesign. Three alternatives appear under the preview. Press Use this to switch to one, and keep editing it. Undo redesign takes you back.</Fold>
+            <Fold n="04" title="Check every screen size">Use Mobile, iPad, Laptop and Desktop at the bottom right to see how it looks. Most people read email on a phone, so check Mobile last.</Fold>
+            <Fold n="05" title="Save it">Name it, pick a category and type, then Save as template. It appears in My templates here and in the Templates list. Nothing is sent from the Studio.</Fold>
+          </div>
+
+          <div className="px-1 pt-2 text-[14px] font-semibold text-[#323a46]">Coming next</div>
+          <div className="space-y-2 rounded-2xl border border-dashed border-[#d9dde3] bg-[#fafbfc] p-2">
+            <Fold n="•" title="Send a test to yourself">Not built yet. It will be turned on together with consent and unsubscribe handling, so nothing goes out before the safeguards are in place.</Fold>
+            <Fold n="•" title="Different content for different groups">Not built yet. Show one version of a section to weddings, another to chambers, and so on, using the same segments as your categories.</Fold>
+            <Fold n="•" title="Funnel templates">Not built yet. Saved wedding, corporate, community and office-suite sequences you can start from.</Fold>
+            <Fold n="•" title="Results">Not built yet. Opens, clicks and replies per design, once sending is live.</Fold>
+          </div>
         </div>
 
         {/* Control panel */}
@@ -398,6 +415,20 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
         </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function Fold({ n, title, open: startOpen, children }: { n: string; title: string; open?: boolean; children: React.ReactNode }) {
+  const [open, setOpen] = useState(Boolean(startOpen));
+  return (
+    <div className="rounded-xl bg-[#f6f7f8]">
+      <button className="flex w-full items-center gap-3 px-3 py-2.5 text-left" aria-expanded={open} onClick={() => setOpen(!open)}>
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-[11.5px] font-semibold text-[#6c757d]">{n}</span>
+        <span className="flex-1 text-[13.5px] font-semibold text-[#323a46]">{title}</span>
+        <span className="text-[#9ba6b7]">{open ? "−" : "+"}</span>
+      </button>
+      {open && <p className="px-3 pb-3 pl-[52px] text-[13px] leading-relaxed text-[#6c757d]">{children}</p>}
     </div>
   );
 }
