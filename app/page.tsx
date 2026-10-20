@@ -11,10 +11,13 @@ const VENUES = [
     name: "The Magnolia Room",
     capacity: "20–120 seated · up to 140 for a standing reception",
     blurb:
-      "Our signature hall for ceremonies, receptions, rehearsal dinners, and milestone celebrations. Roaming receptions accommodate upwards of 140 guests — ask about the lobby, courtyard, and other common areas.",
-    photo: "The Magnolia Room set for a reception",
+      "The former school auditorium, stage and all — our signature hall for ceremonies, receptions, rehearsal dinners, and milestone celebrations. Roaming receptions accommodate upwards of 140 guests — ask about the lobby, courtyard, and other common areas.",
+    photo: "A large group seated at round tables in the Magnolia Room, with a speaker at the front",
     src: "/photos/magnolia.jpg",
-    pos: "center",
+    pos: "50% 45%",
+    photo2: "The Magnolia Room set for a ceremony, with rows of white chairs facing the stage",
+    src2: "/photos/magnolia-ceremony.jpg",
+    pos2: "50% 50%",
   },
   {
     num: "02",
@@ -26,6 +29,9 @@ const VENUES = [
     photo: "The Loft set boardroom-style for a meeting",
     src: "/photos/the-loft.jpg",
     pos: "50% 55%",
+    photo2: "",
+    src2: "",
+    pos2: "center",
   },
   {
     num: "03",
@@ -37,6 +43,9 @@ const VENUES = [
     photo: "The Dock's covered outdoor stage, with a live band and guests in lawn chairs",
     src: "/photos/the-dock.jpg",
     pos: "50% 48%",
+    photo2: "The Dock patio, with picnic tables, striped umbrellas and the magnolia mural",
+    src2: "/photos/the-dock-patio.jpg",
+    pos2: "50% 50%",
   },
 ];
 
@@ -157,9 +166,9 @@ export default function Home() {
 
           <div className="mt-10 grid gap-4 sm:grid-cols-3">
             {[
-              { src: "/photos/heritage-then.jpg", alt: "The school auditorium long ago, with a choir on the stage beneath draped curtains", label: "Then", note: "The school auditorium" },
-              { src: "/photos/heritage-music.jpg", alt: "A band playing on the stage of the arched hall during an evening event", label: "Over the years", note: "An evening of live music" },
-              { src: "/photos/heritage-hall.jpg", alt: "The arched hall set with round tables, flowers and candles for a celebration", label: "And now", note: "The hall, set for a celebration" },
+              { src: "/photos/heritage-then.jpg", alt: "The school auditorium long ago, with a choir on the stage beneath draped curtains", label: "Then · 1932", note: "The school auditorium, today's Magnolia Room" },
+              { src: "/photos/heritage-music.jpg", alt: "A band playing on the stage of the arched hall during an evening event", label: "Recent years", note: "An evening of live music in the Magnolia Room" },
+              { src: "/photos/heritage-hall.jpg", alt: "The arched hall set with round tables, flowers and candles for a celebration", label: "Recent years", note: "The hall, set for a celebration" },
             ].map((p) => (
               <figure key={p.src} className="overflow-hidden rounded-lg border border-[#e2d8c3] bg-white">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -170,6 +179,28 @@ export default function Home() {
                 </figcaption>
               </figure>
             ))}
+          </div>
+
+          <div className="mt-12 grid items-center gap-8 rounded-xl border border-[#e2d8c3] bg-white/60 p-6 md:grid-cols-[0.9fr_1.1fr] md:p-8">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/photos/press-2005.jpg"
+              alt="Winston-Salem Journal clippings from 2005 about the renovated Old Clemmons School becoming Broyhill Office Suites"
+              loading="lazy"
+              width={1029}
+              height={1020}
+              className="w-full rounded-md"
+            />
+            <div>
+              <Eyebrow>In the news · 2005</Eyebrow>
+              <h3 className="hb-display mt-3 text-2xl text-[#182c3e] md:text-3xl">The renovation made the front page.</h3>
+              <p className="mt-4 text-[16px] leading-relaxed text-[#5a6672]">
+                When the old school reopened as Broyhill Office Suites, the Winston-Salem Journal covered it
+                twice that year: “A School of Business” (June 7, 2005) on the renovated building and its
+                anchor tenant, and “Aegis moving main office to Broyhill Office Suites” (September 9, 2005).
+              </p>
+              <p className="mt-3 text-xs text-[#8c7d5f]">Clippings courtesy of the Winston-Salem Journal.</p>
+            </div>
           </div>
         </div>
       </section>
@@ -188,7 +219,14 @@ export default function Home() {
         <div className="mt-10 grid gap-6 md:grid-cols-3">
           {VENUES.map((v) => (
             <article key={v.name} className="flex flex-col overflow-hidden rounded-xl border border-[#e4dac6] bg-white/60 transition hover:shadow-[0_18px_44px_-26px_rgba(24,44,62,0.5)]">
-              <Photo caption={v.photo} src={v.src || undefined} position={v.pos} className="aspect-[16/10] rounded-none border-0 border-b border-[#e4dac6]" />
+              {v.src2 ? (
+                <div className="grid aspect-[16/10] grid-cols-2 gap-0.5 border-b border-[#e4dac6] bg-[#e4dac6]">
+                  <Photo caption={v.photo} src={v.src || undefined} position={v.pos} className="h-full rounded-none border-0" />
+                  <Photo caption={v.photo2} src={v.src2} position={v.pos2} className="h-full rounded-none border-0" />
+                </div>
+              ) : (
+                <Photo caption={v.photo} src={v.src || undefined} position={v.pos} className="aspect-[16/10] rounded-none border-0 border-b border-[#e4dac6]" />
+              )}
               <div className="flex flex-1 flex-col p-6">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#a8853f]">{v.num} / {v.kicker}</p>
                 <h3 className="hb-display mt-2 text-2xl text-[#182c3e]">{v.name}</h3>
@@ -244,6 +282,22 @@ export default function Home() {
         <div className="mx-auto max-w-6xl px-5 py-16 md:py-24">
           <Eyebrow>Work here</Eyebrow>
           <h2 className="hb-display mt-4 text-3xl text-[#182c3e] md:text-[2.6rem]">Class A offices with character.</h2>
+
+          <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+            {[
+              { src: "/photos/office-suite.jpg", alt: "An executive office with a leather sofa, an oriental rug and wood-paneled shelving", label: "Executive office suite", pos: "50% 55%" },
+              { src: "/photos/office-lobby.jpg", alt: "The lobby and reception desk with hardwood floors and tall windows", label: "Lobby & reception", pos: "50% 50%" },
+              { src: "/photos/office-desk.jpg", alt: "A private office with a wooden desk, bookshelves and framed certificates", label: "Private office", pos: "50% 50%" },
+              { src: "/photos/office-lounge.jpg", alt: "A lounge area with a patterned sofa and a long hallway beyond", label: "Lounge area", pos: "50% 50%" },
+            ].map((p) => (
+              <figure key={p.src} className="overflow-hidden rounded-lg border border-[#e2d8c3] bg-white">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={p.src} alt={p.alt} loading="lazy" className="aspect-[4/3] w-full object-cover" style={{ objectPosition: p.pos }} />
+                <figcaption className="px-3 py-2 text-[13px] text-[#5a6672]">{p.label}</figcaption>
+              </figure>
+            ))}
+          </div>
+
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             <div className="rounded-xl border border-[#e2d8c3] bg-white/60 p-7">
               <h3 className="hb-display text-xl text-[#182c3e]">Executive office suites</h3>
