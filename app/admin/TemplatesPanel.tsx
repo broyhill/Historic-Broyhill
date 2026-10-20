@@ -3,11 +3,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { previewChecks, subjectChecks, unresolvedTags } from "@/lib/campaign-rules";
 import { mediaChecks, smsChecks, smsInfo } from "@/lib/sms-rules";
-import { CAMPAIGN_TEMPLATES, CATEGORIES, KINDS, TEXT_TEMPLATES } from "@/lib/campaign-templates";
+import { CAMPAIGN_TEMPLATES, TEXT_TEMPLATES } from "@/lib/campaign-templates";
+import { defaultSettings, resolveLabel, type ListName, type TemplateSettings } from "@/lib/template-categories";
 
 type Channel = "email" | "sms" | "mms";
-interface Saved { id: string; name: string; subject: string; previewText: string; body: string; mediaUrl: string; category: string; kind: string }
-interface Draft { id?: string; name: string; subject: string; previewText: string; body: string; mediaUrl: string; category: string; kind: string }
+interface Saved { id: string; name: string; subject: string; previewText: string; body: string; mediaUrl: string; category: string; kind: string; studio?: boolean }
+interface Draft { id?: string; name: string; subject: string; previewText: string; body: string; mediaUrl: string; category: string; kind: string; studio?: boolean }
 
 const EMPTY: Draft = { name: "", subject: "", previewText: "", body: "", mediaUrl: "", category: "", kind: "" };
 const TABS: { key: Channel; label: string; hint: string }[] = [
@@ -34,7 +35,7 @@ function Checks({ items }: { items: { ok: boolean; label: string }[] }) {
 
 // Template library for email, SMS and MMS. A template is only a starting point: nothing here sends.
 // Texting itself is not switched on yet; these are ready for when it is.
-export default function TemplatesPanel() {
+export default function TemplatesPanel({ onOpenStudio }: { onOpenStudio?: (id: string) => void }) {
   const [channel, setChannel] = useState<Channel>("email");
   const [saved, setSaved] = useState<Saved[]>([]);
   const [draft, setDraft] = useState<Draft>(EMPTY);
@@ -44,6 +45,24 @@ export default function TemplatesPanel() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [library, setLibrary] = useState<{ url: string; name: string; folder: string }[]>([]);
   const [filter, setFilter] = useState<string>(""); // "" = all categories
+  const [settings, setSettings] = useState<TemplateSettings>(defaultSettings());
+  const [manageOpen, setManageOpen] = useState(false);
+  const [showHidden, setShowHidden] = useState(false);
+  const [newLabel, setNewLabel] = useState<Record<ListName, string>>({ categories: "", kinds: "" });
+
+  useEffect(() => { api("/api/admin/template-settings").then((d) => setSettings(d.settings)).catch((e) => setError(e.message)); }, []);
+
+  // Add, rename, delete or hide. The server relabels saved templates when a name changes.
+  const manage = async (body: Record<string, unknown>, done: string) => {
+    setError(null); setNotice(null);
+    try {
+      const d = await api("/api/admin/template-settings", { method: "POST", body: JSON.stringify(body) });
+      setSettings(d.settings);
+      if (d.relabeled) load(channel);
+      setNotice(done + (d.relabeled ? ` (${d.relabeled} saved template${d.relabeled === 1 ? "" : "s"} updated)` : ""));
+      return true;
+    } catch (e: any) { setError(e.message); return false; }
+  };
 
   const load = useCallback(async (ch: Channel) => {
     try { setSaved((await api(`/api/admin/email-campaigns?templates=1&channel=${ch}`)).templates || []); }
@@ -70,10 +89,15 @@ export default function TemplatesPanel() {
     catch (e: any) { setError(e.message); }
   };
 
-  const allStarters: { id: string; name: string; category: string; kind: string; description: string; fill: Draft }[] =
+  // Built-in starters follow any rename or deletion of their category/type; hidden ones are skipped.
+  const cat = (c: string) => resolveLabel(c, settings.aliases.categories, settings.categories);
+  const kindOf = (k: string) => resolveLabel(k, settings.aliases.kinds, settings.kinds);
+  const baseStarters: { id: string; name: string; category: string; kind: string; description: string; fill: Draft }[] =
     channel === "email"
-      ? CAMPAIGN_TEMPLATES.map((t) => ({ id: t.id, name: t.name, category: t.category, kind: t.kind, description: t.description, fill: { name: t.name, subject: t.subject, previewText: t.previewText, body: t.body, mediaUrl: "", category: t.category, kind: t.kind } }))
-      : TEXT_TEMPLATES.filter((t) => t.channel === channel).map((t) => ({ id: t.id, name: t.name, category: t.category, kind: t.kind, description: t.description, fill: { name: t.name, subject: "", previewText: "", body: t.body, mediaUrl: t.mediaUrl || "", category: t.category, kind: t.kind } }));
+      ? CAMPAIGN_TEMPLATES.map((t) => ({ id: t.id, name: t.name, category: cat(t.category), kind: kindOf(t.kind), description: t.description, fill: { name: t.name, subject: t.subject, previewText: t.previewText, body: t.body, mediaUrl: "", category: cat(t.category), kind: kindOf(t.kind) } }))
+      : TEXT_TEMPLATES.filter((t) => t.channel === channel).map((t) => ({ id: t.id, name: t.name, category: cat(t.category), kind: kindOf(t.kind), description: t.description, fill: { name: t.name, subject: "", previewText: "", body: t.body, mediaUrl: t.mediaUrl || "", category: cat(t.category), kind: kindOf(t.kind) } }));
+  const hiddenCount = baseStarters.filter((s) => settings.hiddenStarters.includes(s.id)).length;
+  const allStarters = showHidden ? baseStarters : baseStarters.filter((s) => !settings.hiddenStarters.includes(s.id));
 
   // How many templates (starters plus saved) sit in each category for this channel, for the filter chips.
   const counts = useMemo(() => {
@@ -100,7 +124,7 @@ export default function TemplatesPanel() {
       )}
 
       <div className="flex gap-1.5 flex-wrap" role="group" aria-label="Filter by category">
-        {["", ...CATEGORIES].map((c) => {
+        {["", ...settings.categories].map((c) => {
           const n = c ? counts[c] || 0 : allStarters.length + saved.length;
           return (
             <button key={c || "all"} onClick={() => setFilter(c)} aria-pressed={filter === c}
@@ -112,18 +136,74 @@ export default function TemplatesPanel() {
       </div>
 
       <section className="ibox">
+        <button onClick={() => setManageOpen((o) => !o)} aria-expanded={manageOpen} className="ibox-title w-full text-left">
+          <span className="text-sm font-semibold text-[#323a46]">Manage categories and types</span>
+          <span className="text-[12px] text-[#1ab394]">{manageOpen ? "Close" : "Add, rename or delete"}</span>
+        </button>
+        {manageOpen && (
+          <div className="ibox-content grid grid-cols-1 md:grid-cols-2 gap-6">
+            {(["categories", "kinds"] as ListName[]).map((l) => (
+              <div key={l} className="space-y-2">
+                <div className="text-[12px] font-semibold text-[#6c757d]">{l === "categories" ? "Categories (who it's for)" : "Types (what it does)"}</div>
+                <ul className="space-y-1">
+                  {settings[l].map((name) => (
+                    <li key={name} className="flex items-center gap-2 text-[13.5px] text-[#323a46]">
+                      <span className="flex-1 truncate">{name}</span>
+                      <button className="text-[12px] text-[#6c757d] hover:text-[#1ab394]" aria-label={`Rename ${name}`} onClick={async () => {
+                        const to = window.prompt(`Rename "${name}" to:`, name);
+                        if (to && to.trim() && to.trim() !== name) {
+                          if (await manage({ action: "rename", list: l, from: name, to }, `Renamed to "${to.trim()}".`) && filter === name) setFilter(to.trim());
+                        }
+                      }}>Rename</button>
+                      <button className="text-[12px] text-[#9ba6b7] hover:text-red-600" aria-label={`Delete ${name}`} onClick={async () => {
+                        const n = [...saved, ...allStarters].filter((s) => (l === "categories" ? s.category : s.kind) === name).length;
+                        if (window.confirm(`Delete "${name}"? The ${n} template${n === 1 ? "" : "s"} using it will be kept, just without this ${l === "categories" ? "category" : "type"}.`)) {
+                          if (await manage({ action: "delete", list: l, name }, `"${name}" deleted.`) && filter === name) setFilter("");
+                        }
+                      }}>Delete</button>
+                    </li>
+                  ))}
+                  {settings[l].length === 0 && <li className="text-[12.5px] text-[#9ba6b7]">None yet. Add one below.</li>}
+                </ul>
+                <form className="flex gap-2" onSubmit={async (e) => { e.preventDefault(); if (await manage({ action: "add", list: l, name: newLabel[l] }, `"${newLabel[l].trim()}" added.`)) setNewLabel((x) => ({ ...x, [l]: "" })); }}>
+                  <input value={newLabel[l]} onChange={(e) => setNewLabel((x) => ({ ...x, [l]: e.target.value }))} placeholder={l === "categories" ? "New category" : "New type"} maxLength={40} className={inputCls} aria-label={l === "categories" ? "New category name" : "New type name"} />
+                  <button type="submit" className={btnPrimary} disabled={!newLabel[l].trim()}>Add</button>
+                </form>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="ibox">
         <div className="ibox-title"><h3 className="text-sm font-semibold text-[#323a46]">Starter templates</h3></div>
         <div className="ibox-content grid grid-cols-1 sm:grid-cols-2 gap-2">
           {starters.length === 0 && <p className="col-span-full text-[13px] text-[#9ba6b7]">No starters in this category for {channel === "email" ? "email" : channel.toUpperCase()} yet. Write your own below and pick the category.</p>}
-          {starters.map((s) => (
-            <button key={s.id} onClick={() => { setDraft(s.fill); setNotice("Loaded. Change it, then click Save to keep your own copy."); setError(null); }}
-              className="text-left rounded-md border border-[#e7e9eb] px-3 py-2 hover:border-[#1ab394]/50">
-              <span className="block text-[11px] uppercase tracking-wider text-[#9ba6b7]">{s.category} · {s.kind}</span>
-              <span className="block text-[13.5px] font-semibold text-[#323a46]">{s.name}</span>
-              <span className="block text-[12px] text-[#6c757d]">{s.description}</span>
-            </button>
-          ))}
+          {starters.map((s) => {
+            const hidden = settings.hiddenStarters.includes(s.id);
+            return (
+              <div key={s.id} className={`rounded-md border border-[#e7e9eb] hover:border-[#1ab394]/50 flex items-start ${hidden ? "opacity-60" : ""}`}>
+                <button onClick={() => { setDraft(s.fill); setNotice("Loaded. Change it, then click Save to keep your own copy."); setError(null); }} className="flex-1 text-left px-3 py-2 min-w-0">
+                  <span className="block text-[11px] uppercase tracking-wider text-[#9ba6b7]">{[s.category || "Uncategorized", s.kind].filter(Boolean).join(" · ")}</span>
+                  <span className="block text-[13.5px] font-semibold text-[#323a46]">{s.name}</span>
+                  <span className="block text-[12px] text-[#6c757d]">{s.description}</span>
+                </button>
+                <button className="px-3 py-2 text-[12px] text-[#9ba6b7] hover:text-[#323a46]" aria-label={`${hidden ? "Show" : "Hide"} starter ${s.name}`}
+                  onClick={() => manage(hidden ? { action: "restore" } : { action: "hide", id: s.id }, hidden ? "All hidden starters are back." : `"${s.name}" is hidden.`)}>
+                  {hidden ? "Show" : "Hide"}
+                </button>
+              </div>
+            );
+          })}
         </div>
+        {hiddenCount > 0 && (
+          <div className="px-5 pb-4 text-[12px] text-[#9ba6b7]">
+            {hiddenCount} starter{hiddenCount === 1 ? "" : "s"} hidden.{" "}
+            <button className="text-[#1ab394] hover:underline" onClick={() => setShowHidden((v) => !v)}>{showHidden ? "Stop showing them" : "Show them"}</button>
+            {" · "}
+            <button className="text-[#1ab394] hover:underline" onClick={() => manage({ action: "restore" }, "All hidden starters are back.")}>Bring them all back</button>
+          </div>
+        )}
       </section>
 
       <section className="ibox">
@@ -133,11 +213,12 @@ export default function TemplatesPanel() {
           {savedShown.length === 0 && <p className="p-5 text-[13px] text-[#9ba6b7]">{saved.length === 0 ? "Nothing saved yet. Start from a template above, or write one below." : "None of your saved templates are in this category."}</p>}
           {savedShown.map((t) => (
             <div key={t.id} className="px-5 py-3 border-t border-[#e7e9eb] first:border-0 flex items-center gap-3">
-              <button className="flex-1 text-left min-w-0" onClick={() => { setDraft({ id: t.id, name: t.name, subject: t.subject, previewText: t.previewText, body: t.body, mediaUrl: t.mediaUrl, category: t.category, kind: t.kind }); setNotice(null); setError(null); }}>
-                {(t.category || t.kind) && <span className="block text-[11px] uppercase tracking-wider text-[#9ba6b7]">{[t.category, t.kind].filter(Boolean).join(" · ")}</span>}
+              <button className="flex-1 text-left min-w-0" onClick={() => { if (t.studio) { onOpenStudio?.(t.id); return; } setDraft({ id: t.id, name: t.name, subject: t.subject, previewText: t.previewText, body: t.body, mediaUrl: t.mediaUrl, category: t.category, kind: t.kind }); setNotice(null); setError(null); }}>
+                {(t.category || t.kind || t.studio) && <span className="block text-[11px] uppercase tracking-wider text-[#9ba6b7]">{[t.studio ? "Studio design" : "", t.category, t.kind].filter(Boolean).join(" · ")}</span>}
                 <span className="block text-[14px] font-semibold text-[#323a46] truncate">{t.name}</span>
                 <span className="block text-[12px] text-[#9ba6b7] truncate">{channel === "email" ? (t.subject || "No subject") : t.body}</span>
               </button>
+              {t.studio && <button className="text-[12px] text-[#1ab394] hover:underline" onClick={() => onOpenStudio?.(t.id)}>Open in Studio</button>}
               <button className="text-[12px] text-[#9ba6b7] hover:text-red-600" aria-label={`Delete template ${t.name}`} onClick={() => remove(t)}>Delete</button>
             </div>
           ))}
@@ -152,10 +233,10 @@ export default function TemplatesPanel() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label className="block text-[12px] font-semibold text-[#6c757d]">Category (who it's for)
               <select value={draft.category} onChange={(e) => edit({ category: e.target.value })} className={`${inputCls} mt-1 font-normal`}>
-                <option value="">None</option>{CATEGORIES.map((c) => <option key={c}>{c}</option>)}</select></label>
+                <option value="">None</option>{settings.categories.map((c) => <option key={c}>{c}</option>)}</select></label>
             <label className="block text-[12px] font-semibold text-[#6c757d]">Type (what it does)
               <select value={draft.kind} onChange={(e) => edit({ kind: e.target.value })} className={`${inputCls} mt-1 font-normal`}>
-                <option value="">None</option>{KINDS.map((k) => <option key={k}>{k}</option>)}</select></label>
+                <option value="">None</option>{settings.kinds.map((k) => <option key={k}>{k}</option>)}</select></label>
           </div>
 
           {channel === "email" && (<>

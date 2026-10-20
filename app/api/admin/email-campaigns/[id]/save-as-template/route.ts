@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ensureCampaignTable } from "@/lib/campaigns-db";
-import { isCategory, isKind } from "@/lib/campaign-templates";
+import { isValidCategory, isValidKind, loadSettings } from "@/lib/template-settings";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -19,13 +19,14 @@ export async function POST(request: Request, { params }: Ctx) {
     const b = await request.json().catch(() => ({}));
     const name = typeof b.name === "string" ? b.name.trim().slice(0, 120) : "";
     if (!name) return NextResponse.json({ error: "Give the template a name." }, { status: 400 });
+    const lists = await loadSettings();
 
     const template = await prisma.emailCampaign.create({
       data: {
         name, status: "TEMPLATE", subject: source.subject, previewText: source.previewText,
         fromName: source.fromName, fromEmail: source.fromEmail, replyTo: source.replyTo,
         designType: source.designType, body: source.body,
-        aiBrief: { category: isCategory(b.category) ? b.category : "", kind: isKind(b.kind) ? b.kind : "" },
+        aiBrief: { category: isValidCategory(lists, b.category) ? b.category : "", kind: isValidKind(lists, b.kind) ? b.kind : "" },
       },
       select: { id: true, name: true },
     });

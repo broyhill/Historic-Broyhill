@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ensureCampaignTable } from "@/lib/campaigns-db";
-import { isCategory, isKind } from "@/lib/campaign-templates";
+import { isValidCategory, isValidKind, loadSettings } from "@/lib/template-settings";
 
 // Create or update a saved template for email, SMS or MMS. Stored as a TEMPLATE-status row
 // (designType = plain | sms | mms), so it never appears in the campaign list.
@@ -17,9 +17,10 @@ export async function POST(request: Request) {
     if (!body.trim()) return NextResponse.json({ error: "The template needs some text." }, { status: 400 });
 
     // Category and (for MMS) the picture link live in aiBrief, so no extra columns are needed.
+    const lists = await loadSettings();
     const aiBrief: { category: string; kind: string; mediaUrl?: string } = {
-      category: isCategory(b.category) ? b.category : "",
-      kind: isKind(b.kind) ? b.kind : "",
+      category: isValidCategory(lists, b.category) ? b.category : "",
+      kind: isValidKind(lists, b.kind) ? b.kind : "",
     };
     if (channel === "mms") aiBrief.mediaUrl = typeof b.mediaUrl === "string" ? b.mediaUrl.trim().slice(0, 500) : "";
 
@@ -32,8 +33,10 @@ export async function POST(request: Request) {
     };
 
     if (typeof b.id === "string" && b.id) {
-      const existing = await prisma.emailCampaign.findUnique({ where: { id: b.id }, select: { status: true } });
+      const existing = await prisma.emailCampaign.findUnique({ where: { id: b.id }, select: { status: true, aiBrief: true } });
       if (!existing || existing.status !== "TEMPLATE") return NextResponse.json({ error: "Template not found." }, { status: 404 });
+      const made = existing.aiBrief && typeof existing.aiBrief === "object" && !Array.isArray(existing.aiBrief) && (existing.aiBrief as Record<string, unknown>).studio;
+      if (made) return NextResponse.json({ error: "This template was made in the Studio. Open it there to change it." }, { status: 400 });
       const t = await prisma.emailCampaign.update({ where: { id: b.id }, data, select: { id: true, name: true } });
       return NextResponse.json({ success: true, template: t });
     }
