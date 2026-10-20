@@ -11,13 +11,13 @@ const VENUES = [
     name: "The Magnolia Room",
     capacity: "20–120 seated · up to 140 for a standing reception",
     blurb:
-      "Our signature hall for ceremonies, receptions, rehearsal dinners, and milestone celebrations. Roaming receptions accommodate upwards of 140 guests — ask about the lobby, courtyard, and other common areas.",
+      "The former school auditorium, stage and all — our signature hall for ceremonies, receptions, rehearsal dinners, and milestone celebrations. Roaming receptions accommodate upwards of 140 guests — ask about the lobby, courtyard, and other common areas.",
     photo: "A large group seated at round tables in the Magnolia Room, with a speaker at the front",
     src: "/photos/magnolia.jpg",
     pos: "50% 45%",
-    photo2: "",
-    src2: "",
-    pos2: "center",
+    photo2: "The Magnolia Room set for a ceremony, with rows of white chairs facing the stage",
+    src2: "/photos/magnolia-ceremony.jpg",
+    pos2: "50% 50%",
   },
   {
     num: "02",
@@ -166,8 +166,8 @@ export default function Home() {
 
           <div className="mt-10 grid gap-4 sm:grid-cols-3">
             {[
-              { src: "/photos/heritage-then.jpg", alt: "The school auditorium long ago, with a choir on the stage beneath draped curtains", label: "Then · 1932", note: "The school auditorium" },
-              { src: "/photos/heritage-music.jpg", alt: "A band playing on the stage of the arched hall during an evening event", label: "Recent years", note: "An evening of live music" },
+              { src: "/photos/heritage-then.jpg", alt: "The school auditorium long ago, with a choir on the stage beneath draped curtains", label: "Then · 1932", note: "The school auditorium, today's Magnolia Room" },
+              { src: "/photos/heritage-music.jpg", alt: "A band playing on the stage of the arched hall during an evening event", label: "Recent years", note: "An evening of live music in the Magnolia Room" },
               { src: "/photos/heritage-hall.jpg", alt: "The arched hall set with round tables, flowers and candles for a celebration", label: "Recent years", note: "The hall, set for a celebration" },
             ].map((p) => (
               <figure key={p.src} className="overflow-hidden rounded-lg border border-[#e2d8c3] bg-white">
