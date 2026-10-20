@@ -276,7 +276,7 @@ export default function Home() {
             </p>
             <a href="#visit" className="mt-6 inline-block rounded-md border border-[#182c3e]/25 px-6 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#182c3e] transition hover:border-[#182c3e]/50">Book the studio</a>
           </div>
-          <Photo caption="The podcast studio — mics, boxwood wall" className="aspect-[4/3]" />
+          <Photo caption="The podcast studio — guests recording around the mixing table, with microphones and the green leaf wall" src="/photos/podcast-studio.jpg" position="50% 45%" className="aspect-[4/3]" />
         </div>
       </section>
 
