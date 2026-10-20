@@ -244,6 +244,22 @@ export default function Home() {
         <div className="mx-auto max-w-6xl px-5 py-16 md:py-24">
           <Eyebrow>Work here</Eyebrow>
           <h2 className="hb-display mt-4 text-3xl text-[#182c3e] md:text-[2.6rem]">Class A offices with character.</h2>
+
+          <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+            {[
+              { src: "/photos/office-suite.jpg", alt: "An executive office with a leather sofa, an oriental rug and wood-paneled shelving", label: "Executive office suite", pos: "50% 55%" },
+              { src: "/photos/office-lobby.jpg", alt: "The lobby and reception desk with hardwood floors and tall windows", label: "Lobby & reception", pos: "50% 50%" },
+              { src: "/photos/office-desk.jpg", alt: "A private office with a wooden desk, bookshelves and framed certificates", label: "Private office", pos: "50% 50%" },
+              { src: "/photos/office-lounge.jpg", alt: "A lounge area with a patterned sofa and a long hallway beyond", label: "Lounge area", pos: "50% 50%" },
+            ].map((p) => (
+              <figure key={p.src} className="overflow-hidden rounded-lg border border-[#e2d8c3] bg-white">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={p.src} alt={p.alt} loading="lazy" className="aspect-[4/3] w-full object-cover" style={{ objectPosition: p.pos }} />
+                <figcaption className="px-3 py-2 text-[13px] text-[#5a6672]">{p.label}</figcaption>
+              </figure>
+            ))}
+          </div>
+
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             <div className="rounded-xl border border-[#e2d8c3] bg-white/60 p-7">
               <h3 className="hb-display text-xl text-[#182c3e]">Executive office suites</h3>
