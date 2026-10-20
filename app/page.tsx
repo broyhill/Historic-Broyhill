@@ -171,6 +171,28 @@ export default function Home() {
               </figure>
             ))}
           </div>
+
+          <div className="mt-12 grid items-center gap-8 rounded-xl border border-[#e2d8c3] bg-white/60 p-6 md:grid-cols-[0.9fr_1.1fr] md:p-8">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/photos/press-2005.jpg"
+              alt="Winston-Salem Journal clippings from 2005 about the renovated Old Clemmons School becoming Broyhill Office Suites"
+              loading="lazy"
+              width={1029}
+              height={1020}
+              className="w-full rounded-md"
+            />
+            <div>
+              <Eyebrow>In the news · 2005</Eyebrow>
+              <h3 className="hb-display mt-3 text-2xl text-[#182c3e] md:text-3xl">The renovation made the front page.</h3>
+              <p className="mt-4 text-[16px] leading-relaxed text-[#5a6672]">
+                When the old school reopened as Broyhill Office Suites, the Winston-Salem Journal covered it
+                twice that year: “A School of Business” (June 7, 2005) on the renovated building and its
+                anchor tenant, and “Aegis moving main office to Broyhill Office Suites” (September 9, 2005).
+              </p>
+              <p className="mt-3 text-xs text-[#8c7d5f]">Clippings courtesy of the Winston-Salem Journal.</p>
+            </div>
+          </div>
         </div>
       </section>
 
