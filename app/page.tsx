@@ -36,7 +36,7 @@ const VENUES = [
       "Our outside patio area — a covered stage and a flat lot for seating, made for smaller outdoor events and live music. The rear grounds offer room for community gatherings and food trucks.",
     photo: "The Dock's covered outdoor stage, with a live band and guests in lawn chairs",
     src: "/photos/the-dock.jpg",
-    pos: "50% 62%",
+    pos: "50% 48%",
   },
 ];
 
