@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { copy, del, list, put } from "@vercel/blob";
 import {
-  ALLOWED_EXT, KEEP_FILE, MAX_UPLOAD_BYTES, PHOTO_ROOT, cleanFileName, cleanFolder, contentTypeFor, parsePath, pathFromStoreUrl, photoPath,
+  ALLOWED_EXT, KEEP_FILE, MAX_UPLOAD_BYTES, PHOTO_ROOT, cleanFileName, cleanFolder, contentTypeFor, isVideoName, parsePath, pathFromStoreUrl, photoPath,
 } from "@/lib/photos";
 
 export const maxDuration = 60;
@@ -66,7 +66,8 @@ export async function POST(request: Request) {
     if (!folder) return bad("Choose a folder first.");
     if (!(file instanceof File)) return bad("No photo was sent.");
     const name = cleanFileName(file.name);
-    if (!name) return bad(`Only ${ALLOWED_EXT.join(", ")} pictures can be uploaded.`);
+    if (!name) return bad(`Only ${ALLOWED_EXT.join(", ")} pictures and mp4, mov or webm videos can be uploaded.`);
+    if (isVideoName(name)) return bad("Videos upload directly from the page; this route is for pictures.");
     if (file.size > MAX_UPLOAD_BYTES) return bad("That picture is over 4 MB. Make it smaller and try again.", 413);
 
     const blob = await put(photoPath(folder, name), file, { access: "public", addRandomSuffix: true, contentType: contentTypeFor(name) });

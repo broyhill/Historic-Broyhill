@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { SUGGESTED_FOLDERS } from "@/lib/photos";
+import { upload as uploadToStorage } from "@vercel/blob/client";
+import { MAX_VIDEO_BYTES, SUGGESTED_FOLDERS, cleanFileName, cleanFolder, contentTypeFor, isVideoName, photoPath } from "@/lib/photos";
 
 interface Photo { url: string; folder: string; name: string; size: number; uploadedAt: string }
 interface Folder { name: string; count: number }
@@ -51,6 +52,7 @@ export default function PhotosPanel() {
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [newFolder, setNewFolder] = useState("");
+  const [progress, setProgress] = useState<string | null>(null);
   const [editing, setEditing] = useState<{ url: string; name: string; folder: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -65,7 +67,7 @@ export default function PhotosPanel() {
 
   const run = async (label: string, fn: () => Promise<string | void>) => {
     setBusy(label); setError(null); setNotice(null);
-    try { const m = await fn(); if (m) setNotice(m); await load(); } catch (e: any) { setError(e.message); } finally { setBusy(null); }
+    try { const m = await fn(); if (m) setNotice(m); await load(); } catch (e: any) { setError(e.message); } finally { setBusy(null); setProgress(null); }
   };
 
   const shown = useMemo(() => (current === ALL ? photos : photos.filter((p) => p.folder === current)), [photos, current]);
@@ -82,12 +84,26 @@ export default function PhotosPanel() {
     run("upload", async () => {
       let ok = 0;
       for (const f of Array.from(files)) {
-        const small = await prepare(f);
-        const fd = new FormData(); fd.append("folder", current); fd.append("file", small);
-        await call("/api/admin/photos", { method: "POST", body: fd }); ok++;
+        const clean = cleanFileName(f.name);
+        if (!clean) throw new Error(`"${f.name}" isn't a picture or video type we accept.`);
+        if (isVideoName(clean)) {
+          // Videos go straight to storage in pieces; the server only issues the one-time permission.
+          if (f.size > MAX_VIDEO_BYTES) throw new Error(`"${f.name}" is over ${MAX_VIDEO_BYTES / 1024 / 1024} MB.`);
+          setProgress(`${clean}: 0%`);
+          await uploadToStorage(photoPath(cleanFolder(current), clean), f, {
+            access: "public", handleUploadUrl: "/api/admin/photos/upload", multipart: true,
+            contentType: contentTypeFor(clean), onUploadProgress: (p) => setProgress(`${clean}: ${Math.round(p.percentage)}%`),
+          });
+          setProgress(null);
+        } else {
+          const small = await prepare(f);
+          const fd = new FormData(); fd.append("folder", current); fd.append("file", small);
+          await call("/api/admin/photos", { method: "POST", body: fd });
+        }
+        ok++;
       }
       if (fileRef.current) fileRef.current.value = "";
-      return `Uploaded ${ok} photo${ok === 1 ? "" : "s"} to "${current}".`;
+      return `Uploaded ${ok} file${ok === 1 ? "" : "s"} to "${current}".`;
     });
   };
 
@@ -152,21 +168,26 @@ export default function PhotosPanel() {
                   run("delete-folder", async () => { await call("/api/admin/photos", json("DELETE", { folder: current, confirm: true })); setCurrent(ALL); return "Folder deleted."; });
               }}>Delete folder</button>
             </>)}
-            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp" multiple className="hidden" onChange={(e) => upload(e.target.files)} aria-label="Choose photos to upload" />
+            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/quicktime,video/webm,.mp4,.mov,.m4v,.webm" multiple className="hidden" onChange={(e) => upload(e.target.files)} aria-label="Choose photos to upload" />
             <button className={btnPrimary} disabled={busy !== null} onClick={() => (current === ALL ? setError("Open a folder first, then upload into it.") : fileRef.current?.click())}>
-              {busy === "upload" ? "Uploading…" : "Upload photos"}</button>
+              {busy === "upload" ? "Uploading…" : "Upload photos or videos"}</button>
           </div>
           {error && <p className="text-[13px] text-red-600" role="alert">{error}</p>}
+          {progress && <p className="text-[13px] text-[#6c757d]">Uploading {progress}</p>}
           {notice && !error && <p className="text-[13px] text-[#1ab394]">{notice}</p>}
-          <p className="text-[11.5px] text-[#9ba6b7]">JPG, PNG, GIF or WebP, up to 4 MB each. Large photos are shrunk automatically. For picture messages, aim for under 1 MB. Only upload real photos of your spaces.</p>
+          <p className="text-[11.5px] text-[#9ba6b7]">Photos: JPG, PNG, GIF or WebP, up to 4 MB (larger ones are shrunk automatically). Videos: MP4, MOV or WebM, up to 200 MB. For picture messages, aim for under 1 MB; videos are for links and websites, not texts. Only upload your own real photos and videos.</p>
         </div></section>
 
         {shown.length === 0 && <p className="text-[13px] text-[#9ba6b7]">{current === ALL ? "No photos yet. Add a folder, open it, then upload." : "This folder is empty. Click Upload photos."}</p>}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
           {shown.map((p) => (
             <div key={p.url} className="ibox overflow-hidden">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.url} alt={p.name} loading="lazy" className="w-full aspect-[4/3] object-cover bg-[#f1f2f7]" />
+              {isVideoName(p.name) ? (
+                <video src={p.url} controls preload="metadata" playsInline className="w-full aspect-[4/3] object-cover bg-black" aria-label={p.name} />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={p.url} alt={p.name} loading="lazy" className="w-full aspect-[4/3] object-cover bg-[#f1f2f7]" />
+              )}
               <div className="p-3 space-y-2">
                 {editing?.url === p.url ? (
                   <form className="space-y-2" onSubmit={(e) => { e.preventDefault(); const ed = editing; run("edit", async () => { await call("/api/admin/photos", json("PATCH", { action: "edit-photo", url: ed.url, name: ed.name, folder: ed.folder })); setEditing(null); return "Saved."; }); }}>
@@ -177,7 +198,7 @@ export default function PhotosPanel() {
                   </form>
                 ) : (<>
                   <div className="text-[12.5px] font-semibold text-[#323a46] truncate" title={p.name}>{p.name}</div>
-                  <div className="text-[11.5px] text-[#9ba6b7]">{current === ALL ? `${p.folder} · ` : ""}{kb(p.size)}{p.size > 1024 * 1024 ? " · large for texts" : ""}</div>
+                  <div className="text-[11.5px] text-[#9ba6b7]">{current === ALL ? `${p.folder} · ` : ""}{kb(p.size)}{p.size > 1024 * 1024 ? (isVideoName(p.name) ? " · video" : " · large for texts") : ""}</div>
                   <div className="flex gap-1.5 flex-wrap">
                     <button className={btnGhost} onClick={() => copyLink(p.url)}>Copy link</button>
                     <button className={btnGhost} onClick={() => setEditing({ url: p.url, name: p.name.replace(/\.[^.]+$/, ""), folder: p.folder })}>Edit</button>
