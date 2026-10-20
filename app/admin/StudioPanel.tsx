@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { BLOCK_TYPES, VENUE_ADDRESS, defaultBrand, designIssues, duplicateBlock, moveBlock, newBlock, newId, normalizeDesign, renderHtml, type Block, type BlockType, type Brand } from "@/lib/studio";
 import { defaultSettings, type TemplateSettings } from "@/lib/template-categories";
 
@@ -11,6 +11,15 @@ const inputCls = "w-full rounded-md border border-[#e7e9eb] px-3 py-2 text-[14px
 const btnPrimary = "h-9 px-4 rounded-md bg-[#1ab394] text-white text-[13px] font-semibold disabled:opacity-50";
 const btnGhost = "h-8 px-3 rounded-md border border-[#e7e9eb] text-[#6c757d] text-[12.5px] hover:border-[#1ab394]/50 disabled:opacity-50";
 const lbl = "text-[12px] font-semibold text-[#6c757d]";
+
+type Device = "mobile" | "ipad" | "laptop" | "desktop";
+const DEVICES: Record<Device, { label: string; width: number }> = {
+  mobile: { label: "Mobile", width: 390 },
+  ipad: { label: "iPad", width: 820 },
+  laptop: { label: "Laptop", width: 1440 },
+  desktop: { label: "Desktop", width: 1920 },
+};
+const PREVIEW_H = 640;
 
 async function call(url: string, init?: RequestInit) {
   const res = await fetch(url, init);
@@ -34,7 +43,18 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
   const [saved, setSaved] = useState<SavedDesign[]>([]);
   const [photos, setPhotos] = useState<Photo[] | null>(null);
   const [pickFor, setPickFor] = useState<string | null>(null);
-  const [view, setView] = useState<"desktop" | "mobile">("desktop");
+  const [view, setView] = useState<Device>("desktop");
+  const boxRef = useRef<HTMLDivElement>(null);
+  const [boxW, setBoxW] = useState(520);
+  useEffect(() => {
+    const el = boxRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => setBoxW(el.clientWidth));
+    ro.observe(el); setBoxW(el.clientWidth);
+    return () => ro.disconnect();
+  }, []);
+  // Wide screens are shown shrunk to fit the panel, so the email is laid out at the real screen width.
+  const scale = Math.min(1, Math.max(0.2, (boxW - 24) / DEVICES[view].width));
   const [open, setOpen] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
@@ -317,18 +337,20 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
         <div className="space-y-2 lg:sticky lg:top-4 self-start">
           <div className="flex items-center gap-2">
             <div className={lbl}>Preview</div>
-            <button className={`${btnGhost} ${view === "desktop" ? "!border-[#1ab394] !text-[#1ab394]" : ""}`} onClick={() => setView("desktop")}>Desktop</button>
-            <button className={`${btnGhost} ${view === "mobile" ? "!border-[#1ab394] !text-[#1ab394]" : ""}`} onClick={() => setView("mobile")}>Mobile</button>
-            <span className="text-[12px] text-[#9ba6b7]">Sending is off. This is a preview only.</span>
+            {(Object.keys(DEVICES) as Device[]).map((d) => (
+              <button key={d} className={`${btnGhost} ${view === d ? "!border-[#1ab394] !text-[#1ab394]" : ""}`} onClick={() => setView(d)}>{DEVICES[d].label}</button>
+            ))}
           </div>
-          <div className="rounded-lg border border-[#e7e9eb] bg-[#eef0f2] p-3 flex justify-center">
-            <iframe
-              title="Email preview"
-              sandbox=""
-              srcDoc={html}
-              className="bg-white rounded border border-[#d9dde3]"
-              style={{ width: view === "mobile" ? 375 : "100%", maxWidth: "100%", height: 640 }}
-            />
+          <p className="text-[12px] text-[#9ba6b7]">{DEVICES[view].label} screen, {DEVICES[view].width} px wide. Sending is off; this is a preview only.</p>
+          <div ref={boxRef} className="rounded-lg border border-[#e7e9eb] bg-[#eef0f2] p-3 flex justify-center">
+            <div style={{ width: DEVICES[view].width * scale, height: PREVIEW_H }} className={`overflow-hidden bg-white border border-[#d9dde3] ${view === "mobile" || view === "ipad" ? "rounded-[22px] border-[6px] !border-[#2b2f36]" : "rounded"}`}>
+              <iframe
+                title="Email preview"
+                sandbox=""
+                srcDoc={html}
+                style={{ width: DEVICES[view].width, height: PREVIEW_H / scale, transform: `scale(${scale})`, transformOrigin: "top left", border: 0, background: "#fff" }}
+              />
+            </div>
           </div>
         </div>
       </div>
