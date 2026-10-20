@@ -29,7 +29,7 @@ export async function GET(request: Request) {
       });
       return NextResponse.json({ success: true, templates });
     }
-    const rows = await prisma.emailCampaign.findMany({ where: { status: { not: "TEMPLATE" } }, orderBy: { updatedAt: "desc" }, take: 100 });
+    const rows = await prisma.emailCampaign.findMany({ where: { status: { notIn: ["TEMPLATE", "SETTINGS"] } }, orderBy: { updatedAt: "desc" }, take: 100 });
     return NextResponse.json({
       success: true,
       campaigns: rows.map((c) => ({
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     if (!name) return NextResponse.json({ error: "Give the campaign a name." }, { status: 400 });
 
     // Like Campaign Monitor, a new draft copies the sender from the most recent campaign.
-    const last = await prisma.emailCampaign.findFirst({ where: { status: { not: "TEMPLATE" } }, orderBy: { createdAt: "desc" }, select: { fromName: true, fromEmail: true, replyTo: true } });
+    const last = await prisma.emailCampaign.findFirst({ where: { status: { notIn: ["TEMPLATE", "SETTINGS"] } }, orderBy: { createdAt: "desc" }, select: { fromName: true, fromEmail: true, replyTo: true } });
     const envFrom = /^(.*)<(.+)>$/.exec(process.env.EMAIL_FROM || "");
     const campaign = await prisma.emailCampaign.create({
       data: {

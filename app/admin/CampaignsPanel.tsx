@@ -4,7 +4,8 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   VENUE_ADDRESS, MAX_TEST_ADDRESSES, completeness, fillFirstName, isEmail, previewChecks, reviewLinks, subjectChecks, unresolvedTags,
 } from "@/lib/campaign-rules";
-import { CAMPAIGN_TEMPLATES, CATEGORIES } from "@/lib/campaign-templates";
+import { CAMPAIGN_TEMPLATES } from "@/lib/campaign-templates";
+import { defaultSettings, resolveLabel, type TemplateSettings } from "@/lib/template-categories";
 
 interface SavedTemplate { id: string; name: string; subject: string; previewText: string; body: string; category?: string; kind?: string }
 
@@ -113,6 +114,8 @@ function Editor({ id, onBack }: { id: string; onBack: () => void }) {
   const [saved, setSaved] = useState<SavedTemplate[]>([]);
   const [tplName, setTplName] = useState("");
   const [tplCategory, setTplCategory] = useState("");
+  const [tset, setTset] = useState<TemplateSettings>(defaultSettings());
+  useEffect(() => { api("/api/admin/template-settings").then((d) => setTset(d.settings)).catch(() => {}); }, []);
 
   const loadSaved = useCallback(() => {
     api("/api/admin/email-campaigns?templates=1").then((d) => setSaved(d.templates || [])).catch(() => {});
@@ -233,9 +236,9 @@ function Editor({ id, onBack }: { id: string; onBack: () => void }) {
               <div className="space-y-2">
                 <div className="text-[12px] font-semibold text-[#6c757d]">Start from a template</div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {CAMPAIGN_TEMPLATES.map((t) => (
+                  {CAMPAIGN_TEMPLATES.filter((t) => !tset.hiddenStarters.includes(t.id)).map((t) => (
                     <button key={t.id} onClick={() => useTemplate(t)} className="text-left rounded-md border border-[#e7e9eb] px-3 py-2 hover:border-[#1ab394]/50">
-                      <span className="block text-[11px] uppercase tracking-wider text-[#9ba6b7]">{t.category} · {t.kind}</span>
+                      <span className="block text-[11px] uppercase tracking-wider text-[#9ba6b7]">{[resolveLabel(t.category, tset.aliases.categories, tset.categories) || "Uncategorized", resolveLabel(t.kind, tset.aliases.kinds, tset.kinds)].filter(Boolean).join(" · ")}</span>
                       <span className="block text-[13.5px] font-semibold text-[#323a46]">{t.name}</span>
                       <span className="block text-[12px] text-[#6c757d]">{t.description}</span>
                     </button>
@@ -283,7 +286,7 @@ function Editor({ id, onBack }: { id: string; onBack: () => void }) {
                 <button className={btnPrimary} disabled={busy !== null} onClick={() => save({ body: c.body, subject: c.subject, previewText: c.previewText, designType: "plain" })}>Save</button>
                 <input value={tplName} onChange={(e) => setTplName(e.target.value)} placeholder="Name to save this email as a template" className={`${inputCls} flex-1 min-w-[12rem]`} maxLength={120} />
                 <select value={tplCategory} onChange={(e) => setTplCategory(e.target.value)} aria-label="Template category" className={`${inputCls} w-auto`}>
-                  <option value="">No category</option>{CATEGORIES.map((c) => <option key={c}>{c}</option>)}</select>
+                  <option value="">No category</option>{tset.categories.map((c) => <option key={c}>{c}</option>)}</select>
                 <button className={btnGhost} disabled={busy !== null || !tplName.trim() || !c.body.trim()} onClick={() => run("tpl", async () => {
                   await save({ body: c.body, subject: c.subject, previewText: c.previewText, designType: "plain" }, "");
                   await api(`/api/admin/email-campaigns/${id}/save-as-template`, { method: "POST", body: JSON.stringify({ name: tplName, category: tplCategory }) });
