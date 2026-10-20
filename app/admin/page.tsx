@@ -60,6 +60,7 @@ const TITLES: Record<Section, string> = {
 
 export default function AdminConsole() {
   const [section, setSection] = useState<Section>("dashboard");
+  const [studioId, setStudioId] = useState<string | null>(null);
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [navOpen, setNavOpen] = useState(false); // mobile drawer
   const [askSeed, setAskSeed] = useState<string | undefined>(); // question typed on the Dashboard
@@ -154,8 +155,8 @@ export default function AdminConsole() {
           {section === "queue" && <ReviewPanel mode="queue" onChanged={refreshMetrics} />}
           {section === "history" && <ReviewPanel mode="history" />}
           {section === "campaigns" && <CampaignsPanel />}
-          {section === "templates" && <TemplatesPanel />}
-          {section === "studio" && <StudioPanel />}
+          {section === "templates" && <TemplatesPanel onOpenStudio={(id) => { setStudioId(id); setSection("studio"); }} />}
+          {section === "studio" && <StudioPanel openId={studioId} />}
           {section === "photos" && <PhotosPanel />}
           {section === "ask" && <AskPanel onChanged={refreshMetrics} seed={askSeed} />}
           {section === "settings" && <SettingsPanel />}

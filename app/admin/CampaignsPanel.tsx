@@ -118,7 +118,7 @@ function Editor({ id, onBack }: { id: string; onBack: () => void }) {
   useEffect(() => { api("/api/admin/template-settings").then((d) => setTset(d.settings)).catch(() => {}); }, []);
 
   const loadSaved = useCallback(() => {
-    api("/api/admin/email-campaigns?templates=1").then((d) => setSaved(d.templates || [])).catch(() => {});
+    api("/api/admin/email-campaigns?templates=1").then((d) => setSaved((d.templates || []).filter((t: { studio?: boolean }) => !t.studio))).catch(() => {});
   }, []);
   useEffect(() => { if (open === "design") loadSaved(); }, [open, loadSaved]);
 

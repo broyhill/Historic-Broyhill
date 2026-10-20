@@ -8,7 +8,7 @@ import { defaultSettings, resolveLabel, type ListName, type TemplateSettings } f
 
 type Channel = "email" | "sms" | "mms";
 interface Saved { id: string; name: string; subject: string; previewText: string; body: string; mediaUrl: string; category: string; kind: string }
-interface Draft { id?: string; name: string; subject: string; previewText: string; body: string; mediaUrl: string; category: string; kind: string }
+interface Draft { id?: string; name: string; subject: string; previewText: string; body: string; mediaUrl: string; category: string; kind: string; studio?: boolean }
 
 const EMPTY: Draft = { name: "", subject: "", previewText: "", body: "", mediaUrl: "", category: "", kind: "" };
 const TABS: { key: Channel; label: string; hint: string }[] = [
@@ -35,7 +35,7 @@ function Checks({ items }: { items: { ok: boolean; label: string }[] }) {
 
 // Template library for email, SMS and MMS. A template is only a starting point: nothing here sends.
 // Texting itself is not switched on yet; these are ready for when it is.
-export default function TemplatesPanel() {
+export default function TemplatesPanel({ onOpenStudio }: { onOpenStudio?: (id: string) => void }) {
   const [channel, setChannel] = useState<Channel>("email");
   const [saved, setSaved] = useState<Saved[]>([]);
   const [draft, setDraft] = useState<Draft>(EMPTY);
@@ -213,11 +213,12 @@ export default function TemplatesPanel() {
           {savedShown.length === 0 && <p className="p-5 text-[13px] text-[#9ba6b7]">{saved.length === 0 ? "Nothing saved yet. Start from a template above, or write one below." : "None of your saved templates are in this category."}</p>}
           {savedShown.map((t) => (
             <div key={t.id} className="px-5 py-3 border-t border-[#e7e9eb] first:border-0 flex items-center gap-3">
-              <button className="flex-1 text-left min-w-0" onClick={() => { setDraft({ id: t.id, name: t.name, subject: t.subject, previewText: t.previewText, body: t.body, mediaUrl: t.mediaUrl, category: t.category, kind: t.kind }); setNotice(null); setError(null); }}>
-                {(t.category || t.kind) && <span className="block text-[11px] uppercase tracking-wider text-[#9ba6b7]">{[t.category, t.kind].filter(Boolean).join(" · ")}</span>}
+              <button className="flex-1 text-left min-w-0" onClick={() => { if (t.studio) { onOpenStudio?.(t.id); return; } setDraft({ id: t.id, name: t.name, subject: t.subject, previewText: t.previewText, body: t.body, mediaUrl: t.mediaUrl, category: t.category, kind: t.kind }); setNotice(null); setError(null); }}>
+                {(t.category || t.kind || t.studio) && <span className="block text-[11px] uppercase tracking-wider text-[#9ba6b7]">{[t.studio ? "Studio design" : "", t.category, t.kind].filter(Boolean).join(" · ")}</span>}
                 <span className="block text-[14px] font-semibold text-[#323a46] truncate">{t.name}</span>
                 <span className="block text-[12px] text-[#9ba6b7] truncate">{channel === "email" ? (t.subject || "No subject") : t.body}</span>
               </button>
+              {t.studio && <button className="text-[12px] text-[#1ab394] hover:underline" onClick={() => onOpenStudio?.(t.id)}>Open in Studio</button>}
               <button className="text-[12px] text-[#9ba6b7] hover:text-red-600" aria-label={`Delete template ${t.name}`} onClick={() => remove(t)}>Delete</button>
             </div>
           ))}

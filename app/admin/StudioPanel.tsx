@@ -21,7 +21,7 @@ async function call(url: string, init?: RequestInit) {
 }
 const post = (body: unknown): RequestInit => ({ method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
 
-export default function StudioPanel() {
+export default function StudioPanel({ openId }: { openId?: string | null }) {
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [brand, setBrand] = useState<Brand>(defaultBrand());
   const [id, setId] = useState<string | null>(null);
@@ -48,7 +48,11 @@ export default function StudioPanel() {
   useEffect(() => {
     refreshSaved();
     call("/api/admin/template-settings").then((d) => setTset(d.settings)).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  // Coming from the Templates list: open that design straight away.
+  useEffect(() => { if (openId) openDesign(openId); // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openId]);
 
   const design = useMemo(() => normalizeDesign({ blocks, brand }), [blocks, brand]);
   const html = useMemo(() => renderHtml(design, { title: subject || name || "Preview" }), [design, subject, name]);

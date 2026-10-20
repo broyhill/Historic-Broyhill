@@ -25,6 +25,7 @@ export async function GET(request: Request) {
           mediaUrl: typeof brief.mediaUrl === "string" ? brief.mediaUrl : "",
           category: typeof brief.category === "string" ? brief.category : "",
           kind: typeof brief.kind === "string" ? brief.kind : "",
+          studio: Boolean(brief.studio),
         };
       });
       return NextResponse.json({ success: true, templates });
