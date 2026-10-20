@@ -109,7 +109,7 @@ export default function Home() {
               <a href="#venues" className="rounded-md border border-white/25 px-6 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#e9e2d3] transition hover:border-white/55">Explore the venues</a>
             </div>
           </div>
-          <Photo onDark caption="The Historic Broyhill — the landmark exterior with its white columns" src="/photos/exterior.jpg" position="30% 40%" className="aspect-[5/4]" />
+          <Photo onDark caption="The Historic Broyhill at dusk — the landmark exterior with its white columns" src="/photos/exterior.jpg" position="44% 50%" className="aspect-[5/4]" />
         </div>
       </section>
 
