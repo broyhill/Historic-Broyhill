@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { BLOCK_TYPES, VENUE_ADDRESS, defaultBrand, designIssues, duplicateBlock, moveBlock, newBlock, newId, normalizeDesign, renderHtml, type Block, type BlockType, type Brand } from "@/lib/studio";
+import { applyOps, linksIn, type Op } from "@/lib/studio-commands";
+import { BLOCK_TYPES, allowedFrom, VENUE_ADDRESS, defaultBrand, designIssues, duplicateBlock, moveBlock, newBlock, newId, normalizeDesign, renderHtml, type Block, type BlockType, type Brand } from "@/lib/studio";
 import { defaultSettings, type TemplateSettings } from "@/lib/template-categories";
 
 interface Photo { url: string; folder: string; name: string }
@@ -66,7 +67,11 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
   const [direction, setDirection] = useState("");
   const [alts, setAlts] = useState<{ name: string; design: { blocks: Block[]; brand: Brand } }[] | null>(null);
   const [strip, setStrip] = useState<"ideas" | "templates">("ideas");
-  const [undo, setUndo] = useState<{ blocks: Block[]; brand: Brand } | null>(null);
+  const [past, setPast] = useState<{ snap: { blocks: Block[]; brand: Brand }; label: string }[]>([]);
+  const [future, setFuture] = useState<{ snap: { blocks: Block[]; brand: Brand }; label: string }[]>([]);
+  const [log, setLog] = useState<{ id: number; text: string; kind: "you" | "claude" | "done" | "skip" }[]>([]);
+  const [cmd, setCmd] = useState("");
+  const [aiCount, setAiCount] = useState(0);
 
   const refreshSaved = () => call("/api/admin/studio").then((d) => setSaved(d.designs)).catch(() => {});
   useEffect(() => {
@@ -84,6 +89,23 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
   const issueFor = (bid: string) => issues.find((i) => i.blockId === bid)?.message;
 
   const change = (next: Block[]) => { setBlocks(next); setDirty(true); };
+  const addLog = (entries: { text: string; kind: "you" | "claude" | "done" | "skip" }[]) =>
+    setLog((l) => [...l, ...entries.map((e, k) => ({ id: Date.now() + k + Math.random(), ...e }))].slice(-60));
+  // Every AI change goes through here, so each one can be undone and redone.
+  const record = (label: string, nextBlocks: Block[], nextBrand: Brand) => {
+    setPast((p) => [...p.slice(-29), { snap: { blocks, brand }, label }]); setFuture([]);
+    setBlocks(nextBlocks); setBrand(nextBrand); setDirty(true);
+  };
+  const undoStep = () => {
+    const last = past[past.length - 1]; if (!last) return;
+    setFuture((f) => [{ snap: { blocks, brand }, label: last.label }, ...f]); setPast((p) => p.slice(0, -1));
+    setBlocks(last.snap.blocks); setBrand(last.snap.brand); setDirty(true); addLog([{ text: `Undid: ${last.label}`, kind: "done" }]);
+  };
+  const redoStep = () => {
+    const next = future[0]; if (!next) return;
+    setPast((p) => [...p, { snap: { blocks, brand }, label: next.label }]); setFuture((f) => f.slice(1));
+    setBlocks(next.snap.blocks); setBrand(next.snap.brand); setDirty(true); addLog([{ text: `Redid: ${next.label}`, kind: "done" }]);
+  };
   const patch = (bid: string, p: Partial<Block>) => change(blocks.map((b) => (b.id === bid ? ({ ...b, ...p } as Block) : b)));
   const add = (type: BlockType) => { const b = newBlock(type); change([...blocks, b]); setOpen(b.id); };
 
@@ -94,14 +116,14 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
 
   const startNew = () => {
     if (dirty && !confirm("You have changes that aren't saved. Start a new design anyway?")) return;
-    setId(null); setName(""); setSubject(""); setPreviewText(""); setCategory(""); setKind(""); setBlocks([]); setBrand(defaultBrand()); setOpen(null); setReview(null); setSuggest(null); setAlts(null); setUndo(null); setDirty(false); setNotice(""); setError("");
+    setId(null); setName(""); setSubject(""); setPreviewText(""); setCategory(""); setKind(""); setBlocks([]); setBrand(defaultBrand()); setOpen(null); setReview(null); setSuggest(null); setAlts(null); setPast([]); setFuture([]); setLog([]); setDirty(false); setNotice(""); setError("");
   };
 
   const openDesign = (did: string) => run("open", async () => {
     if (dirty && !confirm("You have changes that aren't saved. Open another design anyway?")) return;
     const { design: d } = await call(`/api/admin/studio?id=${encodeURIComponent(did)}`);
     setId(d.id); setName(d.name); setSubject(d.subject); setPreviewText(d.previewText); setCategory(d.category); setKind(d.kind);
-    setBlocks(d.studio.blocks); setBrand(d.studio.brand); setOpen(null); setReview(null); setSuggest(null); setAlts(null); setUndo(null); setDirty(false);
+    setBlocks(d.studio.blocks); setBrand(d.studio.brand); setOpen(null); setReview(null); setSuggest(null); setAlts(null); setPast([]); setFuture([]); setLog([]); setDirty(false);
   });
 
   const save = () => run("save", async () => {
@@ -125,7 +147,9 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
       ...d.paragraphs.map((p: string): Block => ({ id: newId(), type: "text", text: p, align: "left" })),
       { id: newId(), type: "button", label: d.buttonLabel, link: "", align: "center" },
     ];
-    change([...blocks, ...added]); setNotice("Claude's draft was added. Read it, edit it, and add a link to the button.");
+    record("Added Claude's draft", [...blocks, ...added], brand); setAiCount((c) => c + 1);
+    addLog([{ text: `Draft: ${goal}`, kind: "you" }, { text: "Added a heading, text and a button. Read it, edit it, and add a link to the button.", kind: "claude" }]);
+    setNotice("Claude's draft was added. Read it, edit it, and add a link to the button.");
   });
 
   const rewrite = (b: Block, instruction: string) => run(`rw-${b.id}`, async () => {
@@ -145,10 +169,30 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
   });
 
   const useAlt = (a: { name: string; design: { blocks: Block[]; brand: Brand } }) => {
-    setUndo({ blocks, brand });
-    change(a.design.blocks); setBrand(a.design.brand); setOpen(null); setAlts(null);
-    setNotice(`"${a.name}" is now your design. Click any block to edit it, or use Undo redesign to go back.`);
+    record(`Used the “${a.name}” design`, a.design.blocks, a.design.brand); setOpen(null); setAlts(null);
+    addLog([{ text: `Switched to the “${a.name}” design.`, kind: "done" }]);
+    setNotice(`"${a.name}" is now your design. Click any block to edit it, or press Undo to go back.`);
   };
+
+  const runCommand = () => run("command", async () => {
+    const text = cmd.trim(); if (!text) return;
+    let lib = photos;
+    if (lib === null) {
+      lib = await call("/api/admin/photos").then((d) => (d.photos || []).filter((p: Photo) => !/\.(mp4|mov|webm|m4v)$/i.test(p.name))).catch(() => []);
+      setPhotos(lib);
+    }
+    const r = await ai({ action: "command", instruction: text, photos: (lib || []).slice(0, 40).map((p) => ({ url: p.url, name: p.name })) });
+    // Links the person typed in the command are allowed; links Claude made up are not.
+    const allowed = allowedFrom(design, (lib || []).map((p) => p.url));
+    linksIn(text).forEach((u) => allowed.links.add(u));
+    const res = applyOps(design, r.ops as Op[], allowed);
+    const entries: { text: string; kind: "you" | "claude" | "done" | "skip" }[] = [{ text, kind: "you" }];
+    if (r.reply) entries.push({ text: r.reply, kind: "claude" });
+    res.applied.forEach((t) => entries.push({ text: t, kind: "done" }));
+    res.skipped.forEach((t) => entries.push({ text: t, kind: "skip" }));
+    if (res.applied.length) record(text.slice(0, 60), res.design.blocks, res.design.brand);
+    addLog(entries); setAiCount((c) => c + 1); setCmd("");
+  });
 
   const getReview = () => run("review", async () => { const r = await ai({ action: "review" }); setReview({ suggestions: r.suggestions, subjects: r.subjects }); });
 
@@ -192,6 +236,25 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
                   style={{ width: DEVICES[view].width, height: PREVIEW_H / scale, transform: `scale(${scale})`, transformOrigin: "top left", border: 0, background: "#fff" }}
                 />
               </div>
+            </div>
+            <div className="mt-3 space-y-2">
+              {log.length > 0 && (
+                <ul className="max-h-40 space-y-1 overflow-y-auto rounded-lg bg-[#1c2024] p-2 text-[12.5px]" aria-label="What the assistant did">
+                  {log.map((e) => (
+                    <li key={e.id} className={e.kind === "you" ? "text-[#e8eaed]" : e.kind === "claude" ? "text-[#9ad7c6]" : e.kind === "done" ? "text-[#8b95a1]" : "text-[#e2b24a]"}>
+                      {e.kind === "you" ? "You: " : e.kind === "claude" ? "Claude: " : e.kind === "done" ? "✓ " : "– "}{e.text}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <form className="flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); runCommand(); }}>
+                <input className="h-10 flex-1 rounded-lg border border-[#2b2f36] bg-[#1c2024] px-3 text-[14px] text-[#e8eaed] placeholder:text-[#6c757d] focus:outline-none focus:border-[#1ab394]"
+                  placeholder="Give me a command to edit the email (e.g. make the intro shorter)" value={cmd} onChange={(e) => setCmd(e.target.value)} aria-label="Command for the assistant" />
+                <button type="submit" disabled={busy !== null || !cmd.trim() || blocks.length === 0} className="h-10 rounded-lg bg-[#1ab394] px-4 text-[13px] font-semibold text-white disabled:opacity-50">{busy === "command" ? "Working…" : "Send"}</button>
+                <button type="button" onClick={undoStep} disabled={past.length === 0} aria-label="Undo" title={past.length ? `Undo: ${past[past.length - 1].label}` : "Nothing to undo"} className="h-10 w-10 rounded-lg border border-[#2b2f36] text-[#e8eaed] disabled:opacity-40">↶</button>
+                <button type="button" onClick={redoStep} disabled={future.length === 0} aria-label="Redo" title={future.length ? `Redo: ${future[0].label}` : "Nothing to redo"} className="h-10 w-10 rounded-lg border border-[#2b2f36] text-[#e8eaed] disabled:opacity-40">↷</button>
+              </form>
+              <div className="flex justify-between text-[11.5px] text-[#6c757d]"><span>Each change can be undone. Claude only uses links already in your email or typed in your command, and pictures from your library.</span><span>{aiCount} AI action{aiCount === 1 ? "" : "s"} this session</span></div>
             </div>
           </div>
 
@@ -371,7 +434,6 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
           <div className="rounded-lg border border-[#e7e9eb] bg-white p-3 space-y-2">
             <div className="flex items-center justify-between">
               <div className={lbl}>Ask Claude for a more designed version</div>
-              {undo && <button className={btnGhost} onClick={() => { change(undo.blocks); setBrand(undo.brand); setUndo(null); setNotice("Back to your previous version."); }}>Undo redesign</button>}
             </div>
             <div className="flex gap-2">
               <input className={inputCls} placeholder="Optional: more elegant, more photos, bolder…" value={direction} onChange={(e) => setDirection(e.target.value)} />

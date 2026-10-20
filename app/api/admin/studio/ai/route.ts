@@ -3,6 +3,7 @@ import { z } from "zod";
 import { claudeEnabled, claudeJson } from "@/lib/ai";
 import { MAX_PREVIEW_CHARS, MAX_SUBJECT_CHARS, MAX_SUBJECT_WORDS } from "@/lib/campaign-rules";
 import { allowedFrom, normalizeDesign, renderPlainText, sanitizeAlternative, type RawAlt } from "@/lib/studio";
+import { withShortIds } from "@/lib/studio-commands";
 
 const ALT_SCHEMA = z.object({
   alternatives: z.array(z.object({
@@ -57,6 +58,45 @@ export async function POST(request: Request) {
       });
       if (!out) return NextResponse.json({ error: "Claude could not draft that. Try again." }, { status: 422 });
       return NextResponse.json({ success: true, draft: out });
+    }
+
+    if (b.action === "command") {
+      const instruction = clip(b.instruction, 500);
+      if (!instruction) return NextResponse.json({ error: "Type what you'd like changed." }, { status: 400 });
+      const short = withShortIds(normalizeDesign(b.studio));
+      if (!short.design.blocks.length) return NextResponse.json({ error: "Add a block or ask for a draft first, then give a command." }, { status: 400 });
+      const listing = short.design.blocks.map((blk) => {
+        const id = short.toShort.get(blk.id);
+        if (blk.type === "heading" || blk.type === "text") return `${id} ${blk.type} (${blk.align}): ${blk.text}`;
+        if (blk.type === "button") return `${id} button (${blk.align}): label "${blk.label}", link ${blk.link || "none"}`;
+        if (blk.type === "image") return `${id} image: alt "${blk.alt}", url ${blk.url || "none"}`;
+        if (blk.type === "spacer") return `${id} spacer: ${blk.height}px`;
+        return `${id} divider`;
+      }).join("\n");
+      const library: { url: string; name: string }[] = (Array.isArray(b.photos) ? b.photos : [])
+        .filter((p: any) => p && typeof p.url === "string" && typeof p.name === "string").slice(0, 40)
+        .map((p: any) => ({ url: p.url as string, name: String(p.name).slice(0, 80) }));
+      const out = await claudeJson({
+        system: `${FACTS}
+You are the editing assistant inside an email builder. The person gives a plain-words command; you answer with the smallest set of edits that does it (at most 8), and one short friendly sentence saying what you did, or a question if the command is unclear.
+Refer to blocks only by their short ids (b1, b2…). Allowed edits (op): set_text (heading or text blocks; blockId, text), set_button (blockId; label and/or link), set_image (blockId; url and/or alt), set_align (blockId; align left|center|right), set_spacer (blockId; height 8-80), add_block (blockType; afterId = a block id, START for the top, or empty for the end; plus text/label/link/url/alt/align as needed), remove_block (blockId), move_block (blockId, afterId as above), set_brand (accent and/or background as #RRGGBB hex, font serif|sans).
+Rules: keep every fact the email states and add none; never invent offers, dates, prices or details. Only use a link that already appears in the email or that the person typed in their command. Only use a picture by exact url from the photo list. Do not remove the only text in the email. Fill unused fields with an empty string (0 for height).`,
+        user: `Command: ${instruction}\n\nThe email now:\n${listing}\n\nPhotos available:\n${library.map((p) => `${p.name}: ${p.url}`).join("\n") || "none"}`,
+        schema: z.object({
+          reply: z.string(),
+          ops: z.array(z.object({
+            op: z.enum(["set_text", "set_button", "set_image", "set_align", "set_spacer", "add_block", "remove_block", "move_block", "set_brand"]),
+            blockId: z.string(), afterId: z.string(), blockType: z.string(),
+            text: z.string(), label: z.string(), link: z.string(), url: z.string(), alt: z.string(),
+            align: z.string(), height: z.number(), accent: z.string(), background: z.string(), font: z.string(),
+          })).max(8),
+        }),
+        maxTokens: 3000,
+      });
+      if (!out) return NextResponse.json({ error: "Claude could not do that. Try rephrasing." }, { status: 422 });
+      // Map the short ids back to the real ones before they reach the page.
+      const ops = out.ops.map((o) => ({ ...o, blockId: short.toReal.get(o.blockId) ?? "", afterId: o.afterId === "START" ? "START" : short.toReal.get(o.afterId) ?? "" }));
+      return NextResponse.json({ success: true, reply: out.reply.trim().slice(0, 400), ops });
     }
 
     if (b.action === "redesign") {
