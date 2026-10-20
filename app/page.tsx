@@ -15,6 +15,9 @@ const VENUES = [
     photo: "A large group seated at round tables in the Magnolia Room, with a speaker at the front",
     src: "/photos/magnolia.jpg",
     pos: "50% 45%",
+    photo2: "",
+    src2: "",
+    pos2: "center",
   },
   {
     num: "02",
@@ -26,6 +29,9 @@ const VENUES = [
     photo: "The Loft set boardroom-style for a meeting",
     src: "/photos/the-loft.jpg",
     pos: "50% 55%",
+    photo2: "",
+    src2: "",
+    pos2: "center",
   },
   {
     num: "03",
@@ -37,6 +43,9 @@ const VENUES = [
     photo: "The Dock's covered outdoor stage, with a live band and guests in lawn chairs",
     src: "/photos/the-dock.jpg",
     pos: "50% 48%",
+    photo2: "The Dock patio, with picnic tables, striped umbrellas and the magnolia mural",
+    src2: "/photos/the-dock-patio.jpg",
+    pos2: "50% 50%",
   },
 ];
 
@@ -210,7 +219,14 @@ export default function Home() {
         <div className="mt-10 grid gap-6 md:grid-cols-3">
           {VENUES.map((v) => (
             <article key={v.name} className="flex flex-col overflow-hidden rounded-xl border border-[#e4dac6] bg-white/60 transition hover:shadow-[0_18px_44px_-26px_rgba(24,44,62,0.5)]">
-              <Photo caption={v.photo} src={v.src || undefined} position={v.pos} className="aspect-[16/10] rounded-none border-0 border-b border-[#e4dac6]" />
+              {v.src2 ? (
+                <div className="grid aspect-[16/10] grid-cols-2 gap-0.5 border-b border-[#e4dac6] bg-[#e4dac6]">
+                  <Photo caption={v.photo} src={v.src || undefined} position={v.pos} className="h-full rounded-none border-0" />
+                  <Photo caption={v.photo2} src={v.src2} position={v.pos2} className="h-full rounded-none border-0" />
+                </div>
+              ) : (
+                <Photo caption={v.photo} src={v.src || undefined} position={v.pos} className="aspect-[16/10] rounded-none border-0 border-b border-[#e4dac6]" />
+              )}
               <div className="flex flex-1 flex-col p-6">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#a8853f]">{v.num} / {v.kicker}</p>
                 <h3 className="hb-display mt-2 text-2xl text-[#182c3e]">{v.name}</h3>
