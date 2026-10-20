@@ -172,7 +172,7 @@ export default function PhotosPanel() {
           {error && <p className="text-[13px] text-red-600" role="alert">{error}</p>}
           {progress && <p className="text-[13px] text-[#6c757d]">Uploading {progress}</p>}
           {notice && !error && <p className="text-[13px] text-[#1ab394]">{notice}</p>}
-          <p className="text-[11.5px] text-[#9ba6b7]">Photos: JPG, PNG, GIF or WebP, up to 40 MB each, kept at full size. Videos: MP4, MOV or WebM, up to 200 MB. For picture messages, aim for under 1 MB; videos are for links and websites, not texts. Only upload your own real photos and videos.</p>
+          <p className="text-[11.5px] text-[#9ba6b7]">Photos: JPG, PNG, GIF or WebP, up to 40 MB each, kept at full size. Videos: MP4, MOV or WebM, up to 1 GB. For picture messages, aim for under 1 MB; videos are for links and websites, not texts. Only upload your own real photos and videos.</p>
         </div></section>
 
         {shown.length === 0 && <p className="text-[13px] text-[#9ba6b7]">{current === ALL ? "No photos yet. Click Upload a whole folder, or drag files here." : "This folder is empty. Click Upload photos."}</p>}
