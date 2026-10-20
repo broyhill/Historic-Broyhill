@@ -55,6 +55,8 @@ export default function PhotosPanel() {
   const [progress, setProgress] = useState<string | null>(null);
   const [editing, setEditing] = useState<{ url: string; name: string; folder: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const dirRef = useRef<HTMLInputElement>(null);
+  const [dragging, setDragging] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -78,32 +80,47 @@ export default function PhotosPanel() {
     setNewFolder(""); setCurrent(name.trim()); return `Folder "${name.trim()}" is ready.`;
   });
 
-  const upload = (files: FileList | null) => {
-    if (!files?.length) return;
-    if (current === ALL) { setError("Open a folder first, then upload into it."); return; }
+  // Accepts one file, many files, or a whole folder. From the "All photos" view everything lands in "General".
+  // Unsupported files (HEIC, .DS_Store, documents) are skipped and counted; one bad file never stops the rest.
+  const upload = (files: FileList | File[] | null) => {
+    const list = Array.from(files ?? []);
+    if (!list.length) return;
+    const target = current === ALL ? "General" : current;
     run("upload", async () => {
-      let ok = 0;
-      for (const f of Array.from(files)) {
+      const todo = list.filter((f) => cleanFileName(f.name));
+      const skipped = list.length - todo.length;
+      if (!todo.length) throw new Error("None of those files are pictures or videos we accept (JPG, PNG, GIF, WebP, MP4, MOV, WebM). iPhone HEIC photos need to be exported as JPG first.");
+      let ok = 0, done = 0, next = 0;
+      const failed: string[] = [];
+      const one = async (f: File) => {
         const clean = cleanFileName(f.name);
-        if (!clean) throw new Error(`"${f.name}" isn't a picture or video type we accept.`);
         if (isVideoName(clean)) {
-          // Videos go straight to storage in pieces; the server only issues the one-time permission.
-          if (f.size > MAX_VIDEO_BYTES) throw new Error(`"${f.name}" is over ${MAX_VIDEO_BYTES / 1024 / 1024} MB.`);
-          setProgress(`${clean}: 0%`);
-          await uploadToStorage(photoPath(cleanFolder(current), clean), f, {
-            access: "public", handleUploadUrl: "/api/admin/photos/upload", multipart: true,
-            contentType: contentTypeFor(clean), onUploadProgress: (p) => setProgress(`${clean}: ${Math.round(p.percentage)}%`),
+          if (f.size > MAX_VIDEO_BYTES) throw new Error(`over ${MAX_VIDEO_BYTES / 1024 / 1024} MB`);
+          await uploadToStorage(photoPath(cleanFolder(target), clean), f, {
+            access: "public", handleUploadUrl: "/api/admin/photos/upload", multipart: true, contentType: contentTypeFor(clean),
           });
-          setProgress(null);
         } else {
           const small = await prepare(f);
-          const fd = new FormData(); fd.append("folder", current); fd.append("file", small);
+          const fd = new FormData(); fd.append("folder", target); fd.append("file", small);
           await call("/api/admin/photos", { method: "POST", body: fd });
         }
-        ok++;
-      }
+      };
+      const worker = async () => {
+        while (next < todo.length) {
+          const f = todo[next++];
+          try { await one(f); ok++; } catch (e: any) { failed.push(`${f.name} (${e.message})`); }
+          done++; setProgress(`${done} of ${todo.length} files`);
+        }
+      };
+      setProgress(`0 of ${todo.length} files`);
+      await Promise.all([worker(), worker(), worker()]);
       if (fileRef.current) fileRef.current.value = "";
-      return `Uploaded ${ok} file${ok === 1 ? "" : "s"} to "${current}".`;
+      if (dirRef.current) dirRef.current.value = "";
+      if (current === ALL) setCurrent(target);
+      const bits = [`Uploaded ${ok} of ${todo.length} to "${target}".`];
+      if (skipped) bits.push(`${skipped} unsupported file${skipped === 1 ? "" : "s"} skipped.`);
+      if (failed.length) bits.push(`Failed: ${failed.slice(0, 5).join("; ")}${failed.length > 5 ? ` and ${failed.length - 5} more` : ""}.`);
+      return bits.join(" ");
     });
   };
 
@@ -155,7 +172,7 @@ export default function PhotosPanel() {
       </aside>
 
       <div className="space-y-4 min-w-0">
-        <section className="ibox"><div className="ibox-content space-y-3">
+        <section className={`ibox ${dragging ? "ring-2 ring-[#1ab394]" : ""}`} onDragOver={(e) => { e.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={(e) => { e.preventDefault(); setDragging(false); if (busy === null) upload(e.dataTransfer.files); }}><div className="ibox-content space-y-3">
           <div className="flex items-center gap-3 flex-wrap">
             <h3 className="text-sm font-semibold text-[#323a46] flex-1">{current === ALL ? "All photos" : current}</h3>
             {current !== ALL && (<>
@@ -169,8 +186,10 @@ export default function PhotosPanel() {
               }}>Delete folder</button>
             </>)}
             <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/quicktime,video/webm,.mp4,.mov,.m4v,.webm" multiple className="hidden" onChange={(e) => upload(e.target.files)} aria-label="Choose photos to upload" />
-            <button className={btnPrimary} disabled={busy !== null} onClick={() => (current === ALL ? setError("Open a folder first, then upload into it.") : fileRef.current?.click())}>
-              {busy === "upload" ? "Uploading…" : "Upload photos or videos"}</button>
+            <input ref={dirRef} type="file" multiple className="hidden" {...({ webkitdirectory: "", directory: "" } as any)} onChange={(e) => upload(e.target.files)} aria-label="Choose a whole folder to upload" />
+            <button className={btnGhost} disabled={busy !== null} onClick={() => dirRef.current?.click()}>Upload a whole folder</button>
+            <button className={btnPrimary} disabled={busy !== null} onClick={() => fileRef.current?.click()}>
+              {busy === "upload" ? "Uploading…" : current === ALL ? "Upload photos or videos (to General)" : "Upload photos or videos"}</button>
           </div>
           {error && <p className="text-[13px] text-red-600" role="alert">{error}</p>}
           {progress && <p className="text-[13px] text-[#6c757d]">Uploading {progress}</p>}
@@ -178,7 +197,7 @@ export default function PhotosPanel() {
           <p className="text-[11.5px] text-[#9ba6b7]">Photos: JPG, PNG, GIF or WebP, up to 4 MB (larger ones are shrunk automatically). Videos: MP4, MOV or WebM, up to 200 MB. For picture messages, aim for under 1 MB; videos are for links and websites, not texts. Only upload your own real photos and videos.</p>
         </div></section>
 
-        {shown.length === 0 && <p className="text-[13px] text-[#9ba6b7]">{current === ALL ? "No photos yet. Add a folder, open it, then upload." : "This folder is empty. Click Upload photos."}</p>}
+        {shown.length === 0 && <p className="text-[13px] text-[#9ba6b7]">{current === ALL ? "No photos yet. Click Upload a whole folder, or drag files here." : "This folder is empty. Click Upload photos."}</p>}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
           {shown.map((p) => (
             <div key={p.url} className="ibox overflow-hidden">
