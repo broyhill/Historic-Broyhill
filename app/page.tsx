@@ -291,13 +291,23 @@ export default function Home() {
               directly? Use our booking portal.
             </p>
 
-            <div className="mt-7 border-t border-white/12 pt-6">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#d6b574]">Event Director</p>
-              <p className="hb-display mt-1 text-2xl text-[#f4ecda]">Sonja Kennedy</p>
-              <p className="mt-1 text-[15px]">
-                <a href="tel:+13369088382" className="hover:text-white">336-908-8382</a> ·{" "}
-                <a href="mailto:bledsoesonja1@gmail.com" className="hover:text-white">bledsoesonja1@gmail.com</a>
-              </p>
+            <div className="mt-7 flex items-center gap-5 border-t border-white/12 pt-6">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/photos/sonja-kennedy.jpg"
+                alt="Sonja Kennedy, Event Director"
+                width={104}
+                height={104}
+                className="h-24 w-24 shrink-0 rounded-full border-2 border-[#c2a15a]/60 object-cover sm:h-[104px] sm:w-[104px]"
+              />
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#d6b574]">Event Director</p>
+                <p className="hb-display mt-1 text-2xl text-[#f4ecda]">Sonja Kennedy</p>
+                <p className="mt-1 text-[15px]">
+                  <a href="tel:+13369088382" className="hover:text-white">336-908-8382</a> ·{" "}
+                  <a href="mailto:bledsoesonja1@gmail.com" className="break-all hover:text-white">bledsoesonja1@gmail.com</a>
+                </p>
+              </div>
             </div>
 
             <div className="mt-6 space-y-2 text-[15px] text-[#bcc6c9]">
