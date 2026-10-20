@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { applyOps, linksIn, type Op } from "@/lib/studio-commands";
-import { BLOCK_TYPES, allowedFrom, VENUE_ADDRESS, defaultBrand, designIssues, duplicateBlock, moveBlock, newBlock, newId, normalizeDesign, renderHtml, type Block, type BlockType, type Brand } from "@/lib/studio";
+import { BLOCK_TYPES, allowedFrom, buildPrompt, VENUE_ADDRESS, defaultBrand, designIssues, duplicateBlock, moveBlock, newBlock, newId, normalizeDesign, renderHtml, type Block, type BlockType, type Brand } from "@/lib/studio";
 import { defaultSettings, type TemplateSettings } from "@/lib/template-categories";
 
 interface Photo { url: string; folder: string; name: string }
@@ -194,6 +194,17 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
     addLog(entries); setAiCount((c) => c + 1); setCmd("");
   });
 
+  const copyPrompt = () => run("prompt", async () => {
+    await navigator.clipboard.writeText(buildPrompt(design, { name, subject, previewText, category, kind }));
+    setNotice("Prompt copied. Paste it into any AI to recreate or remix this email (for example “same, but for Novant”).");
+  });
+  const downloadHtml = () => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+    a.download = `${(name || "email").replace(/[^\w-]+/g, "-")}.html`; a.click();
+    setNotice("Downloaded the email as an .html file. Nothing was sent.");
+  };
+
   const getReview = () => run("review", async () => { const r = await ai({ action: "review" }); setReview({ suggestions: r.suggestions, subjects: r.subjects }); });
 
   const openPicker = (bid: string) => {
@@ -215,6 +226,8 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
         <select className={`${inputCls} !w-auto`} value={kind} onChange={(e) => { setKind(e.target.value); setDirty(true); }}>
           <option value="">No type</option>{tset.kinds.map((k) => <option key={k}>{k}</option>)}
         </select>
+        <button className={btnGhost} disabled={busy !== null || blocks.length === 0} onClick={copyPrompt}>Copy prompt</button>
+        <button className={btnGhost} disabled={blocks.length === 0} onClick={downloadHtml}>Download HTML</button>
       </div>
       {notice && <p className="text-[13px] text-[#1a7f68]">{notice}</p>}
       {error && <p className="text-[13px] text-[#b83232]">{error}</p>}

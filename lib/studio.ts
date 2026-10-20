@@ -208,3 +208,27 @@ export function sanitizeAlternative(raw: RawAlt, allowed: { links: Set<string>; 
   design.blocks = design.blocks.filter((b) => !(b.type === "image" && !b.url) && !(b.type === "button" && !b.link));
   return { name: clip(raw.name, 60).trim() || "Alternative", design };
 }
+
+// "Copy prompt": a plain-words brief that describes this exact email, so any AI (or a person) can
+// recreate or remix it later ("same, but for Novant"). It carries the rules, not just the layout.
+export function buildPrompt(design: Design, meta: { name?: string; subject?: string; previewText?: string; category?: string; kind?: string } = {}): string {
+  const d = normalizeDesign(design);
+  const lines: string[] = [];
+  lines.push(`Recreate this email for Historic Broyhill, a 1920s school building in Clemmons, NC (3540 Clemmons Road) converted to offices and event space around 2006. Event spaces: Magnolia Room (the stage theater), The Boardrooms, The Dock (patio), The Loft.`);
+  if (meta.name) lines.push(`Name: ${meta.name}${meta.category ? ` · For: ${meta.category}` : ""}${meta.kind ? ` · Type: ${meta.kind}` : ""}`);
+  if (meta.subject) lines.push(`Subject: ${meta.subject}`);
+  if (meta.previewText) lines.push(`Preview text: ${meta.previewText}`);
+  lines.push(`Look: ${d.brand.font === "serif" ? "classic serif letters" : "clean sans-serif letters"}, button color ${d.brand.accent}, page color ${d.brand.background}. 600px wide, built from simple blocks, readable on a phone.`);
+  lines.push("Blocks, in order:");
+  d.blocks.forEach((b, i) => {
+    const n = i + 1;
+    if (b.type === "heading") lines.push(`${n}. Heading (${b.align}): ${b.text}`);
+    else if (b.type === "text") lines.push(`${n}. Text (${b.align}): ${b.text.replace(/\n+/g, " / ")}`);
+    else if (b.type === "image") lines.push(`${n}. Image: ${b.alt || "picture"}${b.url ? ` (${b.url})` : ""}${b.link ? `, links to ${b.link}` : ""}`);
+    else if (b.type === "button") lines.push(`${n}. Button (${b.align}): "${b.label}"${b.link ? ` → ${b.link}` : " (needs a link)"}`);
+    else if (b.type === "divider") lines.push(`${n}. A thin divider line`);
+    else lines.push(`${n}. Spacer, ${b.height}px`);
+  });
+  lines.push(`Rules: keep every fact above and add none (no capacities, prices, dates, amenities or awards unless given). Only use the links and pictures listed. {{firstName}} is the only merge tag. End with the locked footer: the address "${VENUE_ADDRESS}" and an unsubscribe link, which cannot be removed. Nothing is sent without a person approving it.`);
+  return lines.join("\n");
+}
