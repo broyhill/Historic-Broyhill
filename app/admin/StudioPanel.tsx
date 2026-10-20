@@ -305,7 +305,7 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
           <div className="space-y-2 rounded-2xl border border-[#e7e9eb] bg-white p-2">
             <Fold n="01" title="Start with a draft or a template" open>Type what the email is for under Draft on the right and press Draft, or open one of My templates under the preview. Everything Claude writes is a suggestion you can change.</Fold>
             <Fold n="02" title="Build it block by block">Add a heading, text, picture, button, divider or spacer. Click a block to edit it, and use the arrows to move it. Pictures come from your Photo Library.</Fold>
-            <Fold n="03" title="Ask Claude for a more designed version">Press Redesign. Three alternatives appear under the preview. Press Use this to switch to one, and keep editing it. Undo redesign takes you back.</Fold>
+            <Fold n="03" title="Ask Claude for a more designed version">Press Redesign. Three alternatives appear under the preview. Press Use this to switch to one, and keep editing it. The undo arrow under the preview takes you back.</Fold>
             <Fold n="04" title="Check every screen size">Use Mobile, iPad, Laptop and Desktop at the bottom right to see how it looks. Most people read email on a phone, so check Mobile last.</Fold>
             <Fold n="05" title="Save it">Name it, pick a category and type, then Save as template. It appears in My templates here and in the Templates list. Nothing is sent from the Studio.</Fold>
           </div>
