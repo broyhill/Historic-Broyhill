@@ -23,9 +23,9 @@ const VENUES = [
     capacity: "Up to 20 · for smaller gatherings",
     blurb:
       "A private space for corporate meetings, small gatherings, and training seminars. Boardroom or lounge setting, a private bathroom and coffee bar, and multi-day meeting options — comfortable and entirely your own.",
-    photo: "The Loft lounge seating",
-    src: "",
-    pos: "center",
+    photo: "The Loft set boardroom-style for a meeting",
+    src: "/photos/the-loft.jpg",
+    pos: "50% 55%",
   },
   {
     num: "03",
