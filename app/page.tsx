@@ -93,7 +93,7 @@ export default function Home() {
 
       {/* Hero — navy, like the brochure */}
       <section id="top" className="bg-[#182c3e] text-[#e9e2d3]">
-        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-16 md:grid-cols-[1.05fr_0.95fr] md:py-24">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-16 md:py-24">
           <div>
             <Eyebrow light>Clemmons, North Carolina · the Old Clemmons School, est. 1925</Eyebrow>
             <h1 className="hb-display mt-5 text-4xl leading-[1.08] text-[#f4ecda] sm:text-5xl md:text-[3.3rem]">
@@ -109,7 +109,7 @@ export default function Home() {
               <a href="#venues" className="rounded-md border border-white/25 px-6 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#e9e2d3] transition hover:border-white/55">Explore the venues</a>
             </div>
           </div>
-          <Photo onDark caption="The Historic Broyhill at dusk — the landmark exterior with its white columns" src="/photos/exterior.jpg" position="44% 50%" className="aspect-[5/4]" />
+          <Photo onDark caption="The Historic Broyhill at dusk — the landmark exterior with its white columns" src="/photos/exterior.jpg" className="aspect-[2048/1072] w-full" />
         </div>
       </section>
 
