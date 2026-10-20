@@ -7,7 +7,7 @@ import { CAMPAIGN_TEMPLATES, TEXT_TEMPLATES } from "@/lib/campaign-templates";
 import { defaultSettings, resolveLabel, type ListName, type TemplateSettings } from "@/lib/template-categories";
 
 type Channel = "email" | "sms" | "mms";
-interface Saved { id: string; name: string; subject: string; previewText: string; body: string; mediaUrl: string; category: string; kind: string }
+interface Saved { id: string; name: string; subject: string; previewText: string; body: string; mediaUrl: string; category: string; kind: string; studio?: boolean }
 interface Draft { id?: string; name: string; subject: string; previewText: string; body: string; mediaUrl: string; category: string; kind: string; studio?: boolean }
 
 const EMPTY: Draft = { name: "", subject: "", previewText: "", body: "", mediaUrl: "", category: "", kind: "" };
