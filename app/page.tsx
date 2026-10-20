@@ -53,6 +53,29 @@ function Eyebrow({ children, light = false }: { children: React.ReactNode; light
   );
 }
 
+// Front-page photo: the whole exterior, its edges softly faded into the navy page, with the logo over the lawn.
+function HeroPhoto() {
+  const fade = "radial-gradient(ellipse 72% 76% at 50% 48%, #000 60%, transparent 100%)";
+  return (
+    <div className="relative w-full" style={{ aspectRatio: "2048 / 1072" }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/photos/exterior.jpg"
+        alt="The Historic Broyhill at dusk — the landmark exterior with its white columns"
+        className="absolute inset-0 h-full w-full object-cover"
+        style={{ WebkitMaskImage: fade, maskImage: fade }}
+      />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/photos/logo-cream.png"
+        alt="Historic Broyhill"
+        className="absolute left-1/2 w-[40%] max-w-[540px] -translate-x-1/2"
+        style={{ top: "76%", filter: "drop-shadow(0 2px 12px rgba(0,0,0,0.6))" }}
+      />
+    </div>
+  );
+}
+
 function Photo({ caption, className = "", onDark = false, src, position = "center" }: { caption: string; className?: string; onDark?: boolean; src?: string; position?: string }) {
   return (
     <div className={`relative overflow-hidden rounded-lg ${onDark ? "border border-white/10 bg-white/[0.04]" : "border border-[#e2d8c3] bg-[#ece2cf]"} ${className}`}>
@@ -109,7 +132,7 @@ export default function Home() {
               <a href="#venues" className="rounded-md border border-white/25 px-6 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#e9e2d3] transition hover:border-white/55">Explore the venues</a>
             </div>
           </div>
-          <Photo onDark caption="The Historic Broyhill at dusk — the landmark exterior with its white columns" src="/photos/exterior.jpg" className="aspect-[2048/1072] w-full" />
+          <HeroPhoto />
         </div>
       </section>
 
