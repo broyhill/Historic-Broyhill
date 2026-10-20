@@ -43,6 +43,9 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
   const [suggest, setSuggest] = useState<{ blockId: string; options: string[] } | null>(null);
   const [review, setReview] = useState<{ suggestions: string[]; subjects: { subject: string; previewText: string }[] } | null>(null);
   const [dirty, setDirty] = useState(false);
+  const [direction, setDirection] = useState("");
+  const [alts, setAlts] = useState<{ name: string; design: { blocks: Block[]; brand: Brand } }[] | null>(null);
+  const [undo, setUndo] = useState<{ blocks: Block[]; brand: Brand } | null>(null);
 
   const refreshSaved = () => call("/api/admin/studio").then((d) => setSaved(d.designs)).catch(() => {});
   useEffect(() => {
@@ -70,14 +73,14 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
 
   const startNew = () => {
     if (dirty && !confirm("You have changes that aren't saved. Start a new design anyway?")) return;
-    setId(null); setName(""); setSubject(""); setPreviewText(""); setCategory(""); setKind(""); setBlocks([]); setBrand(defaultBrand()); setOpen(null); setReview(null); setSuggest(null); setDirty(false); setNotice(""); setError("");
+    setId(null); setName(""); setSubject(""); setPreviewText(""); setCategory(""); setKind(""); setBlocks([]); setBrand(defaultBrand()); setOpen(null); setReview(null); setSuggest(null); setAlts(null); setUndo(null); setDirty(false); setNotice(""); setError("");
   };
 
   const openDesign = (did: string) => run("open", async () => {
     if (dirty && !confirm("You have changes that aren't saved. Open another design anyway?")) return;
     const { design: d } = await call(`/api/admin/studio?id=${encodeURIComponent(did)}`);
     setId(d.id); setName(d.name); setSubject(d.subject); setPreviewText(d.previewText); setCategory(d.category); setKind(d.kind);
-    setBlocks(d.studio.blocks); setBrand(d.studio.brand); setOpen(null); setReview(null); setSuggest(null); setDirty(false);
+    setBlocks(d.studio.blocks); setBrand(d.studio.brand); setOpen(null); setReview(null); setSuggest(null); setAlts(null); setUndo(null); setDirty(false);
   });
 
   const save = () => run("save", async () => {
@@ -109,6 +112,22 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
     const { options } = await ai({ action: "rewrite", text: b.text, blockType: b.type, instruction });
     setSuggest({ blockId: b.id, options });
   });
+
+  const redesign = (like?: string) => run("redesign", async () => {
+    let lib = photos;
+    if (lib === null) {
+      lib = await call("/api/admin/photos").then((d) => (d.photos || []).filter((p: Photo) => !/\.(mp4|mov|webm|m4v)$/i.test(p.name))).catch(() => []);
+      setPhotos(lib);
+    }
+    const r = await ai({ action: "redesign", direction, like, photos: (lib || []).slice(0, 40).map((p) => ({ url: p.url, name: p.name })) });
+    setAlts(r.alternatives);
+  });
+
+  const useAlt = (a: { name: string; design: { blocks: Block[]; brand: Brand } }) => {
+    setUndo({ blocks, brand });
+    change(a.design.blocks); setBrand(a.design.brand); setOpen(null); setAlts(null);
+    setNotice(`"${a.name}" is now your design. Click any block to edit it, or use Undo redesign to go back.`);
+  };
 
   const getReview = () => run("review", async () => { const r = await ai({ action: "review" }); setReview({ suggestions: r.suggestions, subjects: r.subjects }); });
 
@@ -146,6 +165,34 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
               <input className={inputCls} placeholder="e.g. Invite past wedding clients to a spring open house" value={goal} onChange={(e) => setGoal(e.target.value)} />
               <button className={btnGhost} disabled={busy !== null || !goal.trim()} onClick={draft}>{busy === "draft" ? "Writing…" : "Draft"}</button>
             </div>
+          </div>
+
+          <div className="rounded-lg border border-[#e7e9eb] bg-white p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className={lbl}>Ask Claude for a more designed version</div>
+              {undo && <button className={btnGhost} onClick={() => { change(undo.blocks); setBrand(undo.brand); setUndo(null); setNotice("Back to your previous version."); }}>Undo redesign</button>}
+            </div>
+            <div className="flex gap-2">
+              <input className={inputCls} placeholder="Optional: more elegant, more photos, bolder…" value={direction} onChange={(e) => setDirection(e.target.value)} />
+              <button className={btnGhost} disabled={busy !== null || blocks.length === 0} onClick={() => redesign()}>{busy === "redesign" ? "Designing…" : "Redesign"}</button>
+            </div>
+            {alts && (
+              <div className="grid gap-3 sm:grid-cols-3">
+                {alts.map((a, k) => (
+                  <div key={k} className="space-y-1">
+                    <div className="h-56 overflow-hidden rounded border border-[#d9dde3] bg-white">
+                      <iframe title={`Alternative ${a.name}`} sandbox="" srcDoc={renderHtml(a.design, { title: a.name })} className="origin-top-left pointer-events-none" style={{ width: 600, height: 900, transform: "scale(0.33)", transformOrigin: "top left" }} />
+                    </div>
+                    <div className="text-[12.5px] font-semibold text-[#323a46] truncate">{a.name}</div>
+                    <div className="flex gap-1">
+                      <button className={btnGhost} onClick={() => useAlt(a)}>Use this</button>
+                      <button className={btnGhost} disabled={busy !== null} onClick={() => redesign(a.name)}>More like this</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <p className="text-[11.5px] text-[#9ba6b7]">Claude keeps your facts and links and only uses pictures from your library. Read the result before you save.</p>
           </div>
 
           <div className="rounded-lg border border-[#e7e9eb] bg-white p-3 grid gap-2 sm:grid-cols-2">

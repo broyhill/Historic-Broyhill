@@ -2,7 +2,21 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { claudeEnabled, claudeJson } from "@/lib/ai";
 import { MAX_PREVIEW_CHARS, MAX_SUBJECT_CHARS, MAX_SUBJECT_WORDS } from "@/lib/campaign-rules";
-import { normalizeDesign, renderPlainText } from "@/lib/studio";
+import { allowedFrom, normalizeDesign, renderPlainText, sanitizeAlternative, type RawAlt } from "@/lib/studio";
+
+const ALT_SCHEMA = z.object({
+  alternatives: z.array(z.object({
+    name: z.string(),
+    accent: z.string(),
+    background: z.string(),
+    font: z.enum(["serif", "sans"]),
+    blocks: z.array(z.object({
+      type: z.enum(["heading", "text", "image", "button", "divider", "spacer"]),
+      text: z.string(), label: z.string(), link: z.string(), url: z.string(), alt: z.string(),
+      align: z.enum(["left", "center", "right"]), height: z.number(),
+    })).max(20),
+  })).min(1).max(3),
+});
 
 export const maxDuration = 60;
 
@@ -43,6 +57,30 @@ export async function POST(request: Request) {
       });
       if (!out) return NextResponse.json({ error: "Claude could not draft that. Try again." }, { status: 422 });
       return NextResponse.json({ success: true, draft: out });
+    }
+
+    if (b.action === "redesign") {
+      const current = normalizeDesign(b.studio);
+      if (!current.blocks.length) return NextResponse.json({ error: "Build or draft the email first, then ask for a redesign." }, { status: 400 });
+      const library: { url: string; name: string }[] = (Array.isArray(b.photos) ? b.photos : [])
+        .filter((p: any) => p && typeof p.url === "string" && typeof p.name === "string").slice(0, 40)
+        .map((p: any) => ({ url: p.url as string, name: String(p.name).slice(0, 80) }));
+      const allowed = allowedFrom(current, library.map((p) => p.url));
+      const direction = clip(b.direction, 300) || "A clearly more designed, more polished version.";
+      const out = await claudeJson({
+        system: `${FACTS}
+You are a senior email designer. Redesign the given email into 3 clearly different alternatives (for example: elegant and airy; bold and photo-led; warm and simple). Use only these block types: heading, text, image, button, divider, spacer. Colors are 6-digit hex like #8a5a2b; background is the page color around the email.
+Strict rules: keep every fact the original states and add none. You may tighten or reorder the wording, but do not invent offers, dates, prices or details. Reuse the original button links exactly as written; never invent a link. Use images only from the photo list, by exact url, with a short plain description; skip images if none fit. For blocks where a field doesn't apply, use an empty string (0 for height). Aim for a strong visual rhythm: a clear opening, short paragraphs, one clear call to action.`,
+        user: `Direction: ${direction}\n\nCurrent email (as plain text):\n${renderPlainText(current).slice(0, 5000)}\n\nCurrent colors: button ${current.brand.accent}, page ${current.brand.background}, font ${current.brand.font}\n\nButton links available (use exactly): ${[...allowed.links].join(", ") || "none"}\n\nPhotos available:\n${library.map((p) => `${p.name}: ${p.url}`).join("\n") || "none"}${b.like ? `\n\nThe person liked this one, so make 3 variations in that spirit: ${clip(b.like, 100)}` : ""}`,
+        schema: ALT_SCHEMA,
+        maxTokens: 6000,
+      });
+      if (!out) return NextResponse.json({ error: "Claude could not redesign that. Try again." }, { status: 422 });
+      const alternatives = out.alternatives
+        .map((a) => sanitizeAlternative(a as RawAlt, allowed))
+        .filter((a) => a.design.blocks.length > 0);
+      if (!alternatives.length) return NextResponse.json({ error: "Claude's ideas didn't come out usable. Try again." }, { status: 422 });
+      return NextResponse.json({ success: true, alternatives });
     }
 
     if (b.action === "review") {

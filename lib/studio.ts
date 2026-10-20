@@ -176,3 +176,35 @@ export function designIssues(design: Design): DesignIssue[] {
   }
   return out;
 }
+
+// --- AI redesign -------------------------------------------------------------------------------
+// Claude proposes whole new layouts, but it may only use building blocks we already have, links that
+// were already in the email, and pictures from the library. Anything else is dropped.
+export interface RawAltBlock {
+  type: string; text?: string; label?: string; link?: string; url?: string; alt?: string; align?: string; height?: number;
+}
+export interface RawAlt { name?: string; accent?: string; background?: string; font?: string; blocks: RawAltBlock[] }
+
+export function allowedFrom(design: Design, libraryUrls: string[]) {
+  const links = new Set<string>();
+  const images = new Set<string>(libraryUrls.map(safeUrl).filter(Boolean));
+  for (const b of normalizeDesign(design).blocks) {
+    if (b.type === "button" && b.link) links.add(b.link);
+    if (b.type === "image") { if (b.url) images.add(b.url); if (b.link) links.add(b.link); }
+  }
+  return { links, images };
+}
+
+export function sanitizeAlternative(raw: RawAlt, allowed: { links: Set<string>; images: Set<string> }): { name: string; design: Design } {
+  const blocks = (raw.blocks || []).map((b) => {
+    const x: Record<string, unknown> = { id: newId(), type: b.type, align: b.align, height: b.height };
+    if (b.type === "heading" || b.type === "text") x.text = b.text ?? "";
+    if (b.type === "button") { x.label = b.label ?? ""; x.link = allowed.links.has(safeUrl(b.link)) ? safeUrl(b.link) : ""; }
+    if (b.type === "image") { x.url = allowed.images.has(safeUrl(b.url)) ? safeUrl(b.url) : ""; x.alt = b.alt ?? ""; x.link = allowed.links.has(safeUrl(b.link)) ? safeUrl(b.link) : ""; }
+    return x;
+  });
+  const design = normalizeDesign({ blocks, brand: { accent: raw.accent, background: raw.background, font: raw.font } });
+  // An image whose picture was rejected, or a button with no allowed link, would be a broken block: drop it.
+  design.blocks = design.blocks.filter((b) => !(b.type === "image" && !b.url) && !(b.type === "button" && !b.link));
+  return { name: clip(raw.name, 60).trim() || "Alternative", design };
+}
