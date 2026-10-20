@@ -4,9 +4,9 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   VENUE_ADDRESS, MAX_TEST_ADDRESSES, completeness, fillFirstName, isEmail, previewChecks, reviewLinks, subjectChecks, unresolvedTags,
 } from "@/lib/campaign-rules";
-import { CAMPAIGN_TEMPLATES } from "@/lib/campaign-templates";
+import { CAMPAIGN_TEMPLATES, CATEGORIES } from "@/lib/campaign-templates";
 
-interface SavedTemplate { id: string; name: string; subject: string; previewText: string; body: string }
+interface SavedTemplate { id: string; name: string; subject: string; previewText: string; body: string; category?: string; kind?: string }
 
 interface Campaign {
   id: string; name: string; status: string; subject: string; previewText: string;
@@ -112,6 +112,7 @@ function Editor({ id, onBack }: { id: string; onBack: () => void }) {
   const [testTo, setTestTo] = useState("");
   const [saved, setSaved] = useState<SavedTemplate[]>([]);
   const [tplName, setTplName] = useState("");
+  const [tplCategory, setTplCategory] = useState("");
 
   const loadSaved = useCallback(() => {
     api("/api/admin/email-campaigns?templates=1").then((d) => setSaved(d.templates || [])).catch(() => {});
@@ -234,7 +235,7 @@ function Editor({ id, onBack }: { id: string; onBack: () => void }) {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {CAMPAIGN_TEMPLATES.map((t) => (
                     <button key={t.id} onClick={() => useTemplate(t)} className="text-left rounded-md border border-[#e7e9eb] px-3 py-2 hover:border-[#1ab394]/50">
-                      <span className="block text-[11px] uppercase tracking-wider text-[#9ba6b7]">{t.category}</span>
+                      <span className="block text-[11px] uppercase tracking-wider text-[#9ba6b7]">{t.category} · {t.kind}</span>
                       <span className="block text-[13.5px] font-semibold text-[#323a46]">{t.name}</span>
                       <span className="block text-[12px] text-[#6c757d]">{t.description}</span>
                     </button>
@@ -245,6 +246,7 @@ function Editor({ id, onBack }: { id: string; onBack: () => void }) {
                   {saved.map((t) => (
                     <div key={t.id} className="rounded-md border border-[#e7e9eb] px-3 py-2 flex items-start gap-2">
                       <button onClick={() => useTemplate(t)} className="flex-1 text-left">
+                        {t.category && <span className="block text-[11px] uppercase tracking-wider text-[#9ba6b7]">{t.category}</span>}
                         <span className="block text-[13.5px] font-semibold text-[#323a46]">{t.name}</span>
                         <span className="block text-[12px] text-[#6c757d] truncate">{t.subject || "No subject"}</span>
                       </button>
@@ -280,9 +282,11 @@ function Editor({ id, onBack }: { id: string; onBack: () => void }) {
               <div className="flex gap-2 flex-wrap items-center">
                 <button className={btnPrimary} disabled={busy !== null} onClick={() => save({ body: c.body, subject: c.subject, previewText: c.previewText, designType: "plain" })}>Save</button>
                 <input value={tplName} onChange={(e) => setTplName(e.target.value)} placeholder="Name to save this email as a template" className={`${inputCls} flex-1 min-w-[12rem]`} maxLength={120} />
+                <select value={tplCategory} onChange={(e) => setTplCategory(e.target.value)} aria-label="Template category" className={`${inputCls} w-auto`}>
+                  <option value="">No category</option>{CATEGORIES.map((c) => <option key={c}>{c}</option>)}</select>
                 <button className={btnGhost} disabled={busy !== null || !tplName.trim() || !c.body.trim()} onClick={() => run("tpl", async () => {
                   await save({ body: c.body, subject: c.subject, previewText: c.previewText, designType: "plain" }, "");
-                  await api(`/api/admin/email-campaigns/${id}/save-as-template`, { method: "POST", body: JSON.stringify({ name: tplName }) });
+                  await api(`/api/admin/email-campaigns/${id}/save-as-template`, { method: "POST", body: JSON.stringify({ name: tplName, category: tplCategory }) });
                   setTplName(""); loadSaved(); setNotice("Saved as a template.");
                 })}>Save as template</button>
               </div>

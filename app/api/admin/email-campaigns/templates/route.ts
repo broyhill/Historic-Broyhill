@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ensureCampaignTable } from "@/lib/campaigns-db";
+import { isCategory, isKind } from "@/lib/campaign-templates";
 
 // Create or update a saved template for email, SMS or MMS. Stored as a TEMPLATE-status row
 // (designType = plain | sms | mms), so it never appears in the campaign list.
@@ -15,12 +16,19 @@ export async function POST(request: Request) {
     if (!name) return NextResponse.json({ error: "Give the template a name." }, { status: 400 });
     if (!body.trim()) return NextResponse.json({ error: "The template needs some text." }, { status: 400 });
 
+    // Category and (for MMS) the picture link live in aiBrief, so no extra columns are needed.
+    const aiBrief: { category: string; kind: string; mediaUrl?: string } = {
+      category: isCategory(b.category) ? b.category : "",
+      kind: isKind(b.kind) ? b.kind : "",
+    };
+    if (channel === "mms") aiBrief.mediaUrl = typeof b.mediaUrl === "string" ? b.mediaUrl.trim().slice(0, 500) : "";
+
     const data = {
       name, status: "TEMPLATE", body,
       designType: channel === "email" ? "plain" : channel,
       subject: channel === "email" && typeof b.subject === "string" ? b.subject.slice(0, 300) : "",
       previewText: channel === "email" && typeof b.previewText === "string" ? b.previewText.slice(0, 500) : "",
-      aiBrief: channel === "mms" ? { mediaUrl: typeof b.mediaUrl === "string" ? b.mediaUrl.trim().slice(0, 500) : "" } : undefined,
+      aiBrief,
     };
 
     if (typeof b.id === "string" && b.id) {
