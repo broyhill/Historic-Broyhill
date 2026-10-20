@@ -24,33 +24,34 @@ model BusinessProfile {
 }
 
 model LeadProfile {
-  id             String          @id @default(uuid())
-  businessId     String
-  email          String          @unique
-  name           String?
-  salutation     String?
-  firstName      String?
-  middleName     String?
-  lastName       String?
-  company        String?
-  phone          String?
-  linkedinId     String?
-  companyLinkedin String?
-  city           String?
-  state          String?
-  enrichedAt     DateTime?
+  id               String          @id @default(uuid())
+  businessId       String
+  email            String          @unique
+  name             String?
+  salutation       String?
+  firstName        String?
+  middleName       String?
+  lastName         String?
+  company          String?
+  phone            String?
+  linkedinId       String?
+  companyLinkedin  String?
+  city             String?
+  state            String?
+  enrichedAt       DateTime?
   personSearchedAt DateTime?
-  leadScore      Int             @default(0)
-  leadStatus     String          @default("PROSPECT")
-  primaryTrack   String
-  leadSource     String          @default("IN_PERSON_NFC")
-  estimatedValue Float?
-  customFields   Json?
-  notes          String?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  activities     LeadActivity[]
-  business       BusinessProfile @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  leadScore        Int             @default(0)
+  leadStatus       String          @default("PROSPECT")
+  primaryTrack     String
+  leadSource       String          @default("IN_PERSON_NFC")
+  estimatedValue   Float?
+  customFields     Json?
+  notes            String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  activities       LeadActivity[]
+  journeyRuns      JourneyRun[]
+  business         BusinessProfile @relation(fields: [businessId], references: [id], onDelete: Cascade)
 
   @@index([businessId])
   @@index([email])
@@ -86,20 +87,55 @@ model AiContentPipeline {
 // recipients, design, review). Phase 1 never sends to a list; see lib/campaigns-db.ts,
 // which creates this table idempotently on first use (CREATE TABLE IF NOT EXISTS).
 model EmailCampaign {
-  id              String    @id @default(uuid())
+  id              String   @id @default(uuid())
   name            String
-  status          String    @default("DRAFT") // DRAFT | READY
-  subject         String    @default("")
-  previewText     String    @default("")
-  fromName        String    @default("")
-  fromEmail       String    @default("")
+  status          String   @default("DRAFT") // DRAFT | READY
+  subject         String   @default("")
+  previewText     String   @default("")
+  fromName        String   @default("")
+  fromEmail       String   @default("")
   replyTo         String?
   recipientFilter Json?
-  recipientCount  Int       @default(0)
-  designType      String    @default("plain") // plain | html
-  body            String    @default("")
+  recipientCount  Int      @default(0)
+  designType      String   @default("plain") // plain | html
+  body            String   @default("")
   aiBrief         Json?
   testSends       Json?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// Journeys: automatic multi-step follow-up (email, text, waits) started by a trigger.
+// Created idempotently on first use by lib/journeys-db.ts. Nothing here sends anything by
+// itself: the runner (added later) puts messages in the Review Queue unless a journey has
+// approvalMode AUTO.
+model Journey {
+  id           String       @id @default(uuid())
+  name         String
+  trigger      String // INQUIRY_RECEIVED | TOUR_BOOKED | EVENT_COMPLETED | MANUAL
+  status       String       @default("PAUSED") // ACTIVE | PAUSED
+  approvalMode String       @default("REVIEW") // REVIEW | AUTO
+  steps        Json         @default("[]") // ordered steps, see lib/journeys.ts
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  runs         JourneyRun[]
+}
+
+// One lead's place in one journey.
+model JourneyRun {
+  id            String      @id @default(uuid())
+  journeyId     String
+  leadId        String
+  status        String      @default("RUNNING") // RUNNING | DONE | STOPPED
+  stepIndex     Int         @default(0)
+  nextRunAt     DateTime?
+  stoppedReason String?
+  log           Json?
+  startedAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  journey       Journey     @relation(fields: [journeyId], references: [id], onDelete: Cascade)
+  lead          LeadProfile @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([status, nextRunAt])
+  @@index([leadId])
 }
