@@ -23,9 +23,9 @@ const VENUES = [
     capacity: "Up to 20 · for smaller gatherings",
     blurb:
       "A private space for corporate meetings, small gatherings, and training seminars. Boardroom or lounge setting, a private bathroom and coffee bar, and multi-day meeting options — comfortable and entirely your own.",
-    photo: "The Loft lounge seating",
-    src: "",
-    pos: "center",
+    photo: "The Loft set boardroom-style for a meeting",
+    src: "/photos/the-loft.jpg",
+    pos: "50% 55%",
   },
   {
     num: "03",
@@ -154,6 +154,23 @@ export default function Home() {
               This building houses memories. It houses dreams.
             </p>
           </div>
+
+          <div className="mt-10 grid gap-4 sm:grid-cols-3">
+            {[
+              { src: "/photos/heritage-then.jpg", alt: "The school auditorium long ago, with a choir on the stage beneath draped curtains", label: "Then", note: "The school auditorium" },
+              { src: "/photos/heritage-music.jpg", alt: "A band playing on the stage of the arched hall during an evening event", label: "Over the years", note: "An evening of live music" },
+              { src: "/photos/heritage-hall.jpg", alt: "The arched hall set with round tables, flowers and candles for a celebration", label: "And now", note: "The hall, set for a celebration" },
+            ].map((p) => (
+              <figure key={p.src} className="overflow-hidden rounded-lg border border-[#e2d8c3] bg-white">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={p.src} alt={p.alt} loading="lazy" className="aspect-[4/3] w-full object-cover" />
+                <figcaption className="px-4 py-3">
+                  <span className="block text-[11px] font-semibold uppercase tracking-[0.16em] text-[#a8853f]">{p.label}</span>
+                  <span className="block text-[14px] text-[#5a6672]">{p.note}</span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -276,7 +293,7 @@ export default function Home() {
             </p>
             <a href="#visit" className="mt-6 inline-block rounded-md border border-[#182c3e]/25 px-6 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#182c3e] transition hover:border-[#182c3e]/50">Book the studio</a>
           </div>
-          <Photo caption="The podcast studio — mics, boxwood wall" className="aspect-[4/3]" />
+          <Photo caption="The podcast studio — guests recording around the mixing table, with microphones and the green leaf wall" src="/photos/podcast-studio.jpg" position="50% 45%" className="aspect-[4/3]" />
         </div>
       </section>
 
@@ -291,13 +308,23 @@ export default function Home() {
               directly? Use our booking portal.
             </p>
 
-            <div className="mt-7 border-t border-white/12 pt-6">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#d6b574]">Event Director</p>
-              <p className="hb-display mt-1 text-2xl text-[#f4ecda]">Sonja Kennedy</p>
-              <p className="mt-1 text-[15px]">
-                <a href="tel:+13369088382" className="hover:text-white">336-908-8382</a> ·{" "}
-                <a href="mailto:bledsoesonja1@gmail.com" className="hover:text-white">bledsoesonja1@gmail.com</a>
-              </p>
+            <div className="mt-7 flex items-center gap-5 border-t border-white/12 pt-6">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/photos/sonja-kennedy.jpg"
+                alt="Sonja Kennedy, Event Director"
+                width={104}
+                height={104}
+                className="h-24 w-24 shrink-0 rounded-full border-2 border-[#c2a15a]/60 object-cover sm:h-[104px] sm:w-[104px]"
+              />
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#d6b574]">Event Director</p>
+                <p className="hb-display mt-1 text-2xl text-[#f4ecda]">Sonja Kennedy</p>
+                <p className="mt-1 text-[15px]">
+                  <a href="tel:+13369088382" className="hover:text-white">336-908-8382</a> ·{" "}
+                  <a href="mailto:bledsoesonja1@gmail.com" className="break-all hover:text-white">bledsoesonja1@gmail.com</a>
+                </p>
+              </div>
             </div>
 
             <div className="mt-6 space-y-2 text-[15px] text-[#bcc6c9]">
