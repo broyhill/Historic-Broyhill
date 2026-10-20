@@ -22,7 +22,8 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: true, design: { id: row.id, name: row.name, subject: row.subject, previewText: row.previewText, category: brief.category ?? "", kind: brief.kind ?? "", studio: normalizeDesign(brief.studio) } });
     }
     const rows = await prisma.emailCampaign.findMany({ where: { status: "TEMPLATE", designType: "html" }, orderBy: { updatedAt: "desc" }, take: 200, select: { id: true, name: true, updatedAt: true, aiBrief: true } });
-    const designs = rows.filter((r) => studioOf(r.aiBrief)).map((r) => ({ id: r.id, name: r.name, updatedAt: r.updatedAt }));
+    // The blocks come along so the Studio can draw a small thumbnail of each saved design.
+    const designs = rows.filter((r) => studioOf(r.aiBrief)).map((r) => ({ id: r.id, name: r.name, updatedAt: r.updatedAt, studio: normalizeDesign(studioOf(r.aiBrief)!.studio) }));
     return NextResponse.json({ success: true, designs });
   } catch (error: any) {
     console.error("studio list failed", error);

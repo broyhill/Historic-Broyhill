@@ -5,7 +5,7 @@ import { BLOCK_TYPES, VENUE_ADDRESS, defaultBrand, designIssues, duplicateBlock,
 import { defaultSettings, type TemplateSettings } from "@/lib/template-categories";
 
 interface Photo { url: string; folder: string; name: string }
-interface SavedDesign { id: string; name: string; updatedAt: string }
+interface SavedDesign { id: string; name: string; updatedAt: string; studio: { blocks: Block[]; brand: Brand } }
 
 const inputCls = "w-full rounded-md border border-[#e7e9eb] px-3 py-2 text-[14px] text-[#323a46] focus:outline-none focus:border-[#1ab394]";
 const btnPrimary = "h-9 px-4 rounded-md bg-[#1ab394] text-white text-[13px] font-semibold disabled:opacity-50";
@@ -19,7 +19,7 @@ const DEVICES: Record<Device, { label: string; width: number }> = {
   laptop: { label: "Laptop", width: 1440 },
   desktop: { label: "Desktop", width: 1920 },
 };
-const PREVIEW_H = 640;
+const PREVIEW_H = 620;
 
 async function call(url: string, init?: RequestInit) {
   const res = await fetch(url, init);
@@ -65,6 +65,7 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
   const [dirty, setDirty] = useState(false);
   const [direction, setDirection] = useState("");
   const [alts, setAlts] = useState<{ name: string; design: { blocks: Block[]; brand: Brand } }[] | null>(null);
+  const [strip, setStrip] = useState<"ideas" | "templates">("ideas");
   const [undo, setUndo] = useState<{ blocks: Block[]; brand: Brand } | null>(null);
 
   const refreshSaved = () => call("/api/admin/studio").then((d) => setSaved(d.designs)).catch(() => {});
@@ -140,7 +141,7 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
       setPhotos(lib);
     }
     const r = await ai({ action: "redesign", direction, like, photos: (lib || []).slice(0, 40).map((p) => ({ url: p.url, name: p.name })) });
-    setAlts(r.alternatives);
+    setAlts(r.alternatives); setStrip("ideas");
   });
 
   const useAlt = (a: { name: string; design: { blocks: Block[]; brand: Brand } }) => {
@@ -170,51 +171,77 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
         <select className={`${inputCls} !w-auto`} value={kind} onChange={(e) => { setKind(e.target.value); setDirty(true); }}>
           <option value="">No type</option>{tset.kinds.map((k) => <option key={k}>{k}</option>)}
         </select>
-        <button className={btnPrimary} disabled={busy !== null || !name.trim()} onClick={save}>{busy === "save" ? "Saving…" : "Save as template"}</button>
-        {id && <button className={btnGhost} disabled={busy !== null} onClick={remove}>Delete</button>}
       </div>
       {notice && <p className="text-[13px] text-[#1a7f68]">{notice}</p>}
       {error && <p className="text-[13px] text-[#b83232]">{error}</p>}
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        {/* Builder */}
-        <div className="space-y-3">
-          <div className="rounded-lg border border-[#e7e9eb] bg-white p-3 space-y-2">
-            <div className={lbl}>Ask Claude for a first draft</div>
-            <div className="flex gap-2">
-              <input className={inputCls} placeholder="e.g. Invite past wedding clients to a spring open house" value={goal} onChange={(e) => setGoal(e.target.value)} />
-              <button className={btnGhost} disabled={busy !== null || !goal.trim()} onClick={draft}>{busy === "draft" ? "Writing…" : "Draft"}</button>
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(360px,1fr)]">
+        {/* Stage: the live preview, with Claude's alternative designs underneath */}
+        <div className="space-y-3 min-w-0">
+          <div className="rounded-2xl bg-[#14171a] p-4">
+            <div className="mb-2 flex items-center justify-between text-[12px] text-[#8b95a1]">
+              <span>{DEVICES[view].label} · {DEVICES[view].width} px wide</span>
+              <span>Preview only. Sending is off.</span>
+            </div>
+            <div ref={boxRef} className="flex justify-center">
+              <div style={{ width: DEVICES[view].width * scale, height: PREVIEW_H }} className={`overflow-hidden bg-white ${view === "mobile" || view === "ipad" ? "rounded-[26px] border-[7px] border-[#2b2f36]" : "rounded border border-[#2b2f36]"}`}>
+                <iframe
+                  title="Email preview"
+                  sandbox=""
+                  srcDoc={html}
+                  style={{ width: DEVICES[view].width, height: PREVIEW_H / scale, transform: `scale(${scale})`, transformOrigin: "top left", border: 0, background: "#fff" }}
+                />
+              </div>
             </div>
           </div>
 
-          <div className="rounded-lg border border-[#e7e9eb] bg-white p-3 space-y-2">
-            <div className="flex items-center justify-between">
-              <div className={lbl}>Ask Claude for a more designed version</div>
-              {undo && <button className={btnGhost} onClick={() => { change(undo.blocks); setBrand(undo.brand); setUndo(null); setNotice("Back to your previous version."); }}>Undo redesign</button>}
+          <div className="rounded-2xl border border-[#e7e9eb] bg-white p-3">
+            <div className="mb-2 flex items-center gap-2">
+              {(["ideas", "templates"] as const).map((t) => (
+                <button key={t} onClick={() => setStrip(t)} className={`text-[14px] font-semibold ${strip === t ? "text-[#323a46]" : "text-[#9ba6b7] hover:text-[#6c757d]"}`}>
+                  {t === "ideas" ? "Ideas from Claude" : "My templates"}
+                  <span className="ml-1.5 rounded-full bg-[#eef0f2] px-2 text-[11.5px] font-normal text-[#6c757d]">{t === "ideas" ? alts?.length ?? 0 : saved.length}</span>
+                </button>
+              ))}
             </div>
-            <div className="flex gap-2">
-              <input className={inputCls} placeholder="Optional: more elegant, more photos, bolder…" value={direction} onChange={(e) => setDirection(e.target.value)} />
-              <button className={btnGhost} disabled={busy !== null || blocks.length === 0} onClick={() => redesign()}>{busy === "redesign" ? "Designing…" : "Redesign"}</button>
-            </div>
-            {alts && (
-              <div className="grid gap-3 sm:grid-cols-3">
-                {alts.map((a, k) => (
-                  <div key={k} className="space-y-1">
-                    <div className="h-56 overflow-hidden rounded border border-[#d9dde3] bg-white">
-                      <iframe title={`Alternative ${a.name}`} sandbox="" srcDoc={renderHtml(a.design, { title: a.name })} className="origin-top-left pointer-events-none" style={{ width: 600, height: 900, transform: "scale(0.33)", transformOrigin: "top left" }} />
+            {strip === "ideas" ? (
+              !alts ? (
+                <p className="text-[12.5px] text-[#9ba6b7]">{busy === "redesign" ? "Claude is designing three alternatives…" : "Press Redesign in the panel on the right and three alternatives will appear here."}</p>
+              ) : (
+                <div className="flex gap-3 overflow-x-auto pb-1">
+                  {alts.map((a, k) => (
+                    <div key={k} className="w-[220px] shrink-0 space-y-1">
+                      <Thumb design={a.design} title={a.name} />
+                      <div className="text-[12.5px] font-semibold text-[#323a46] truncate">{a.name}</div>
+                      <div className="flex gap-1">
+                        <button className={btnGhost} onClick={() => useAlt(a)}>Use this</button>
+                        <button className={btnGhost} disabled={busy !== null} onClick={() => redesign(a.name)}>More like this</button>
+                      </div>
                     </div>
-                    <div className="text-[12.5px] font-semibold text-[#323a46] truncate">{a.name}</div>
-                    <div className="flex gap-1">
-                      <button className={btnGhost} onClick={() => useAlt(a)}>Use this</button>
-                      <button className={btnGhost} disabled={busy !== null} onClick={() => redesign(a.name)}>More like this</button>
+                  ))}
+                </div>
+              )
+            ) : saved.length === 0 ? (
+              <p className="text-[12.5px] text-[#9ba6b7]">Nothing saved yet. Build an email and press Save as template, and it will show up here.</p>
+            ) : (
+              <div className="flex gap-3 overflow-x-auto pb-1">
+                {saved.map((d) => (
+                  <div key={d.id} className="w-[220px] shrink-0 space-y-1">
+                    <button className="block w-full text-left" onClick={() => openDesign(d.id)} aria-label={`Open ${d.name}`}><Thumb design={d.studio} title={d.name} /></button>
+                    <div className="flex items-center justify-between gap-1">
+                      <div className={`truncate text-[12.5px] font-semibold ${d.id === id ? "text-[#1ab394]" : "text-[#323a46]"}`}>{d.name}</div>
+                      <button className={btnGhost} disabled={busy !== null || d.id === id} onClick={() => openDesign(d.id)}>{d.id === id ? "Open" : "Open"}</button>
                     </div>
                   </div>
                 ))}
               </div>
             )}
-            <p className="text-[11.5px] text-[#9ba6b7]">Claude keeps your facts and links and only uses pictures from your library. Read the result before you save.</p>
           </div>
+        </div>
 
+        {/* Control panel */}
+        <div className="flex flex-col overflow-hidden rounded-2xl border border-[#e7e9eb] bg-white lg:sticky lg:top-4 lg:h-[calc(100vh-170px)] lg:min-h-[560px]">
+        <div className="flex-1 space-y-3 overflow-y-auto p-3">
           <div className="rounded-lg border border-[#e7e9eb] bg-white p-3 grid gap-2 sm:grid-cols-2">
             <label className="block"><span className={lbl}>Subject</span><input className={inputCls} value={subject} onChange={(e) => { setSubject(e.target.value); setDirty(true); }} /></label>
             <label className="block"><span className={lbl}>Preview text</span><input className={inputCls} value={previewText} onChange={(e) => { setPreviewText(e.target.value); setDirty(true); }} /></label>
@@ -313,6 +340,28 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
           <div className="rounded-lg border border-dashed border-[#d9dde3] bg-[#fafbfc] p-3 text-[12px] text-[#6c757d]">
             <strong>Footer (locked):</strong> {VENUE_ADDRESS} and an unsubscribe link are added to every email automatically. You can't remove or change them here.
           </div>
+        </div>
+        {/* Claude's tools sit right under the edit controls and above the master buttons */}
+        <div className="max-h-[40%] space-y-2 overflow-y-auto border-t border-[#e7e9eb] bg-[#fafbfc] p-3">
+          <div className="rounded-lg border border-[#e7e9eb] bg-white p-3 space-y-2">
+            <div className={lbl}>Ask Claude for a first draft</div>
+            <div className="flex gap-2">
+              <input className={inputCls} placeholder="e.g. Invite past wedding clients to a spring open house" value={goal} onChange={(e) => setGoal(e.target.value)} />
+              <button className={btnGhost} disabled={busy !== null || !goal.trim()} onClick={draft}>{busy === "draft" ? "Writing…" : "Draft"}</button>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-[#e7e9eb] bg-white p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className={lbl}>Ask Claude for a more designed version</div>
+              {undo && <button className={btnGhost} onClick={() => { change(undo.blocks); setBrand(undo.brand); setUndo(null); setNotice("Back to your previous version."); }}>Undo redesign</button>}
+            </div>
+            <div className="flex gap-2">
+              <input className={inputCls} placeholder="Optional: more elegant, more photos, bolder…" value={direction} onChange={(e) => setDirection(e.target.value)} />
+              <button className={btnGhost} disabled={busy !== null || blocks.length === 0} onClick={() => redesign()}>{busy === "redesign" ? "Designing…" : "Redesign"}</button>
+            </div>
+            <p className="text-[11.5px] text-[#9ba6b7]">Claude keeps your facts and links and only uses pictures from your library. Read the result before you save.</p>
+          </div>
 
           <div className="rounded-lg border border-[#e7e9eb] bg-white p-3 space-y-2">
             <div className="flex items-center justify-between">
@@ -332,29 +381,44 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
             )}
           </div>
         </div>
-
-        {/* Preview */}
-        <div className="space-y-2 lg:sticky lg:top-4 self-start">
-          <div className="flex items-center gap-2">
-            <div className={lbl}>Preview</div>
+        {/* Master control: screen sizes and save, always visible at the bottom of the panel */}
+        <div className="border-t border-[#e7e9eb] bg-[#fafbfc] p-3 space-y-2">
+          <div className="grid grid-cols-4 gap-2">
             {(Object.keys(DEVICES) as Device[]).map((d) => (
-              <button key={d} className={`${btnGhost} ${view === d ? "!border-[#1ab394] !text-[#1ab394]" : ""}`} onClick={() => setView(d)}>{DEVICES[d].label}</button>
+              <button key={d} onClick={() => setView(d)} aria-pressed={view === d}
+                className={`flex flex-col items-center gap-1 rounded-lg border py-2 text-[12px] font-semibold ${view === d ? "border-[#1ab394] text-[#1ab394] bg-white" : "border-[#e7e9eb] text-[#6c757d] bg-white hover:border-[#1ab394]/50"}`}>
+                <DeviceIcon device={d} />{DEVICES[d].label}
+              </button>
             ))}
           </div>
-          <p className="text-[12px] text-[#9ba6b7]">{DEVICES[view].label} screen, {DEVICES[view].width} px wide. Sending is off; this is a preview only.</p>
-          <div ref={boxRef} className="rounded-lg border border-[#e7e9eb] bg-[#eef0f2] p-3 flex justify-center">
-            <div style={{ width: DEVICES[view].width * scale, height: PREVIEW_H }} className={`overflow-hidden bg-white border border-[#d9dde3] ${view === "mobile" || view === "ipad" ? "rounded-[22px] border-[6px] !border-[#2b2f36]" : "rounded"}`}>
-              <iframe
-                title="Email preview"
-                sandbox=""
-                srcDoc={html}
-                style={{ width: DEVICES[view].width, height: PREVIEW_H / scale, transform: `scale(${scale})`, transformOrigin: "top left", border: 0, background: "#fff" }}
-              />
-            </div>
+          <div className="flex items-center gap-2">
+            <button className={`${btnPrimary} flex-1`} disabled={busy !== null || !name.trim()} onClick={save}>{busy === "save" ? "Saving…" : "Save as template"}</button>
+            {id && <button className={btnGhost} disabled={busy !== null} onClick={remove}>Delete</button>}
           </div>
+        </div>
         </div>
       </div>
     </div>
+  );
+}
+
+function Thumb({ design, title }: { design: { blocks: Block[]; brand: Brand }; title: string }) {
+  return (
+    <div className="h-64 overflow-hidden rounded-lg border border-[#d9dde3] bg-white">
+      <iframe title={`Thumbnail ${title}`} sandbox="" tabIndex={-1} srcDoc={renderHtml(design, { title })} className="pointer-events-none" style={{ width: 600, height: 900, border: 0, transform: "scale(0.366)", transformOrigin: "top left" }} />
+    </div>
+  );
+}
+
+function DeviceIcon({ device }: { device: Device }) {
+  const p = { fill: "none", stroke: "currentColor", strokeWidth: 1.6, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" {...p}>
+      {device === "mobile" && <><rect x="8" y="3" width="8" height="18" rx="2" /><path d="M11 18h2" /></>}
+      {device === "ipad" && <><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M11 18h2" /></>}
+      {device === "laptop" && <><rect x="5" y="5" width="14" height="10" rx="1.5" /><path d="M3 19h18" /></>}
+      {device === "desktop" && <><rect x="3" y="4" width="18" height="12" rx="1.5" /><path d="M9 20h6M12 16v4" /></>}
+    </svg>
   );
 }
 
