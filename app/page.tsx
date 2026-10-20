@@ -12,9 +12,9 @@ const VENUES = [
     capacity: "20–120 seated · up to 140 for a standing reception",
     blurb:
       "Our signature hall for ceremonies, receptions, rehearsal dinners, and milestone celebrations. Roaming receptions accommodate upwards of 140 guests — ask about the lobby, courtyard, and other common areas.",
-    photo: "The Magnolia Room set for a reception",
+    photo: "A large group seated at round tables in the Magnolia Room, with a speaker at the front",
     src: "/photos/magnolia.jpg",
-    pos: "center",
+    pos: "50% 45%",
   },
   {
     num: "02",
