@@ -14,6 +14,7 @@ const VENUES = [
       "Our signature hall for ceremonies, receptions, rehearsal dinners, and milestone celebrations. Roaming receptions accommodate upwards of 140 guests — ask about the lobby, courtyard, and other common areas.",
     photo: "The Magnolia Room set for a reception",
     src: "/photos/magnolia.jpg",
+    pos: "center",
   },
   {
     num: "02",
@@ -24,6 +25,7 @@ const VENUES = [
       "A private space for corporate meetings, small gatherings, and training seminars. Boardroom or lounge setting, a private bathroom and coffee bar, and multi-day meeting options — comfortable and entirely your own.",
     photo: "The Loft lounge seating",
     src: "",
+    pos: "center",
   },
   {
     num: "03",
@@ -32,8 +34,9 @@ const VENUES = [
     capacity: "Outdoor · capacity varies with layout",
     blurb:
       "Our outside patio area — a covered stage and a flat lot for seating, made for smaller outdoor events and live music. The rear grounds offer room for community gatherings and food trucks.",
-    photo: "The Dock's covered outdoor stage",
-    src: "",
+    photo: "The Dock's covered outdoor stage, with a live band and guests in lawn chairs",
+    src: "/photos/the-dock.jpg",
+    pos: "50% 48%",
   },
 ];
 
@@ -168,7 +171,7 @@ export default function Home() {
         <div className="mt-10 grid gap-6 md:grid-cols-3">
           {VENUES.map((v) => (
             <article key={v.name} className="flex flex-col overflow-hidden rounded-xl border border-[#e4dac6] bg-white/60 transition hover:shadow-[0_18px_44px_-26px_rgba(24,44,62,0.5)]">
-              <Photo caption={v.photo} src={v.src || undefined} className="aspect-[16/10] rounded-none border-0 border-b border-[#e4dac6]" />
+              <Photo caption={v.photo} src={v.src || undefined} position={v.pos} className="aspect-[16/10] rounded-none border-0 border-b border-[#e4dac6]" />
               <div className="flex flex-1 flex-col p-6">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#a8853f]">{v.num} / {v.kicker}</p>
                 <h3 className="hb-display mt-2 text-2xl text-[#182c3e]">{v.name}</h3>
