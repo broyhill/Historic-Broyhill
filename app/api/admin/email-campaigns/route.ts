@@ -18,7 +18,15 @@ export async function GET(request: Request) {
         orderBy: { updatedAt: "desc" }, take: 100,
         select: { id: true, name: true, subject: true, previewText: true, body: true, aiBrief: true, updatedAt: true },
       });
-      const templates = rows.map(({ aiBrief, ...t }) => ({ ...t, mediaUrl: (aiBrief && typeof aiBrief === "object" && !Array.isArray(aiBrief) && typeof (aiBrief as any).mediaUrl === "string") ? (aiBrief as any).mediaUrl as string : "" }));
+      const templates = rows.map(({ aiBrief, ...t }) => {
+        const brief = aiBrief && typeof aiBrief === "object" && !Array.isArray(aiBrief) ? (aiBrief as Record<string, unknown>) : {};
+        return {
+          ...t,
+          mediaUrl: typeof brief.mediaUrl === "string" ? brief.mediaUrl : "",
+          category: typeof brief.category === "string" ? brief.category : "",
+          kind: typeof brief.kind === "string" ? brief.kind : "",
+        };
+      });
       return NextResponse.json({ success: true, templates });
     }
     const rows = await prisma.emailCampaign.findMany({ where: { status: { not: "TEMPLATE" } }, orderBy: { updatedAt: "desc" }, take: 100 });

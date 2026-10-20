@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ensureCampaignTable } from "@/lib/campaigns-db";
+import { isCategory, isKind } from "@/lib/campaign-templates";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -24,6 +25,7 @@ export async function POST(request: Request, { params }: Ctx) {
         name, status: "TEMPLATE", subject: source.subject, previewText: source.previewText,
         fromName: source.fromName, fromEmail: source.fromEmail, replyTo: source.replyTo,
         designType: source.designType, body: source.body,
+        aiBrief: { category: isCategory(b.category) ? b.category : "", kind: isKind(b.kind) ? b.kind : "" },
       },
       select: { id: true, name: true },
     });
