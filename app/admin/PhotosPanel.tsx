@@ -39,7 +39,7 @@ export default function PhotosPanel() {
   const fileRef = useRef<HTMLInputElement>(null);
   const dirRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
-  const [webCopies, setWebCopies] = useState(true);
+  const [webCopies, setWebCopies] = useState(false); // slow in the browser, so off unless asked for
 
   const load = useCallback(async () => {
     try {
