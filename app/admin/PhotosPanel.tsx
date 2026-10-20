@@ -137,11 +137,11 @@ export default function PhotosPanel() {
             <button key={f.name} onClick={() => setCurrent(f.name)} className={`w-full text-left px-3 py-2 rounded-md text-[13.5px] flex justify-between gap-2 ${current === f.name ? "bg-[#1ab394]/12 text-[#1ab394] font-semibold" : "text-[#323a46] hover:bg-[#f1f2f7]"}`}>
               <span className="truncate">📁 {f.name}</span><span className="text-[12px] text-[#9ba6b7]">{f.count}</span></button>
           ))}
-          {folders.length === 0 && <p className="px-3 py-2 text-[12.5px] text-[#9ba6b7]">No folders yet.</p>}
+          {folders.length === 0 && <p className="px-3 py-2 text-[12.5px] text-[#9ba6b7]">No categories yet. Add General and General-Videos below.</p>}
         </div></section>
 
         <section className="ibox"><div className="ibox-content space-y-2">
-          <div className="text-[12px] font-semibold text-[#6c757d]">Add folder</div>
+          <div className="text-[12px] font-semibold text-[#6c757d]">Add category (folder)</div>
           <form onSubmit={(e) => { e.preventDefault(); if (newFolder.trim()) addFolder(newFolder); }} className="flex gap-2">
             <input value={newFolder} onChange={(e) => setNewFolder(e.target.value)} placeholder="Folder name" maxLength={60} className={inputCls} aria-label="New folder name" />
             <button type="submit" className={btnPrimary} disabled={!newFolder.trim() || busy !== null}>Add</button>

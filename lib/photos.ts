@@ -10,7 +10,7 @@ export const ALLOWED_EXT = ["jpg", "jpeg", "png", "gif", "webp"] as const;
 export const VIDEO_EXT = ["mp4", "mov", "m4v", "webm"] as const;
 export const VIDEO_TYPES = ["video/mp4", "video/quicktime", "video/x-m4v", "video/webm"];
 export const MAX_VIDEO_BYTES = 200 * 1024 * 1024;
-export const SUGGESTED_FOLDERS = ["Building & grounds", "Magnolia Room", "The Boardrooms", "The Dock", "The Loft", "Events", "Videos", "Logos"];
+export const SUGGESTED_FOLDERS = ["General", "General-Videos", "Building & grounds", "Magnolia Room", "The Boardrooms", "The Dock", "The Loft", "Events", "Videos", "Logos"];
 
 export const extOf = (file: string) => (file.includes(".") ? file.split(".").pop()!.toLowerCase() : "");
 export const isVideoName = (file: string) => (VIDEO_EXT as readonly string[]).includes(extOf(file));
