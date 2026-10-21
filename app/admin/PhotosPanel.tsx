@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { upload as uploadToStorage } from "@vercel/blob/client";
+import { compressVideo, shouldCompress, webCopyName } from "@/lib/compress";
 import { MAX_PHOTO_BYTES, MAX_VIDEO_BYTES, SUGGESTED_FOLDERS, cleanFileName, cleanFolder, contentTypeFor, isVideoName, photoPath } from "@/lib/photos";
 
 interface Photo { url: string; folder: string; name: string; size: number; uploadedAt: string }
@@ -38,6 +39,7 @@ export default function PhotosPanel() {
   const fileRef = useRef<HTMLInputElement>(null);
   const dirRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
+  const [webCopies, setWebCopies] = useState(false); // slow in the browser, so off unless asked for
 
   const load = useCallback(async () => {
     try {
@@ -72,6 +74,7 @@ export default function PhotosPanel() {
       const skipped = list.length - todo.length;
       if (!todo.length) throw new Error("None of those files are pictures or videos we accept (JPG, PNG, GIF, WebP, MP4, MOV, WebM). iPhone HEIC photos need to be exported as JPG first.");
       let ok = 0, done = 0, next = 0;
+      const bigVideos: File[] = [];
       const failed: string[] = [];
       const one = async (f: File) => {
         const clean = cleanFileName(f.name);
@@ -86,16 +89,31 @@ export default function PhotosPanel() {
       const worker = async () => {
         while (next < todo.length) {
           const f = todo[next++];
-          try { await one(f); ok++; } catch (e: any) { failed.push(`${f.name} (${e.message})`); }
+          try { await one(f); ok++; if (webCopies && isVideoName(f.name) && shouldCompress(f.size)) bigVideos.push(f); } catch (e: any) { failed.push(`${f.name} (${e.message})`); }
           done++; setProgress(`${done} of ${todo.length} files`);
         }
       };
       setProgress(`0 of ${todo.length} files`);
       await Promise.all([worker(), worker(), worker()]);
+      // Web copies: one at a time (it is heavy), after every original is safely uploaded. Any failure is skipped.
+      let copies = 0;
+      for (let i = 0; i < bigVideos.length; i++) {
+        const v = bigVideos[i];
+        setProgress(`Making a smaller web copy of ${v.name} (${i + 1} of ${bigVideos.length})…`);
+        const small = await compressVideo(v, (pct) => setProgress(`Web copy of ${v.name}: ${pct}% (${i + 1} of ${bigVideos.length})`));
+        if (!small) continue;
+        try {
+          await uploadToStorage(photoPath(cleanFolder(target), cleanFileName(webCopyName(v.name))), small, {
+            access: "public", handleUploadUrl: "/api/admin/photos/upload", multipart: true, contentType: "video/mp4",
+          });
+          copies++;
+        } catch { /* the original is already saved */ }
+      }
       if (fileRef.current) fileRef.current.value = "";
       if (dirRef.current) dirRef.current.value = "";
       if (current === ALL) setCurrent(target);
       const bits = [`Uploaded ${ok} of ${todo.length} to "${target}".`];
+      if (bigVideos.length) bits.push(`${copies} of ${bigVideos.length} smaller web cop${bigVideos.length === 1 ? "y" : "ies"} made (named -web).`);
       if (skipped) bits.push(`${skipped} unsupported file${skipped === 1 ? "" : "s"} skipped.`);
       if (failed.length) bits.push(`Failed: ${failed.slice(0, 5).join("; ")}${failed.length > 5 ? ` and ${failed.length - 5} more` : ""}.`);
       return bits.join(" ");
@@ -165,6 +183,7 @@ export default function PhotosPanel() {
             </>)}
             <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/quicktime,video/webm,.mp4,.mov,.m4v,.webm" multiple className="hidden" onChange={(e) => upload(e.target.files)} aria-label="Choose photos to upload" />
             <input ref={dirRef} type="file" multiple className="hidden" {...({ webkitdirectory: "", directory: "" } as any)} onChange={(e) => upload(e.target.files)} aria-label="Choose a whole folder to upload" />
+            <label className="flex items-center gap-1.5 text-[12px] text-[#6c757d]"><input type="checkbox" checked={webCopies} onChange={(e) => setWebCopies(e.target.checked)} />Also make smaller web copies of big videos</label>
             <button className={btnGhost} disabled={busy !== null} onClick={() => dirRef.current?.click()}>Upload a whole folder</button>
             <button className={btnPrimary} disabled={busy !== null} onClick={() => fileRef.current?.click()}>
               {busy === "upload" ? "Uploading…" : current === ALL ? "Upload photos or videos (to General)" : "Upload photos or videos"}</button>
@@ -172,7 +191,7 @@ export default function PhotosPanel() {
           {error && <p className="text-[13px] text-red-600" role="alert">{error}</p>}
           {progress && <p className="text-[13px] text-[#6c757d]">Uploading {progress}</p>}
           {notice && !error && <p className="text-[13px] text-[#1ab394]">{notice}</p>}
-          <p className="text-[11.5px] text-[#9ba6b7]">Photos: JPG, PNG, GIF or WebP, up to 40 MB each, kept at full size. Videos: MP4, MOV or WebM, up to 1 GB. For picture messages, aim for under 1 MB; videos are for links and websites, not texts. Only upload your own real photos and videos.</p>
+          <p className="text-[11.5px] text-[#9ba6b7]">Photos: JPG, PNG, GIF or WebP, up to 40 MB each, kept at full size. Videos: MP4, MOV or WebM, up to 1 GB. Videos of 50-300 MB also get a smaller "-web" copy made in your browser (slow; keep the page open); the original is never changed. For picture messages, aim for under 1 MB; videos are for links and websites, not texts. Only upload your own real photos and videos.</p>
         </div></section>
 
         {shown.length === 0 && <p className="text-[13px] text-[#9ba6b7]">{current === ALL ? "No photos yet. Click Upload a whole folder, or drag files here." : "This folder is empty. Click Upload photos."}</p>}
