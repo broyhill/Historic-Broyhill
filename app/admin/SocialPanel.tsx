@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { PLATFORMS, cleanTags, composePost, isClean, socialChecks, type Platform } from "@/lib/social";
 
 interface Photo { url: string; folder: string; name: string }
-interface Draft { id: string; title: string; caption: string; platform: Platform; hashtags: string[]; mediaUrl: string; imageAlt: string; updatedAt: string }
+interface Draft { id: string; title: string; caption: string; platform: Platform; hashtags: string[]; mediaUrl: string; imageAlt: string; videoUrl?: string; updatedAt: string }
 interface Option { caption: string; hashtags: string[] }
 
 const inputCls = "w-full rounded-md border border-[#e7e9eb] px-3 py-2 text-[14px] text-[#323a46] focus:outline-none focus:border-[#1ab394]";
@@ -29,6 +29,9 @@ export default function SocialPanel() {
   const [tagText, setTagText] = useState("");
   const [mediaUrl, setMediaUrl] = useState("");
   const [imageAlt, setImageAlt] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
+  const [videos, setVideos] = useState<Photo[] | null>(null);
+  const [pickingVideo, setPickingVideo] = useState(false);
   const [goal, setGoal] = useState("");
   const [tone, setTone] = useState("");
   const [options, setOptions] = useState<Option[] | null>(null);
@@ -60,7 +63,7 @@ export default function SocialPanel() {
   };
   const openDraft = (d: Draft) => {
     if (dirty && !confirm("You have changes that aren't saved. Open another draft anyway?")) return;
-    setId(d.id); setTitle(d.title); setCaption(d.caption); setPlatform(d.platform); setTagText(d.hashtags.join(" ")); setMediaUrl(d.mediaUrl); setImageAlt(d.imageAlt); setOptions(null); setDirty(false); setNotice(""); setError("");
+    setId(d.id); setTitle(d.title); setCaption(d.caption); setPlatform(d.platform); setTagText(d.hashtags.join(" ")); setMediaUrl(d.mediaUrl); setImageAlt(d.imageAlt); setVideoUrl(d.videoUrl || ""); setOptions(null); setDirty(false); setNotice(""); setError("");
   };
 
   const photoNote = () => photos?.find((x) => x.url === mediaUrl)?.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ") || imageAlt;
@@ -69,7 +72,7 @@ export default function SocialPanel() {
   const use = (o: Option) => { setCaption(o.caption); setTagText(o.hashtags.join(" ")); setOptions(null); setDirty(true); };
 
   const save = () => run("save", async () => {
-    const r = await call("/api/admin/social", post({ id, title, caption, platform, hashtags: tags, mediaUrl, imageAlt }));
+    const r = await call("/api/admin/social", post({ id, title, caption, platform, hashtags: tags, mediaUrl, imageAlt, videoUrl }));
     setId(r.id); setDirty(false); setNotice("Saved as a draft. Nothing has been posted."); refresh();
   });
   const remove = () => run("delete", async () => {
@@ -78,6 +81,11 @@ export default function SocialPanel() {
     setId(null); setTitle(""); setCaption(""); setTagText(""); setMediaUrl(""); setImageAlt(""); setDirty(false); setNotice("Deleted."); refresh();
   });
   const copy = () => run("copy", async () => { await navigator.clipboard.writeText(full); setNotice("Copied. Paste it into the post on the platform yourself."); });
+
+  const openVideoPicker = () => {
+    setPickingVideo(true);
+    if (videos === null) call("/api/admin/photos").then((d) => setVideos((d.photos || []).filter((x: Photo) => /\.(mp4|mov|webm|m4v)$/i.test(x.name)))).catch((e) => { setVideos([]); setError(e.message); });
+  };
 
   const openPicker = () => {
     setPicking(true);
@@ -190,7 +198,35 @@ export default function SocialPanel() {
           {mediaUrl && <input className={inputCls} placeholder="Describe the picture in a few words" value={imageAlt} onChange={(e) => { setImageAlt(e.target.value); setDirty(true); }} />}
         </div>
 
-        {p.video && <p className="rounded-lg bg-[#fafbfc] p-3 text-[12.5px] text-[#6c757d]">{p.label} is a video platform. This draft is the {platform === "youtube" ? "title and description" : "caption"}; add the video itself when you post.</p>}
+        {p.video && (
+          <div className="space-y-2 rounded-lg bg-[#fafbfc] p-3">
+            <div className="flex items-center justify-between"><span className={lbl}>Video from the library</span>
+              <div className="flex gap-2">
+                <button className={btnGhost} onClick={openVideoPicker}>Choose video</button>
+                {videoUrl && <button className={btnGhost} onClick={() => { setVideoUrl(""); setDirty(true); }}>Remove</button>}
+              </div></div>
+            {pickingVideo && (
+              <div className="rounded-md border border-[#e7e9eb] bg-white p-2">
+                {videos === null ? <p className="text-[12px] text-[#9ba6b7]">Loading…</p> : videos.length === 0 ? <p className="text-[12px] text-[#9ba6b7]">No videos yet. Upload some in Photos (General-Videos).</p> : (
+                  <ul className="max-h-40 space-y-1 overflow-auto">
+                    {videos.map((x) => (
+                      <li key={x.url}><button className="w-full truncate rounded px-2 py-1 text-left text-[12.5px] text-[#323a46] hover:bg-[#f3f4f6]" onClick={() => { setVideoUrl(x.url); setPickingVideo(false); setDirty(true); }}>{x.folder} · {x.name}</button></li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+            {videoUrl ? (
+              <div className="space-y-1">
+                <video src={videoUrl} controls preload="metadata" className="w-full rounded-md bg-black" style={{ aspectRatio: p.ratio.replace(" / ", "/") }} />
+                <div className="flex gap-2">
+                  <a className={btnGhost} href={videoUrl} download target="_blank" rel="noreferrer">Download video</a>
+                  <button className={btnGhost} onClick={() => navigator.clipboard.writeText(videoUrl).then(() => setNotice("Video link copied."))}>Copy video link</button>
+                </div>
+              </div>
+            ) : <p className="text-[12.5px] text-[#6c757d]">{p.label} is a video platform. This draft is the {platform === "youtube" ? "title and description" : "caption"}; pick the video here, download it, and upload it when you post.</p>}
+          </div>
+        )}
         <div className="rounded-lg border border-[#e7e9eb] p-3 text-[12.5px]">
           <div className="mb-1 flex items-center justify-between"><span className={lbl}>Check</span><span className="text-[#9ba6b7]">{full.length.toLocaleString()} / {p.maxChars.toLocaleString()} characters</span></div>
           {isClean(checks) ? <p className="text-[#1a7f68]">Looks good for {p.label}.</p> : <ul className="list-disc space-y-0.5 pl-5 text-[#b7791f]">{problems.map((c, k) => <li key={k}>{c.message}</li>)}</ul>}

@@ -6,7 +6,7 @@ import { cleanTags, isPlatform } from "@/lib/social";
 import { safeUrl } from "@/lib/studio";
 
 // Social post drafts live in the campaigns table as status SOCIAL (designType "social"): the caption is
-// the body, and aiBrief holds {platform, hashtags, mediaUrl, imageAlt}. Nothing here posts anywhere.
+// the body, and aiBrief holds {platform, hashtags, mediaUrl, imageAlt, videoUrl}. Nothing here posts anywhere.
 // Auth via /api/admin middleware.
 const briefOf = (v: unknown) => (v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : {});
 
@@ -21,6 +21,7 @@ export async function GET() {
         platform: isPlatform(b.platform) ? b.platform : "facebook",
         hashtags: cleanTags(b.hashtags),
         mediaUrl: typeof b.mediaUrl === "string" ? b.mediaUrl : "",
+        videoUrl: typeof b.videoUrl === "string" ? b.videoUrl : "",
         imageAlt: typeof b.imageAlt === "string" ? b.imageAlt : "",
       };
     });
@@ -44,6 +45,7 @@ export async function POST(request: Request) {
         platform: isPlatform(b.platform) ? b.platform : "facebook",
         hashtags: cleanTags(b.hashtags),
         mediaUrl: safeUrl(b.mediaUrl),
+        videoUrl: safeUrl(b.videoUrl),
         imageAlt: typeof b.imageAlt === "string" ? b.imageAlt.slice(0, 300) : "",
       } as Prisma.InputJsonObject,
     };
