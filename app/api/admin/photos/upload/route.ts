@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
-import { MAX_VIDEO_BYTES, VIDEO_TYPES, isVideoName, parsePath } from "@/lib/photos";
+import { IMAGE_TYPES, MAX_PHOTO_BYTES, MAX_VIDEO_BYTES, VIDEO_TYPES, isVideoName, parsePath } from "@/lib/photos";
 
-// Hands the browser a one-time upload token so large videos go straight to storage.
+// Hands the browser a one-time upload token so large pictures and videos go straight to storage.
 // Only an admin can reach this (/api/admin middleware), and the token is limited to
-// photos/<folder>/<file> paths, video types only, and a maximum size.
+// photos/<folder>/<file> paths, picture or video types only, and a maximum size.
 // (Vercel also calls this URL when an upload finishes; middleware turns that away, which is harmless
 // because nothing here needs the callback.)
 export async function POST(request: Request) {
@@ -18,8 +18,13 @@ export async function POST(request: Request) {
       request,
       onBeforeGenerateToken: async (pathname) => {
         const p = parsePath(pathname);
-        if (!p || !isVideoName(p.name)) throw new Error("Only videos in a library folder can be uploaded this way.");
-        return { allowedContentTypes: VIDEO_TYPES, maximumSizeInBytes: MAX_VIDEO_BYTES, addRandomSuffix: true };
+        if (!p) throw new Error("Files must go in a library folder.");
+        const video = isVideoName(p.name);
+        return {
+          allowedContentTypes: video ? VIDEO_TYPES : IMAGE_TYPES,
+          maximumSizeInBytes: video ? MAX_VIDEO_BYTES : MAX_PHOTO_BYTES,
+          addRandomSuffix: true,
+        };
       },
     });
     return NextResponse.json(result);

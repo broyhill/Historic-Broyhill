@@ -9,7 +9,10 @@ export const ALLOWED_EXT = ["jpg", "jpeg", "png", "gif", "webp"] as const;
 // (see app/api/admin/photos/upload/route.ts).
 export const VIDEO_EXT = ["mp4", "mov", "m4v", "webm"] as const;
 export const VIDEO_TYPES = ["video/mp4", "video/quicktime", "video/x-m4v", "video/webm"];
-export const MAX_VIDEO_BYTES = 200 * 1024 * 1024;
+export const MAX_VIDEO_BYTES = 1024 * 1024 * 1024; // 1 GB: finished videos from InVideo etc. run to hundreds of MB
+// Pictures also go straight to storage now, so originals are kept at full size.
+export const MAX_PHOTO_BYTES = 40 * 1024 * 1024;
+export const IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 export const SUGGESTED_FOLDERS = ["General", "General-Videos", "Building & grounds", "Magnolia Room", "The Boardrooms", "The Dock", "The Loft", "Events", "Videos", "Logos"];
 
 export const extOf = (file: string) => (file.includes(".") ? file.split(".").pop()!.toLowerCase() : "");
