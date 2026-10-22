@@ -97,6 +97,29 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ success: true, url: moved.url });
     }
 
+    // Move many photos to one folder, keeping each file's name. { urls: string[] (max 50), folder }.
+    // Copies first, deletes the original only after its copy succeeded, so a failure never loses a photo.
+    if (b.action === "move-many") {
+      const folder = cleanFolder(b.folder);
+      if (!folder) return bad("Pick a folder to move them to.");
+      if (!Array.isArray(b.urls) || !b.urls.length || b.urls.length > 50) return bad("Send between 1 and 50 photos at a time.");
+      const known = await listAll();
+      if (!known.some((x) => parsePath(x.pathname)?.folder === folder)) return bad("That folder doesn't exist.", 404);
+      let moved = 0, skipped = 0, failed = 0;
+      for (const url of b.urls) {
+        const oldPath = pathFromStoreUrl(url);
+        const from = oldPath ? parsePath(oldPath) : null;
+        if (!oldPath || !from) { failed++; continue; }
+        if (from.folder === folder) { skipped++; continue; }
+        try {
+          await copy(url, photoPath(folder, from.name), { access: "public", addRandomSuffix: false });
+          await del(url);
+          moved++;
+        } catch { failed++; }
+      }
+      return NextResponse.json({ success: true, moved, skipped, failed });
+    }
+
     if (b.action === "rename-folder") {
       const from = cleanFolder(b.from);
       const to = cleanFolder(b.to);
