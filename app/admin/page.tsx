@@ -7,6 +7,7 @@ import AskPanel from "./AskPanel";
 import CampaignsPanel from "./CampaignsPanel";
 import TemplatesPanel from "./TemplatesPanel";
 import PhotosPanel from "./PhotosPanel";
+import StockSearch from "./StockSearch";
 import StudioPanel from "./StudioPanel";
 import SocialPanel from "./SocialPanel";
 import VideoPanel from "./VideoPanel";
@@ -24,6 +25,7 @@ const icons: Record<Section, React.ReactNode> = {
   social: <path d="M18 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 22a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8.6 13.5l6.8 4M15.4 6.5l-6.8 4" />,
   video: <path d="M23 7l-7 5 7 5V7zM3 5h11a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" />,
   photos: <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />,
+  stock: <path d="M12 2l3 6.5 7 .9-5.1 4.8 1.3 7L12 17.8 5.8 21.2l1.3-7L2 9.4l7-.9z" />,
   ask: <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />,
   settings: <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />,
 };
@@ -46,6 +48,7 @@ const NAV: { key: Section; label: string }[] = [
   { key: "social", label: "Social Posts" },
   { key: "video", label: "Video Studio" },
   { key: "photos", label: "Photo Library" },
+  { key: "stock", label: "Free Media" },
   { key: "queue", label: "Review Queue" },
   { key: "history", label: "Broadcasts" },
   { key: "settings", label: "Settings" },
@@ -62,6 +65,7 @@ const TITLES: Record<Section, string> = {
   social: "Social Posts",
   video: "Video Studio",
   photos: "Photo Library",
+  stock: "Free Media (royalty-free)",
   ask: "Ask Claude",
   settings: "Settings",
 };
@@ -168,6 +172,7 @@ export default function AdminConsole() {
           {section === "social" && <SocialPanel />}
           {section === "video" && <VideoPanel />}
           {section === "photos" && <PhotosPanel />}
+          {section === "stock" && <StockSearch onOpenLibrary={() => go("photos")} />}
           {section === "ask" && <AskPanel onChanged={refreshMetrics} seed={askSeed} />}
           {section === "settings" && <SettingsPanel />}
         </main>
