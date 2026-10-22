@@ -70,8 +70,14 @@ export default function PhotosPanel() {
     if (!list.length) return;
     const target = current === ALL ? "General" : current;
     run("upload", async () => {
-      const todo = list.filter((f) => cleanFileName(f.name));
-      const skipped = list.length - todo.length;
+      const supported = list.filter((f) => cleanFileName(f.name));
+      const skipped = list.length - supported.length;
+      // Resume: stored names carry a random suffix ("band-Ab3xYz.jpg"), so a file counts as already uploaded when
+      // the target folder holds one with the same base name, extension and exact byte size. Those are skipped.
+      const have = new Set(photos.filter((p) => p.folder === target).map((p) => `${p.name.replace(/-[A-Za-z0-9]+(\.[^.]+)$/, "$1").toLowerCase()}|${p.size}`));
+      const todo = supported.filter((f) => !have.has(`${cleanFileName(f.name).toLowerCase()}|${f.size}`));
+      const already = supported.length - todo.length;
+      if (!todo.length && already) return `Nothing to upload: all ${already} file${already === 1 ? " is" : "s are"} already in "${target}".`;
       if (!todo.length) throw new Error("None of those files are pictures or videos we accept (JPG, PNG, GIF, WebP, MP4, MOV, WebM). iPhone HEIC photos need to be exported as JPG first.");
       let ok = 0, done = 0, next = 0;
       const bigVideos: File[] = [];
@@ -114,6 +120,7 @@ export default function PhotosPanel() {
       if (current === ALL) setCurrent(target);
       const bits = [`Uploaded ${ok} of ${todo.length} to "${target}".`];
       if (bigVideos.length) bits.push(`${copies} of ${bigVideos.length} smaller web cop${bigVideos.length === 1 ? "y" : "ies"} made (named -web).`);
+      if (already) bits.push(`${already} already there, skipped.`);
       if (skipped) bits.push(`${skipped} unsupported file${skipped === 1 ? "" : "s"} skipped.`);
       if (failed.length) bits.push(`Failed: ${failed.slice(0, 5).join("; ")}${failed.length > 5 ? ` and ${failed.length - 5} more` : ""}.`);
       return bits.join(" ");
