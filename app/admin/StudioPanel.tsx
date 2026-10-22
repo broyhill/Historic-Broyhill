@@ -161,7 +161,7 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
   const redesign = (like?: string) => run("redesign", async () => {
     let lib = photos;
     if (lib === null) {
-      lib = await call("/api/admin/photos").then((d) => (d.photos || []).filter((p: Photo) => !/\.(mp4|mov|webm|m4v)$/i.test(p.name))).catch(() => []);
+      lib = await call("/api/admin/photos").then((d) => (d.photos || []).filter((p: Photo) => /\.(jpe?g|png|gif|webp)$/i.test(p.name))).catch(() => []);
       setPhotos(lib);
     }
     const r = await ai({ action: "redesign", direction, like, photos: (lib || []).slice(0, 40).map((p) => ({ url: p.url, name: p.name })) });
@@ -178,7 +178,7 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
     const text = cmd.trim(); if (!text) return;
     let lib = photos;
     if (lib === null) {
-      lib = await call("/api/admin/photos").then((d) => (d.photos || []).filter((p: Photo) => !/\.(mp4|mov|webm|m4v)$/i.test(p.name))).catch(() => []);
+      lib = await call("/api/admin/photos").then((d) => (d.photos || []).filter((p: Photo) => /\.(jpe?g|png|gif|webp)$/i.test(p.name))).catch(() => []);
       setPhotos(lib);
     }
     const r = await ai({ action: "command", instruction: text, photos: (lib || []).slice(0, 40).map((p) => ({ url: p.url, name: p.name })) });
@@ -209,7 +209,7 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
 
   const openPicker = (bid: string) => {
     setPickFor(bid);
-    if (photos === null) call("/api/admin/photos").then((d) => setPhotos((d.photos || []).filter((p: Photo) => !/\.(mp4|mov|webm|m4v)$/i.test(p.name)))).catch((e) => { setPhotos([]); setError(e.message); });
+    if (photos === null) call("/api/admin/photos").then((d) => setPhotos((d.photos || []).filter((p: Photo) => /\.(jpe?g|png|gif|webp)$/i.test(p.name)))).catch((e) => { setPhotos([]); setError(e.message); });
   };
 
   return (

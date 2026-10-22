@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
-import { IMAGE_TYPES, MAX_PHOTO_BYTES, MAX_VIDEO_BYTES, VIDEO_TYPES, isVideoName, parsePath } from "@/lib/photos";
+import { AUDIO_TYPES, IMAGE_TYPES, MAX_AUDIO_BYTES, MAX_PHOTO_BYTES, MAX_VIDEO_BYTES, VIDEO_TYPES, isAudioName, isVideoName, parsePath } from "@/lib/photos";
 
 // Hands the browser a one-time upload token so large pictures and videos go straight to storage.
 // Only an admin can reach this (/api/admin middleware), and the token is limited to
@@ -20,9 +20,10 @@ export async function POST(request: Request) {
         const p = parsePath(pathname);
         if (!p) throw new Error("Files must go in a library folder.");
         const video = isVideoName(p.name);
+        const audio = isAudioName(p.name);
         return {
-          allowedContentTypes: video ? VIDEO_TYPES : IMAGE_TYPES,
-          maximumSizeInBytes: video ? MAX_VIDEO_BYTES : MAX_PHOTO_BYTES,
+          allowedContentTypes: audio ? AUDIO_TYPES : video ? VIDEO_TYPES : IMAGE_TYPES,
+          maximumSizeInBytes: audio ? MAX_AUDIO_BYTES : video ? MAX_VIDEO_BYTES : MAX_PHOTO_BYTES,
           addRandomSuffix: true,
         };
       },
