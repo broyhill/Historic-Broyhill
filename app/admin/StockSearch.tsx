@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
+import { STOCK_FOLDERS } from "@/lib/photos";
 
 interface Item { provider: string; kind: string; id: string; thumb: string; title: string; credit: string; creditUrl: string; pageUrl: string }
 interface ProviderInfo { key: string; label: string; env: string; kinds: string[]; ready: boolean }
@@ -10,11 +11,11 @@ const inputCls = "w-full rounded-md border border-[#e7e9eb] px-3 py-2 text-[14px
 const btnPrimary = "h-9 px-4 rounded-md bg-[#1ab394] text-white text-[13px] font-semibold disabled:opacity-50";
 const btnGhost = "h-8 px-3 rounded-md border border-[#e7e9eb] text-[#6c757d] text-[12.5px] hover:border-[#1ab394]/50 disabled:opacity-50";
 
-// Royalty-free media types, each with its own library folder so stock never mixes with real venue photos.
+// Royalty-free media types, each with its own library folder (fixed on the server) so stock never mixes with real venue photos.
 const KINDS: { key: string; label: string; folder: string; hint: string }[] = [
-  { key: "photo", label: "Photos", folder: "Stock Photos", hint: "Backgrounds, textures, scenery, people" },
-  { key: "video", label: "Videos", folder: "Stock Videos", hint: "Short clips and loops (MP4, up to 1080p)" },
-  { key: "graphic", label: "Graphics & motifs", folder: "Stock Graphics", hint: "Illustrations, patterns, icons, ornaments" },
+  { key: "photo", label: "Photos", folder: STOCK_FOLDERS.photo, hint: "Backgrounds, textures, scenery, people" },
+  { key: "video", label: "Videos", folder: STOCK_FOLDERS.video, hint: "Short clips and loops (MP4, up to 1080p)" },
+  { key: "graphic", label: "Graphics & motifs", folder: STOCK_FOLDERS.graphic, hint: "Illustrations, patterns, icons, ornaments" },
 ];
 
 async function call(url: string, init?: RequestInit) {
@@ -33,6 +34,7 @@ export default function StockSearch({ onOpenLibrary }: { onOpenLibrary?: () => v
   const [kind, setKind] = useState("photo");
   const [q, setQ] = useState("");
   const [page, setPage] = useState(1);
+  const [more, setMore] = useState(false);
   const [items, setItems] = useState<Item[]>([]);
   const [picked, setPicked] = useState<Record<string, Item>>({});
   const [folders, setFolders] = useState<Folder[]>([]);
@@ -56,32 +58,32 @@ export default function StockSearch({ onOpenLibrary }: { onOpenLibrary?: () => v
     setBusy("search"); setError(null); setNotice(null);
     try {
       const d = await call(`/api/admin/photos/stock?provider=${provider}&kind=${kind}&q=${encodeURIComponent(q.trim())}&page=${nextPage}`);
-      setItems(d.items); setPage(nextPage);
-      if (!d.items.length) setNotice("Nothing found. Try a simpler word.");
-    } catch (er: any) { setError(er.message); setItems([]); } finally { setBusy(null); }
+      setItems(d.items); setPage(d.page ?? nextPage); setMore(Boolean(d.more));
+      if (!d.items.length) setNotice(nextPage > 1 ? "No more results." : "Nothing found. Try a simpler word.");
+    } catch (er: any) { setError(er.message); setItems([]); setMore(false); } finally { setBusy(null); }
   };
 
   const toggle = (it: Item) => setPicked((s) => { const n = { ...s }; if (n[keyOf(it)]) delete n[keyOf(it)]; else n[keyOf(it)] = it; return n; });
 
-  // One at a time so big videos don't compete; a failure is counted and the rest continue.
+  // One at a time so big videos don't compete; a failure is counted and the rest continue. Failed items
+  // stay selected so you can retry without finding them again.
   const addPicked = async () => {
     const list = pickedList;
     if (!list.length) return;
     setBusy("add"); setError(null); setNotice(null);
-    let ok = 0, already = 0; const failed: string[] = [];
+    let ok = 0, already = 0; const failed: string[] = []; const keep: Record<string, Item> = {};
     for (let i = 0; i < list.length; i++) {
       const it = list[i];
-      const folder = KINDS.find((k) => k.key === it.kind)!.folder;
       setProgress(`Adding ${i + 1} of ${list.length}…`);
       try {
-        const d = await call("/api/admin/photos/stock", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ provider: it.provider, kind: it.kind, id: it.id, folder }) });
+        const d = await call("/api/admin/photos/stock", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ provider: it.provider, kind: it.kind, id: it.id }) });
         if (d.already) already++; else ok++;
-      } catch (e: any) { failed.push(e.message); }
+      } catch (e: any) { failed.push(e.message); keep[keyOf(it)] = it; }
     }
-    setPicked({}); setProgress(null); setBusy(null); loadFolders();
+    setPicked(keep); setProgress(null); setBusy(null); loadFolders();
     const bits = [`Added ${ok} to your library.`];
     if (already) bits.push(`${already} were already there.`);
-    if (failed.length) bits.push(`${failed.length} failed: ${failed[0]}`);
+    if (failed.length) bits.push(`${failed.length} failed and stayed selected so you can try again: ${failed[0]}`);
     (failed.length ? setError : setNotice)(bits.join(" "));
   };
 
@@ -149,7 +151,7 @@ export default function StockSearch({ onOpenLibrary }: { onOpenLibrary?: () => v
           <div className="flex gap-2">
             <button className={btnGhost} disabled={busy !== null || page <= 1} onClick={() => search(page - 1)}>Previous</button>
             <span className="text-[12px] text-[#9ba6b7] self-center">Page {page}</span>
-            <button className={btnGhost} disabled={busy !== null} onClick={() => search(page + 1)}>More</button>
+            <button className={btnGhost} disabled={busy !== null || !more} onClick={() => search(page + 1)}>More</button>
           </div>
         </>)}
         <p className="text-[11.5px] text-[#9ba6b7]">Pixabay and Pexels content is free to use commercially and credit isn't required. Selected items are copied into our own storage. Keep stock separate from real photos of the venue: don't use a stock picture to suggest it shows our rooms, or that the people in it endorse us.</p>
