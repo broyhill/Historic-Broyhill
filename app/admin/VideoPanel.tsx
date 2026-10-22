@@ -66,6 +66,12 @@ export default function VideoPanel() {
   const [cpTitle, setCpTitle] = useState("");
   const [photos, setPhotos] = useState<Photo[] | null>(null);
   const [picking, setPicking] = useState<"add" | string | null>(null);
+  const [tracks, setTracks] = useState<Photo[] | null>(null); // audio files in the library
+  const [pickingMusic, setPickingMusic] = useState(false);
+  const openMusic = () => {
+    setPickingMusic((o) => !o);
+    if (tracks === null) call("/api/admin/photos").then((d) => setTracks((d.photos || []).filter((p: Photo) => /\.(mp3|m4a|wav|ogg)$/i.test(p.name)))).catch((e) => { setTracks([]); setError(e.message); });
+  };
   const [sel, setSel] = useState<string | null>(null);
   const [goal, setGoal] = useState("");
   const [cmd, setCmd] = useState("");
@@ -144,7 +150,7 @@ export default function VideoPanel() {
 
   const loadPhotos = async () => {
     if (photos !== null) return photos;
-    const list: Photo[] = await call("/api/admin/photos").then((d) => (d.photos || []).filter((p: Photo) => !isVideoName(p.name))).catch((e) => { setError(e.message); return []; });
+    const list: Photo[] = await call("/api/admin/photos").then((d) => (d.photos || []).filter((p: Photo) => /\.(jpe?g|png|gif|webp)$/i.test(p.name))).catch((e) => { setError(e.message); return []; });
     setPhotos(list); return list;
   };
   const altFor = (p: Photo) => p.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
@@ -335,6 +341,20 @@ export default function VideoPanel() {
             <div className="space-y-2 rounded-lg bg-[#fafbfc] p-3">
               <span className={lbl}>Music (optional)</span>
               <input className={inputCls} placeholder="Link to a music file you're licensed to use (https://…mp3)" value={sb.music?.url ?? ""} onChange={(e) => edit(normalizeStoryboard({ ...sb, music: e.target.value ? { url: e.target.value, name: sb.music?.name || "Music", volume: sb.music?.volume ?? 0.8, fadeOutSeconds: sb.music?.fadeOutSeconds ?? 3 } : null }))} />
+              <button type="button" className={btnGhost} onClick={openMusic}>{pickingMusic ? "Close music library" : "Choose from the music library"}</button>
+              {pickingMusic && (
+                <div className="space-y-1.5">
+                  {tracks === null && <p className="text-[12px] text-[#9ba6b7]">Loading…</p>}
+                  {tracks?.length === 0 && <p className="text-[12px] text-[#9ba6b7]">No music yet. In Photo Library, open a "Music" folder and upload an MP3 you're licensed to use.</p>}
+                  {tracks?.map((t) => (
+                    <div key={t.url} className="rounded-md border border-[#e7e9eb] p-2 space-y-1">
+                      <div className="text-[12.5px] text-[#323a46] truncate" title={t.name}>🎵 {t.name} <span className="text-[#9ba6b7]">· {t.folder}</span></div>
+                      <audio src={t.url} controls preload="none" className="w-full" />
+                      <button type="button" className={btnGhost} onClick={() => { edit(normalizeStoryboard({ ...sb, music: { url: t.url, name: t.name.replace(/\.[^.]+$/, ""), volume: sb.music?.volume ?? 0.8, fadeOutSeconds: sb.music?.fadeOutSeconds ?? 3 } })); setPickingMusic(false); }}>Use this track</button>
+                    </div>
+                  ))}
+                </div>
+              )}
               {sb.music && <>
                 <label className="block"><span className={lbl}>Volume ({Math.round(sb.music.volume * 100)}%)</span><input type="range" min={0} max={1} step={0.05} value={sb.music.volume} onChange={(e) => edit({ ...sb, music: { ...sb.music!, volume: Number(e.target.value) } })} className="w-full" /></label>
                 <label className="block"><span className={lbl}>Fade out ({sb.music.fadeOutSeconds}s)</span><input type="range" min={0} max={8} step={0.5} value={sb.music.fadeOutSeconds} onChange={(e) => edit({ ...sb, music: { ...sb.music!, fadeOutSeconds: Number(e.target.value) } })} className="w-full" /></label>

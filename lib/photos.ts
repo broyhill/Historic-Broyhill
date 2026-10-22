@@ -8,15 +8,21 @@ export const ALLOWED_EXT = ["jpg", "jpeg", "png", "gif", "webp"] as const;
 // Videos are too big for a normal request, so the browser uploads them straight to storage
 // (see app/api/admin/photos/upload/route.ts).
 export const VIDEO_EXT = ["mp4", "mov", "m4v", "webm"] as const;
-export const VIDEO_TYPES = ["video/mp4", "video/quicktime", "video/x-m4v", "video/webm"];
+// Music and sound effects (royalty-free tracks you are licensed to use) also live in the library, e.g. in a "Music" folder.
+export const AUDIO_EXT = ["mp3", "m4a", "wav", "ogg"] as const;
+export const AUDIO_TYPES = ["audio/mpeg", "audio/mp3", "audio/mp4", "audio/x-m4a", "audio/m4a", "audio/wav", "audio/x-wav", "audio/wave", "audio/ogg"];
+export const MAX_AUDIO_BYTES = 100 * 1024 * 1024;
+export const VIDEO_TYPES =["video/mp4", "video/quicktime", "video/x-m4v", "video/webm"];
 export const MAX_VIDEO_BYTES = 1024 * 1024 * 1024; // 1 GB: finished videos from InVideo etc. run to hundreds of MB
 // Pictures also go straight to storage now, so originals are kept at full size.
 export const MAX_PHOTO_BYTES = 40 * 1024 * 1024;
 export const IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
-export const SUGGESTED_FOLDERS = ["General", "General-Videos", "Building & grounds", "Magnolia Room", "The Boardrooms", "The Dock", "The Loft", "Events", "Videos", "Logos"];
+export const SUGGESTED_FOLDERS = ["General", "General-Videos", "Music", "Sound Effects","Building & grounds", "Magnolia Room", "The Boardrooms", "The Dock", "The Loft", "Events", "Videos", "Logos"];
 
 export const extOf = (file: string) => (file.includes(".") ? file.split(".").pop()!.toLowerCase() : "");
 export const isVideoName = (file: string) => (VIDEO_EXT as readonly string[]).includes(extOf(file));
+export const isAudioName = (file: string) => (AUDIO_EXT as readonly string[]).includes(extOf(file));
+export const isImageName = (file: string) => (ALLOWED_EXT as readonly string[]).includes(extOf(file));
 
 // Letters, digits, spaces and a few safe symbols only; no slashes or dots that could escape the folder.
 export function cleanFolder(raw: unknown): string {
@@ -29,7 +35,7 @@ export function cleanFileName(raw: unknown): string {
   const s = (typeof raw === "string" ? raw : "").normalize("NFKC").split(/[\\/]/).pop() || "";
   const dot = s.lastIndexOf(".");
   const ext = dot > -1 ? s.slice(dot + 1).toLowerCase() : "";
-  if (!(ALLOWED_EXT as readonly string[]).includes(ext) && !(VIDEO_EXT as readonly string[]).includes(ext)) return "";
+  if (!(ALLOWED_EXT as readonly string[]).includes(ext) && !(VIDEO_EXT as readonly string[]).includes(ext) && !(AUDIO_EXT as readonly string[]).includes(ext)) return "";
   const base = s.slice(0, dot).replace(/[^A-Za-z0-9 _-]/g, "").replace(/\s+/g, " ").trim().slice(0, 80) || "photo";
   return `${base}.${ext}`;
 }
@@ -42,6 +48,10 @@ export function contentTypeFor(file: string): string {
   if (ext === "mov") return "video/quicktime";
   if (ext === "m4v") return "video/x-m4v";
   if (ext === "webm") return "video/webm";
+  if (ext === "mp3") return "audio/mpeg";
+  if (ext === "m4a") return "audio/mp4";
+  if (ext === "wav") return "audio/wav";
+  if (ext === "ogg") return "audio/ogg";
   return ext === "png" ? "image/png" : ext === "gif" ? "image/gif" : ext === "webp" ? "image/webp" : "image/jpeg";
 }
 
