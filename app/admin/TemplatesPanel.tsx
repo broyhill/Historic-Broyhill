@@ -70,7 +70,19 @@ export default function TemplatesPanel({ onOpenStudio }: { onOpenStudio?: (id: s
   }, []);
   useEffect(() => { load(channel); }, [channel, load]);
 
-  const switchTab = (ch: Channel) => { setChannel(ch); setDraft(EMPTY); setError(null); setNotice(null); };
+  const [aiGoal, setAiGoal] = useState("");
+  const [aiLink, setAiLink] = useState("");
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiOptions, setAiOptions] = useState<{ body: string; length: number; segments: number; issues: string[] }[]>([]);
+  const writeTexts = async () => {
+    setAiBusy(true); setError(null); setAiOptions([]);
+    try {
+      const d = await api("/api/admin/text-drafts/ai", { method: "POST", body: JSON.stringify({ channel, goal: aiGoal, link: aiLink }) });
+      setAiOptions(d.options || []);
+    } catch (e: any) { setError(e.message); } finally { setAiBusy(false); }
+  };
+
+  const switchTab = (ch: Channel) => { setChannel(ch); setDraft(EMPTY); setError(null); setNotice(null); setAiOptions([]); };
   const edit = (patch: Partial<Draft>) => setDraft((d) => ({ ...d, ...patch }));
 
   const blanks = useMemo(() => unresolvedTags(`${draft.subject}\n${draft.previewText}\n${draft.body}\n${draft.mediaUrl}`), [draft]);
@@ -224,6 +236,27 @@ export default function TemplatesPanel({ onOpenStudio }: { onOpenStudio?: (id: s
           ))}
         </div>
       </section>
+
+      {channel !== "email" && (
+        <section className="ibox">
+          <div className="ibox-title"><h3 className="text-sm font-semibold text-[#323a46]">Write a text with Claude</h3></div>
+          <div className="ibox-content space-y-3">
+            <label className="block text-[12px] font-semibold text-[#6c757d]">What is the text for?
+              <textarea value={aiGoal} onChange={(e) => setAiGoal(e.target.value)} rows={2} maxLength={1000} placeholder="e.g. Invite past clients to tour the Magnolia Room" className={`${inputCls} mt-1 font-normal`} /></label>
+            <label className="block text-[12px] font-semibold text-[#6c757d]">Link to include (optional, https://…)
+              <input value={aiLink} onChange={(e) => setAiLink(e.target.value)} maxLength={300} className={`${inputCls} mt-1 font-normal`} /></label>
+            <button type="button" className={btnPrimary} disabled={aiBusy || !aiGoal.trim()} onClick={writeTexts}>{aiBusy ? "Writing…" : "Suggest 3 texts"}</button>
+            {aiOptions.map((o, i) => (
+              <div key={i} className="rounded-md border border-[#e7e9eb] p-3 space-y-1.5">
+                <p className="text-[13.5px] text-[#323a46] whitespace-pre-wrap">{o.body}</p>
+                <p className="text-[11.5px] text-[#9ba6b7]">{o.length} characters · {o.segments} part{o.segments === 1 ? "" : "s"}{o.issues.length ? ` · Check: ${o.issues.join("; ")}` : " · passes the text rules"}</p>
+                <button type="button" className={btnGhost} onClick={() => { edit({ body: o.body }); setNotice("Copied into the message box below. Review it, then save."); }}>Use this one</button>
+              </div>
+            ))}
+            <p className="text-[11.5px] text-[#9ba6b7]">Suggestions only. Nothing is saved or sent, and texting itself is not switched on yet.</p>
+          </div>
+        </section>
+      )}
 
       <section className="ibox">
         <div className="ibox-title"><h3 className="text-sm font-semibold text-[#323a46]">{draft.id ? "Edit template" : "Write a template"}</h3></div>
