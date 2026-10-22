@@ -89,7 +89,7 @@ export default function SocialPanel() {
 
   const openPicker = () => {
     setPicking(true);
-    if (photos === null) call("/api/admin/photos").then((d) => setPhotos((d.photos || []).filter((x: Photo) => !/\.(mp4|mov|webm|m4v)$/i.test(x.name)))).catch((e) => { setPhotos([]); setError(e.message); });
+    if (photos === null) call("/api/admin/photos").then((d) => setPhotos((d.photos || []).filter((x: Photo) => /\.(jpe?g|png|gif|webp)$/i.test(x.name)))).catch((e) => { setPhotos([]); setError(e.message); });
   };
 
   return (

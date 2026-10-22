@@ -295,7 +295,7 @@ export default function TemplatesPanel({ onOpenStudio }: { onOpenStudio?: (id: s
               <input value={draft.mediaUrl} onChange={(e) => edit({ mediaUrl: e.target.value })} className={`${inputCls} mt-1 font-normal`} maxLength={500} /></label>
             <button type="button" className={btnGhost} onClick={() => {
               setPickerOpen((o) => !o);
-              if (!pickerOpen) api("/api/admin/photos").then((d) => setLibrary(d.photos || [])).catch((e) => setError(e.message));
+              if (!pickerOpen) api("/api/admin/photos").then((d) => setLibrary((d.photos || []).filter((x: { name: string }) => /\.(jpe?g|png|gif|webp)$/i.test(x.name)))).catch((e) => setError(e.message));
             }}>{pickerOpen ? "Close library" : "Choose from photo library"}</button>
             {pickerOpen && (
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">

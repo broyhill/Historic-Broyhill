@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { upload as uploadToStorage } from "@vercel/blob/client";
 import { compressVideo, shouldCompress, webCopyName } from "@/lib/compress";
-import { MAX_PHOTO_BYTES, MAX_VIDEO_BYTES, SUGGESTED_FOLDERS, cleanFileName, cleanFolder, contentTypeFor, isVideoName, photoPath } from "@/lib/photos";
+import { MAX_AUDIO_BYTES, MAX_PHOTO_BYTES, MAX_VIDEO_BYTES, SUGGESTED_FOLDERS, cleanFileName, cleanFolder, contentTypeFor, isAudioName, isVideoName, photoPath } from "@/lib/photos";
 
 interface Photo { url: string; folder: string; name: string; size: number; uploadedAt: string }
 interface Folder { name: string; count: number }
@@ -70,7 +70,10 @@ export default function PhotosPanel() {
   const upload = (files: FileList | File[] | null) => {
     const list = Array.from(files ?? []);
     if (!list.length) return;
-    const target = current === ALL ? "General" : current;
+    // Music and sound effects must be licensed: ask once, and send all-audio uploads from "All" to a Music folder.
+    const audioOnly = list.every((f) => isAudioName(f.name));
+    if (list.some((f) => isAudioName(f.name)) && !window.confirm("Upload music or sound effects?\n\nOnly upload tracks you have the right to use (for example a royalty-free licence or your own). Keep the licence or source link somewhere safe.")) return;
+    const target = current === ALL ? (audioOnly ? "Music" : "General") : current;
     run("upload", async () => {
       const supported = list.filter((f) => cleanFileName(f.name));
       const skipped = list.length - supported.length;
@@ -87,7 +90,7 @@ export default function PhotosPanel() {
       const one = async (f: File) => {
         const clean = cleanFileName(f.name);
         const video = isVideoName(clean);
-        const max = video ? MAX_VIDEO_BYTES : MAX_PHOTO_BYTES;
+        const max = isAudioName(clean) ? MAX_AUDIO_BYTES : video ? MAX_VIDEO_BYTES : MAX_PHOTO_BYTES;
         if (f.size > max) throw new Error(`over ${max / 1024 / 1024} MB`);
         // Pictures and videos both go straight to storage at full size, so nothing is shrunk or capped at 4 MB.
         await uploadToStorage(photoPath(cleanFolder(target), clean), f, {
@@ -212,12 +215,12 @@ export default function PhotosPanel() {
                   run("delete-folder", async () => { await call("/api/admin/photos", json("DELETE", { folder: current, confirm: true })); setCurrent(ALL); return "Folder deleted."; });
               }}>Delete folder</button>
             </>)}
-            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/quicktime,video/webm,.mp4,.mov,.m4v,.webm" multiple className="hidden" onChange={(e) => upload(e.target.files)} aria-label="Choose photos to upload" />
+            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/quicktime,video/webm,.mp4,.mov,.m4v,.webm,audio/mpeg,audio/mp4,audio/wav,audio/ogg,.mp3,.m4a,.wav,.ogg" multiple className="hidden" onChange={(e) => upload(e.target.files)} aria-label="Choose photos to upload" />
             <input ref={dirRef} type="file" multiple className="hidden" {...({ webkitdirectory: "", directory: "" } as any)} onChange={(e) => upload(e.target.files)} aria-label="Choose a whole folder to upload" />
             <label className="flex items-center gap-1.5 text-[12px] text-[#6c757d]"><input type="checkbox" checked={webCopies} onChange={(e) => setWebCopies(e.target.checked)} />Also make smaller web copies of big videos</label>
             <button className={btnGhost} disabled={busy !== null} onClick={() => dirRef.current?.click()}>Upload a whole folder</button>
             <button className={btnPrimary} disabled={busy !== null} onClick={() => fileRef.current?.click()}>
-              {busy === "upload" ? "Uploading…" : current === ALL ? "Upload photos or videos (to General)" : "Upload photos or videos"}</button>
+              {busy === "upload" ? "Uploading…" : current === ALL ? "Upload photos, videos or music (to General)" : "Upload photos, videos or music"}</button>
           </div>
           {error && <p className="text-[13px] text-red-600" role="alert">{error}</p>}
           {progress && <p className="text-[13px] text-[#6c757d]">Uploading {progress}</p>}
@@ -243,7 +246,12 @@ export default function PhotosPanel() {
           {shown.map((p) => (
             <div key={p.url} className={`ibox overflow-hidden relative ${picked.has(p.url) ? "ring-2 ring-[#1ab394]" : ""}`}>
               <input type="checkbox" checked={picked.has(p.url)} onChange={() => toggle(p.url)} className="absolute top-2 left-2 z-10 h-5 w-5 accent-[#1ab394]" aria-label={`Select ${p.name}`} />
-              {isVideoName(p.name) ? (
+              {isAudioName(p.name) ? (
+                <div className="w-full aspect-[4/3] bg-[#f1f2f7] flex flex-col items-center justify-center gap-2 px-3">
+                  <span className="text-3xl" aria-hidden>🎵</span>
+                  <audio src={p.url} controls preload="none" className="w-full" aria-label={p.name} />
+                </div>
+              ) : isVideoName(p.name) ? (
                 <video src={p.url} controls preload="metadata" playsInline className="w-full aspect-[4/3] object-cover bg-black" aria-label={p.name} />
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -259,7 +267,7 @@ export default function PhotosPanel() {
                   </form>
                 ) : (<>
                   <div className="text-[12.5px] font-semibold text-[#323a46] truncate" title={p.name}>{p.name}</div>
-                  <div className="text-[11.5px] text-[#9ba6b7]">{current === ALL ? `${p.folder} · ` : ""}{kb(p.size)}{p.size > 1024 * 1024 ? (isVideoName(p.name) ? " · video" : " · large for texts") : ""}</div>
+                  <div className="text-[11.5px] text-[#9ba6b7]">{current === ALL ? `${p.folder} · ` : ""}{kb(p.size)}{p.size > 1024 * 1024 ? (isAudioName(p.name) ? " · audio" : isVideoName(p.name) ? " · video" : " · large for texts") : ""}</div>
                   <div className="flex gap-1.5 flex-wrap">
                     <button className={btnGhost} onClick={() => copyLink(p.url)}>Copy link</button>
                     <button className={btnGhost} onClick={() => setEditing({ url: p.url, name: p.name.replace(/\.[^.]+$/, ""), folder: p.folder })}>Edit</button>
