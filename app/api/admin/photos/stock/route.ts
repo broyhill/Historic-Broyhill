@@ -51,8 +51,14 @@ export async function POST(request: Request) {
 
     // Same item already in this folder? Skip rather than duplicate.
     const base = `${b.provider}-${id}`;
-    const existing = await list({ prefix: photoPath(folder, base), limit: 1 });
-    if (existing.blobs.length) return NextResponse.json({ success: true, already: true, url: existing.blobs[0].url });
+    // A bare prefix would also match longer ids that start with this one (pixabay-1234 vs pixabay-12345), so
+    // look for the id followed by its filename boundary: "-" (title follows) or "." (extension follows).
+    const [dash, dot] = await Promise.all([
+      list({ prefix: `${photoPath(folder, base)}-`, limit: 1 }),
+      list({ prefix: `${photoPath(folder, base)}.`, limit: 1 }),
+    ]);
+    const existing = dash.blobs[0] ?? dot.blobs[0];
+    if (existing) return NextResponse.json({ success: true, already: true, url: existing.url });
 
     const res = await fetch(file.url);
     if (!res.ok || !res.body) return bad("Could not download that item. Try another.", 502);
