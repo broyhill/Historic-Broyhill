@@ -35,6 +35,8 @@ export default function PhotosPanel() {
   const [busy, setBusy] = useState<string | null>(null);
   const [newFolder, setNewFolder] = useState("");
   const [progress, setProgress] = useState<string | null>(null);
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [moveTo, setMoveTo] = useState("");
   const [editing, setEditing] = useState<{ url: string; name: string; folder: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const dirRef = useRef<HTMLInputElement>(null);
@@ -127,6 +129,28 @@ export default function PhotosPanel() {
     });
   };
 
+  // Only photos still in the library and in view can stay selected (a reload or folder change drops the rest).
+  const selected = useMemo(() => shown.filter((p) => picked.has(p.url)), [shown, picked]);
+  const toggle = (url: string) => setPicked((s) => { const n = new Set(s); if (n.has(url)) n.delete(url); else n.add(url); return n; });
+
+  // Moves in batches of 25 so each request stays short; reports moved / already there / failed.
+  const moveSelected = () => {
+    const dest = moveTo || folders.find((f) => f.name !== current)?.name || "";
+    const urls = selected.filter((p) => p.folder !== dest).map((p) => p.url);
+    if (!dest || !urls.length) { setError("Pick a different folder to move them to."); return; }
+    if (!window.confirm(`Move ${urls.length} item${urls.length === 1 ? "" : "s"} to "${dest}"?`)) return;
+    run("move", async () => {
+      let moved = 0, failed = 0;
+      for (let i = 0; i < urls.length; i += 25) {
+        setProgress(`Moving ${Math.min(i + 25, urls.length)} of ${urls.length}`);
+        const r = await call("/api/admin/photos", json("PATCH", { action: "move-many", urls: urls.slice(i, i + 25), folder: dest }));
+        moved += r.moved; failed += r.failed;
+      }
+      setPicked(new Set());
+      return `Moved ${moved} to "${dest}".${failed ? ` ${failed} could not be moved (still where they were).` : ""}`;
+    });
+  };
+
   const copyLink = async (url: string) => {
     try { await navigator.clipboard.writeText(url); setNotice("Link copied. Paste it into a picture message."); setError(null); }
     catch { setNotice(url); }
@@ -201,10 +225,24 @@ export default function PhotosPanel() {
           <p className="text-[11.5px] text-[#9ba6b7]">Photos: JPG, PNG, GIF or WebP, up to 40 MB each, kept at full size. Videos: MP4, MOV or WebM, up to 1 GB. Videos of 50-300 MB also get a smaller "-web" copy made in your browser (slow; keep the page open); the original is never changed. For picture messages, aim for under 1 MB; videos are for links and websites, not texts. Only upload your own real photos and videos.</p>
         </div></section>
 
+        {shown.length > 0 && (
+          <div className="flex items-center gap-2 flex-wrap text-[12.5px] text-[#6c757d]">
+            <button className={btnGhost} disabled={busy !== null} onClick={() => setPicked(new Set(shown.map((p) => p.url)))}>Select all ({shown.length})</button>
+            {selected.length > 0 && (<>
+              <button className={btnGhost} disabled={busy !== null} onClick={() => setPicked(new Set())}>Clear</button>
+              <span className="font-semibold text-[#323a46]">{selected.length} selected</span>
+              <select value={moveTo} onChange={(e) => setMoveTo(e.target.value)} className={inputCls + " !w-auto"} aria-label="Move selected to folder">
+                <option value="">Move to…</option>
+                {folders.filter((f) => f.name !== current).map((f) => <option key={f.name} value={f.name}>{f.name}</option>)}</select>
+              <button className={btnPrimary} disabled={busy !== null || !moveTo} onClick={moveSelected}>{busy === "move" ? "Moving…" : `Move ${selected.length}`}</button>
+            </>)}
+          </div>
+        )}
         {shown.length === 0 && <p className="text-[13px] text-[#9ba6b7]">{current === ALL ? "No photos yet. Click Upload a whole folder, or drag files here." : "This folder is empty. Click Upload photos."}</p>}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
           {shown.map((p) => (
-            <div key={p.url} className="ibox overflow-hidden">
+            <div key={p.url} className={`ibox overflow-hidden relative ${picked.has(p.url) ? "ring-2 ring-[#1ab394]" : ""}`}>
+              <input type="checkbox" checked={picked.has(p.url)} onChange={() => toggle(p.url)} className="absolute top-2 left-2 z-10 h-5 w-5 accent-[#1ab394]" aria-label={`Select ${p.name}`} />
               {isVideoName(p.name) ? (
                 <video src={p.url} controls preload="metadata" playsInline className="w-full aspect-[4/3] object-cover bg-black" aria-label={p.name} />
               ) : (
