@@ -332,6 +332,146 @@ Tell us about your event, or book a visit here: {{bookingLink}}
 
 ${SIGN_OFF}`,
   },
+  // React Email-inspired templates - converted to HTML with merge tags
+  {
+    id: "newsletter-styled",
+    name: "Styled newsletter",
+    category: "Newsletter",
+    kind: "Update",
+    description: "A modern, styled newsletter template with sections.",
+    subject: "What's new at Historic Broyhill",
+    previewText: "Updates, events and venue highlights.",
+    body: `<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 40px 20px;">
+    <h1 style="color: #323a46; font-size: 24px; margin-bottom: 20px;">Historic Broyhill Newsletter</h1>
+    <p style="color: #6c757d; font-size: 16px; line-height: 1.6;">Hi {{firstName}},</p>
+    <p style="color: #323a46; font-size: 16px; line-height: 1.6;">Here's what's happening this {{month}}:</p>
+    <div style="background-color: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0;">
+      <h2 style="color: #323a46; font-size: 18px; margin-top: 0;">{{headline}}</h2>
+      <p style="color: #6c757d; font-size: 14px; line-height: 1.6;">{{newsletterContent}}</p>
+    </div>
+    <p style="color: #323a46; font-size: 16px; line-height: 1.6;">Upcoming events: {{upcomingEvents}}</p>
+    <div style="margin-top: 30px; text-align: center;">
+      <a href="{{bookingLink}}" style="display: inline-block; background-color: #1ab394; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Book a Visit</a>
+    </div>
+    <p style="color: #9ba6b7; font-size: 12px; margin-top: 40px;">${SIGN_OFF}</p>
+  </div>
+</body>
+</html>`,
+  },
+  {
+    id: "welcome-modern",
+    name: "Modern welcome",
+    category: "New inquiry",
+    kind: "Invitation",
+    description: "A clean, modern welcome email for new inquiries.",
+    subject: "Welcome to Historic Broyhill",
+    previewText: "We're glad you found us.",
+    body: `<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 40px 20px;">
+    <h1 style="color: #323a46; font-size: 28px; margin-bottom: 20px;">Welcome, {{firstName}}!</h1>
+    <p style="color: #6c757d; font-size: 16px; line-height: 1.6;">Thanks for your interest in Historic Broyhill. We're a 1920s school building in Clemmons that's been transformed into beautiful event and office space.</p>
+    <div style="margin: 30px 0;">
+      <h2 style="color: #323a46; font-size: 18px;">Our Spaces</h2>
+      <ul style="color: #6c757d; font-size: 14px; line-height: 1.8;">
+        <li>The Magnolia Room - our signature stage hall</li>
+        <li>The Boardrooms - perfect for meetings</li>
+        <li>The Dock - covered outdoor stage</li>
+        <li>The Loft - intimate gatherings</li>
+      </ul>
+    </div>
+    <div style="margin-top: 30px; text-align: center;">
+      <a href="{{bookingLink}}" style="display: inline-block; background-color: #1ab394; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Schedule a Tour</a>
+    </div>
+    <p style="color: #9ba6b7; font-size: 12px; margin-top: 40px;">${SIGN_OFF}</p>
+  </div>
+</body>
+</html>`,
+  },
+  {
+    id: "invitation-elegant",
+    name: "Elegant invitation",
+    category: "Seasonal holidays",
+    kind: "Invitation",
+    description: "An elegant template for holiday events and special occasions.",
+    subject: "You're invited to celebrate with us",
+    previewText: "A special event at Historic Broyhill.",
+    body: `<!DOCTYPE html>
+<html>
+<body style="font-family: Georgia, serif; margin: 0; padding: 0; background-color: #f5f5f5;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 50px 30px; border-top: 5px solid #1ab394;">
+    <h1 style="color: #323a46; font-size: 32px; margin-bottom: 10px; text-align: center;">{{eventName}}</h1>
+    <p style="color: #6c757d; font-size: 16px; line-height: 1.6; text-align: center; margin-bottom: 30px;">{{eventDate}} at Historic Broyhill</p>
+    <p style="color: #323a46; font-size: 16px; line-height: 1.6;">Dear {{firstName}},</p>
+    <p style="color: #6c757d; font-size: 16px; line-height: 1.6;">We cordially invite you to join us for {{holidayEvent}} at our historic venue. The Magnolia Room and The Dock provide the perfect setting for {{eventDescription}}.</p>
+    <div style="background-color: #f9fafb; padding: 25px; margin: 30px 0; text-align: center; border: 1px solid #e7e9eb;">
+      <p style="color: #323a46; font-size: 18px; font-weight: bold; margin: 0;">{{eventDetails}}</p>
+    </div>
+    <div style="margin-top: 30px; text-align: center;">
+      <a href="{{bookingLink}}" style="display: inline-block; background-color: #1ab394; color: white; padding: 14px 28px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 16px;">RSVP Now</a>
+    </div>
+    <p style="color: #9ba6b7; font-size: 12px; margin-top: 40px; text-align: center;">${SIGN_OFF}</p>
+  </div>
+</body>
+</html>`,
+  },
+  {
+    id: "follow-up-clean",
+    name: "Clean follow-up",
+    category: "New inquiry",
+    kind: "Follow-up",
+    description: "A simple, clean follow-up email template.",
+    subject: "Following up on your inquiry",
+    previewText: "We'd love to help with your plans.",
+    body: `<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 40px 20px;">
+    <p style="color: #6c757d; font-size: 16px; line-height: 1.6;">Hi {{firstName}},</p>
+    <p style="color: #323a46; font-size: 16px; line-height: 1.6;">I wanted to follow up on your inquiry about {{inquiryTopic}} at Historic Broyhill.</p>
+    <p style="color: #6c757d; font-size: 16px; line-height: 1.6;">Our team is ready to help you plan the perfect event. Whether you're looking for a corporate meeting, a wedding, or a community gathering, our spaces can accommodate your needs.</p>
+    <div style="margin: 25px 0; padding: 20px; background-color: #e8f5e9; border-left: 4px solid #1ab394; border-radius: 4px;">
+      <p style="color: #323a46; font-size: 14px; margin: 0;"><strong>Quick note:</strong> {{personalNote}}</p>
+    </div>
+    <div style="margin-top: 30px;">
+      <a href="{{bookingLink}}" style="display: inline-block; background-color: #1ab394; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Book a Visit</a>
+      <span style="color: #9ba6b7; font-size: 14px; margin-left: 15px;">or reply to this email</span>
+    </div>
+    <p style="color: #9ba6b7; font-size: 12px; margin-top: 40px;">${SIGN_OFF}</p>
+  </div>
+</body>
+</html>`,
+  },
+  {
+    id: "thank-you-warm",
+    name: "Warm thank you",
+    category: "Previous clients",
+    kind: "Thank you",
+    description: "A warm, appreciative thank you email after an event.",
+    subject: "Thank you for being part of our event",
+    previewText: "We enjoyed hosting you at Historic Broyhill.",
+    body: `<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 40px 20px;">
+    <h1 style="color: #323a46; font-size: 24px; margin-bottom: 20px;">Thank You, {{firstName}}!</h1>
+    <p style="color: #6c757d; font-size: 16px; line-height: 1.6;">It was a pleasure hosting you at {{eventName}}. Historic Broyhill was made for gatherings like yours, and we're grateful you chose us.</p>
+    <div style="margin: 30px 0; padding: 25px; background-color: #fff3e0; border-radius: 8px;">
+      <p style="color: #323a46; font-size: 16px; line-height: 1.6; margin: 0;">"${testimonial || "The venue was perfect for our event. The team made everything seamless."}"</p>
+    </div>
+    <p style="color: #323a46; font-size: 16px; line-height: 1.6;">If you're planning another event—whether it's a company celebration, a family gathering, or a community function—we'd love to host you again.</p>
+    <div style="margin-top: 30px; text-align: center;">
+      <a href="{{bookingLink}}" style="display: inline-block; background-color: #1ab394; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Plan Your Next Event</a>
+    </div>
+    <p style="color: #9ba6b7; font-size: 12px; margin-top: 40px;">${SIGN_OFF}</p>
+  </div>
+</body>
+</html>`,
+  },
 ];
 
 export const getTemplate = (id: string) => CAMPAIGN_TEMPLATES.find((t) => t.id === id);
