@@ -49,6 +49,7 @@ export default function TemplatesPanel({ onOpenStudio }: { onOpenStudio?: (id: s
   const [manageOpen, setManageOpen] = useState(false);
   const [showHidden, setShowHidden] = useState(false);
   const [newLabel, setNewLabel] = useState<Record<ListName, string>>({ categories: "", kinds: "" });
+  const [previewTemplate, setPreviewTemplate] = useState<string | null>(null);
 
   useEffect(() => { api("/api/admin/template-settings").then((d) => setSettings(d.settings)).catch((e) => setError(e.message)); }, []);
 
@@ -122,7 +123,8 @@ export default function TemplatesPanel({ onOpenStudio }: { onOpenStudio?: (id: s
   const savedShown = filter ? saved.filter((s) => s.category === filter) : saved;
 
   return (
-    <div className="space-y-4 max-w-3xl">
+    <div className="flex gap-6">
+      <div className="flex-1 space-y-4 max-w-3xl">
       <div className="flex gap-2 flex-wrap" role="tablist">
         {TABS.map((t) => (
           <button key={t.key} role="tab" aria-selected={channel === t.key} onClick={() => switchTab(t.key)}
@@ -195,7 +197,11 @@ export default function TemplatesPanel({ onOpenStudio }: { onOpenStudio?: (id: s
             const hidden = settings.hiddenStarters.includes(s.id);
             return (
               <div key={s.id} className={`rounded-md border border-[#e7e9eb] hover:border-[#1ab394]/50 flex items-start ${hidden ? "opacity-60" : ""}`}>
-                <button onClick={() => { setDraft(s.fill); setNotice("Loaded. Change it, then click Save to keep your own copy."); setError(null); }} className="flex-1 text-left px-3 py-2 min-w-0">
+                <button 
+                  onClick={() => { setDraft(s.fill); setPreviewTemplate(s.fill.body); setNotice("Loaded. Change it, then click Save to keep your own copy."); setError(null); }}
+                  onMouseEnter={() => setPreviewTemplate(s.fill.body)}
+                  className="flex-1 text-left px-3 py-2 min-w-0"
+                >
                   <span className="block text-[11px] uppercase tracking-wider text-[#9ba6b7]">{[s.category || "Uncategorized", s.kind].filter(Boolean).join(" · ")}</span>
                   <span className="block text-[13.5px] font-semibold text-[#323a46]">{s.name}</span>
                   <span className="block text-[12px] text-[#6c757d]">{s.description}</span>
@@ -323,5 +329,27 @@ export default function TemplatesPanel({ onOpenStudio }: { onOpenStudio?: (id: s
         </div>
       </section>
     </div>
+    </div>
+
+    {/* Right preview panel */}
+    <div className="w-[400px] bg-white border-l border-[#e7e9eb] overflow-y-auto" style={{ maxHeight: 'calc(100vh - 100px)' }}>
+      <div className="p-4 border-b border-[#e7e9eb]">
+        <h3 className="text-sm font-semibold text-[#323a46]">Template Preview</h3>
+        <p className="text-[11.5px] text-[#9ba6b7]">Hover over templates to preview</p>
+      </div>
+      <div className="p-4">
+        {previewTemplate ? (
+          <div 
+            className="border border-[#e7e9eb] rounded-md overflow-hidden"
+            dangerouslySetInnerHTML={{ __html: previewTemplate }}
+          />
+        ) : (
+          <div className="text-center py-12 text-[#9ba6b7]">
+            <p className="text-[13px]">Hover over a template to see preview</p>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
   );
 }
