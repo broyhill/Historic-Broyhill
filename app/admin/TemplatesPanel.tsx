@@ -329,7 +329,6 @@ export default function TemplatesPanel({ onOpenStudio }: { onOpenStudio?: (id: s
         </div>
       </section>
     </div>
-    </div>
 
     {/* Right preview panel */}
     <div className="w-[400px] bg-white border-l border-[#e7e9eb] overflow-y-auto" style={{ maxHeight: 'calc(100vh - 100px)' }}>
