@@ -68,7 +68,7 @@ export default function CampaignsPanel() {
         <div className="ibox-title"><h3 className="text-sm font-semibold text-[#323a46]">Create a campaign</h3></div>
         <div className="ibox-content">
           <p className="text-[13px] text-[#6c757d] leading-relaxed">
-            Build an email step by step, by hand or with Claude's help on any step. You can send a test to yourself.
+            Build an email step by step, by hand or with Devin's help on any step. You can send a test to yourself.
             Sending to a whole list is switched off in this version.
           </p>
           <form onSubmit={create} className="mt-3 flex gap-2">
@@ -189,7 +189,7 @@ function Editor({ id, onBack }: { id: string; onBack: () => void }) {
                 <button className={btnPrimary} disabled={busy !== null} onClick={() => save({ subject: c.subject, previewText: c.previewText })}>Save</button>
                 <button className={btnGhost} disabled={busy !== null || !c.body.trim()} title={c.body.trim() ? "" : "Write the email body first"}
                   onClick={() => run("subjects", async () => { setOptions((await ai({ action: "subjects" })).options); })}>
-                  {busy === "subjects" ? "Claude is thinking…" : "✦ Suggest with Claude"}</button>
+                  {busy === "subjects" ? "Devin is thinking…" : "✦ Suggest with Devin"}</button>
               </div>
               {options.map((o, i) => (
                 <button key={i} onClick={() => { edit({ subject: o.subject, previewText: o.previewText }); setNotice("Applied. Click Save to keep it."); }}
@@ -261,7 +261,7 @@ function Editor({ id, onBack }: { id: string; onBack: () => void }) {
                 <p className="text-[11.5px] text-[#9ba6b7]">A template is only a starting point. Changing your email never changes the template.</p>
               </div>
               <div className="rounded-md border border-dashed border-[#1ab394]/50 p-3 space-y-2">
-                <div className="text-[12px] font-semibold text-[#1ab394]">✦ Let Claude draft it</div>
+                <div className="text-[12px] font-semibold text-[#1ab394]">✦ Let Devin draft it</div>
                 <input value={brief.goal} onChange={(e) => setBrief({ ...brief, goal: e.target.value })} placeholder="What is this email for? (required)" className={inputCls} maxLength={1000} />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <input value={brief.callToAction} onChange={(e) => setBrief({ ...brief, callToAction: e.target.value })} placeholder="Call to action, e.g. Book a tour" className={inputCls} maxLength={200} />
@@ -271,13 +271,13 @@ function Editor({ id, onBack }: { id: string; onBack: () => void }) {
                 <button className={btnPrimary} disabled={busy !== null || !brief.goal.trim()} onClick={() => run("draft", async () => {
                   const d = (await ai({ action: "draft", ...brief })).draft;
                   edit({ subject: d.subject, previewText: d.previewText, body: d.body });
-                  setNotice("Claude wrote a draft. Read it, edit freely, then click Save.");
-                })}>{busy === "draft" ? "Claude is writing…" : "Write the draft"}</button>
+                  setNotice("Devin wrote a draft. Read it, edit freely, then click Save.");
+                })}>{busy === "draft" ? "Devin is writing…" : "Write the draft"}</button>
               </div>
               <label className="block text-[12px] font-semibold text-[#6c757d]">Email body (plain text)
                 <textarea value={c.body} onChange={(e) => edit({ body: e.target.value })} rows={12} maxLength={50000} className={`${inputCls} mt-1 font-normal leading-relaxed`} /></label>
               <div className="flex gap-2">
-                <input value={rewrite} onChange={(e) => setRewrite(e.target.value)} placeholder="Ask Claude to change it, e.g. make it shorter and warmer" className={inputCls} maxLength={500} />
+                <input value={rewrite} onChange={(e) => setRewrite(e.target.value)} placeholder="Ask Devin to change it, e.g. make it shorter and warmer" className={inputCls} maxLength={500} />
                 <button className={btnGhost} disabled={busy !== null || !rewrite.trim() || !c.body.trim()} onClick={() => run("rewrite", async () => {
                   edit({ body: (await ai({ action: "rewrite", instruction: rewrite })).body }); setRewrite(""); setNotice("Rewritten. Read it, then click Save.");
                 })}>{busy === "rewrite" ? "Rewriting…" : "✦ Rewrite"}</button>
