@@ -144,7 +144,7 @@ export default function SocialPanel() {
         </div>
 
         <div className="space-y-2 rounded-lg bg-[#fafbfc] p-3">
-          <div className={lbl}>Ask Claude to write it</div>
+          <div className={lbl}>Ask Devin to write it</div>
           <input className={inputCls} placeholder="What is the post about? e.g. Spring open house for wedding couples" value={goal} onChange={(e) => setGoal(e.target.value)} />
           <div className="flex gap-2">
             <input className={inputCls} placeholder="Tone (optional): warm, festive, formal…" value={tone} onChange={(e) => setTone(e.target.value)} />

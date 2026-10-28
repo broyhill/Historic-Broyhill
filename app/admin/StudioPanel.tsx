@@ -316,9 +316,9 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
 
           <div className="px-1 pt-2 text-[14px] font-semibold text-[#323a46]">Instructions on how to use</div>
           <div className="space-y-2 rounded-2xl border border-[#e7e9eb] bg-white p-2">
-            <Fold n="01" title="Start with a draft or a template" open>Type what the email is for under Draft on the right and press Draft, or open one of My templates under the preview. Everything Claude writes is a suggestion you can change.</Fold>
+            <Fold n="01" title="Start with a draft or a template" open>Type what the email is for under Draft on the right and press Draft, or open one of My templates under the preview. Everything Devin writes is a suggestion you can change.</Fold>
             <Fold n="02" title="Build it block by block">Add a heading, text, picture, button, divider or spacer. Click a block to edit it, and use the arrows to move it. Pictures come from your Photo Library.</Fold>
-            <Fold n="03" title="Ask Claude for a more designed version">Press Redesign. Three alternatives appear under the preview. Press Use this to switch to one, and keep editing it. The undo arrow under the preview takes you back.</Fold>
+            <Fold n="03" title="Ask Devin for a more designed version">Press Redesign. Three alternatives appear under the preview. Press Use this to switch to one, and keep editing it. The undo arrow under the preview takes you back.</Fold>
             <Fold n="04" title="Check every screen size">Use Mobile, iPad, Laptop and Desktop at the bottom right to see how it looks. Most people read email on a phone, so check Mobile last.</Fold>
             <Fold n="05" title="Save it">Name it, pick a category and type, then Save as template. It appears in My templates here and in the Templates list. Nothing is sent from the Studio.</Fold>
           </div>
@@ -437,7 +437,7 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
         {/* Claude's tools sit right under the edit controls and above the master buttons */}
         <div className="max-h-[40%] space-y-2 overflow-y-auto border-t border-[#e7e9eb] bg-[#fafbfc] p-3">
           <div className="rounded-lg border border-[#e7e9eb] bg-white p-3 space-y-2">
-            <div className={lbl}>Ask Claude for a first draft</div>
+            <div className={lbl}>Ask Devin for a first draft</div>
             <div className="flex gap-2">
               <input className={inputCls} placeholder="e.g. Invite past wedding clients to a spring open house" value={goal} onChange={(e) => setGoal(e.target.value)} />
               <button className={btnGhost} disabled={busy !== null || !goal.trim()} onClick={draft}>{busy === "draft" ? "Writing…" : "Draft"}</button>
@@ -446,7 +446,7 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
 
           <div className="rounded-lg border border-[#e7e9eb] bg-white p-3 space-y-2">
             <div className="flex items-center justify-between">
-              <div className={lbl}>Ask Claude for a more designed version</div>
+              <div className={lbl}>Ask Devin for a more designed version</div>
             </div>
             <div className="flex gap-2">
               <input className={inputCls} placeholder="Optional: more elegant, more photos, bolder…" value={direction} onChange={(e) => setDirection(e.target.value)} />
@@ -457,7 +457,7 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
 
           <div className="rounded-lg border border-[#e7e9eb] bg-white p-3 space-y-2">
             <div className="flex items-center justify-between">
-              <div className={lbl}>Ask Claude to review the whole email</div>
+              <div className={lbl}>Ask Devin to review the whole email</div>
               <button className={btnGhost} disabled={busy !== null || issues.some((i) => i.message.startsWith("Add some text"))} onClick={getReview}>{busy === "review" ? "Reading…" : "Review"}</button>
             </div>
             {review && (

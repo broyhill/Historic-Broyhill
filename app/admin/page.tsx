@@ -40,7 +40,7 @@ function NavIcon({ section }: { section: Section }) {
 
 const NAV: { key: Section; label: string }[] = [
   { key: "dashboard", label: "Dashboard" },
-  { key: "ask", label: "Ask Claude" },
+  { key: "ask", label: "Ask Devin" },
   { key: "leads", label: "Leads" },
   { key: "campaigns", label: "Campaigns" },
   { key: "templates", label: "Templates" },
@@ -66,7 +66,7 @@ const TITLES: Record<Section, string> = {
   video: "Video Studio",
   photos: "Photo Library",
   stock: "Free Media (royalty-free)",
-  ask: "Ask Claude",
+  ask: "Ask Devin",
   settings: "Settings",
 };
 

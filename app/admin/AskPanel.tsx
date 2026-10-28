@@ -102,7 +102,7 @@ export default function AskPanel({ onChanged, seed }: { onChanged?: () => void; 
     <div className="max-w-3xl space-y-4">
       <section className="ibox">
         <div className="ibox-title">
-          <h3 className="text-sm font-semibold text-[#323a46]">Ask Claude</h3>
+          <h3 className="text-sm font-semibold text-[#323a46]">Ask Devin</h3>
           {messages.length > 0 && (
             <button onClick={() => { setMessages([]); setError(null); }} className="text-[12px] text-[#6c757d] hover:text-[#1ab394]">
               New conversation
@@ -111,7 +111,7 @@ export default function AskPanel({ onChanged, seed }: { onChanged?: () => void; 
         </div>
         <div className="ibox-content">
           <p className="text-[13px] text-[#6c757d] leading-relaxed">
-            Claude can look up leads and counts, and write email drafts into the Review Queue. Changes to existing
+            Devin can look up leads and counts, and write email drafts into the Review Queue. Changes to existing
             records wait for your Confirm. It cannot send or approve outreach — you do that in the Review Queue. It can be wrong; check anything important.
           </p>
 

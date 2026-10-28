@@ -36,17 +36,17 @@ export default function Dashboard({ metrics, onNavigate, onAsk }: { metrics: Met
       <section className="ibox border-[#1ab394]/40">
         <div className="ibox-content">
           <div className="flex items-center justify-between gap-3">
-            <h3 className="text-sm font-semibold text-[#323a46]">Ask Claude</h3>
+            <h3 className="text-sm font-semibold text-[#323a46]">Ask Devin</h3>
             <button onClick={() => onNavigate("ask")} className="text-[12px] text-[#1ab394] hover:underline">Open full chat →</button>
           </div>
-          <p className="mt-1 text-[13px] text-[#6c757d]">Ask a question, or tell Claude what to look up or draft. It never sends anything on its own.</p>
+          <p className="mt-1 text-[13px] text-[#6c757d]">Ask a question, or tell Devin what to look up or draft. It never sends anything on its own.</p>
           <form onSubmit={submit} className="mt-3 flex gap-2">
             <input
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               maxLength={2000}
               placeholder="e.g. How many leads are missing a name?"
-              aria-label="Ask Claude"
+              aria-label="Ask Devin"
               className="flex-1 rounded-md border border-[#e7e9eb] px-3 py-2 text-[14px] text-[#323a46] focus:outline-none focus:border-[#1ab394]"
             />
             <button type="submit" disabled={!question.trim()} className="h-10 px-4 rounded-md bg-[#1ab394] text-white text-[13px] font-semibold disabled:opacity-50">Ask</button>

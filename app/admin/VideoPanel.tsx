@@ -373,7 +373,7 @@ export default function VideoPanel() {
 
           <div className="space-y-2 border-t border-[#e7e9eb] bg-[#fafbfc] p-3">
             <div className="rounded-lg border border-[#e7e9eb] bg-white p-2 space-y-2">
-              <div className={lbl}>Ask Claude for a storyboard</div>
+              <div className={lbl}>Ask Devin for a storyboard</div>
               <div className="flex gap-2"><input className={inputCls} placeholder="e.g. A 30-second intro to the venue for Facebook" value={goal} onChange={(e) => setGoal(e.target.value)} /><button className={btnGhost} disabled={busy !== null || !goal.trim()} onClick={draftVideo}>{busy === "draft" ? "Planning…" : "Draft"}</button></div>
             </div>
             <div className="flex items-center gap-2">
