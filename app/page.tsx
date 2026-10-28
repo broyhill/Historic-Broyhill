@@ -1,4 +1,5 @@
 import InquiryForm from "./components/InquiryForm";
+import SiteHeader from "./components/SiteHeader";
 
 /* Historic Broyhill — public site.
    Brand match (owner brochure): deep navy + cream + gold, Playfair Display + EB Garamond.
@@ -111,20 +112,8 @@ function Photo({ caption, className = "", onDark = false, src, position = "cente
 export default function Home() {
   return (
     <main className="hb-body bg-[#f6f1e7] text-[#273440]">
-      {/* Nav */}
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#182c3e]/95 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5">
-          <a href="#top" className="hb-display text-lg tracking-wide text-[#f4ecda]">Historic Broyhill</a>
-          <nav className="hidden items-center gap-7 text-[15px] text-[#cdd5d9] md:flex">
-            <a href="#venues" className="hover:text-white">Event Venues</a>
-            <a href="#tour" className="hover:text-white">Virtual Tour</a>
-            <a href="#offices" className="hover:text-white">Offices</a>
-            <a href="#studio" className="hover:text-white">Podcast Studio</a>
-            <a href="#visit" className="hover:text-white">Visit</a>
-          </nav>
-          <a href="#visit" className="rounded-md bg-[#c2a15a] px-4 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-[#182c3e] transition hover:bg-[#d2b268]">Request a tour</a>
-        </div>
-      </header>
+      {/* New two-tier navigation */}
+      <SiteHeader />
 
       {/* Hero — navy, like the brochure */}
       <section id="top" className="bg-[#182c3e] text-[#e9e2d3]">
