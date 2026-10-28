@@ -7,8 +7,8 @@ export const devinEnabled = () => Boolean(process.env.CURSOR_API_KEY);
 // Model selection - uses the Cursor agent runtime (model is configured in Cursor settings)
 export const DEVIN_MODEL = process.env.CURSOR_MODEL || "composer-2.5";
 
-// Check if local runtime is enabled (default true for on-prem)
-export const DEVIN_LOCAL = process.env.CURSOR_LOCAL !== "false";
+// Check if local runtime is enabled (default false for cloud deployment)
+export const DEVIN_LOCAL = process.env.CURSOR_LOCAL === "true";
 
 // One request that must come back as text. Returns null on failure.
 export async function devinText(opts: {
@@ -17,13 +17,20 @@ export async function devinText(opts: {
   maxTokens?: number;
 }): Promise<string | null> {
   try {
+    const options: any = {
+      apiKey: process.env.CURSOR_API_KEY!,
+      model: { id: DEVIN_MODEL },
+    };
+
+    if (DEVIN_LOCAL) {
+      options.local = { cwd: process.cwd() };
+    } else {
+      options.cloud = { repos: ["broyhill/Historic-Broyhill"] };
+    }
+
     const result = await Agent.prompt(
       `${opts.system}\n\n${opts.user}`,
-      {
-        apiKey: process.env.CURSOR_API_KEY!,
-        model: { id: DEVIN_MODEL },
-        local: DEVIN_LOCAL ? { cwd: process.cwd() } : undefined,
-      }
+      options
     );
 
     if (result.status === "error") {
@@ -50,11 +57,18 @@ export async function devinJson<T extends z.ZodTypeAny>(opts: {
   try {
     const prompt = `${opts.system}\n\n${opts.user}\n\nIMPORTANT: Return your response as valid JSON only, no other text.`;
 
-    const result = await Agent.prompt(prompt, {
+    const options: any = {
       apiKey: process.env.CURSOR_API_KEY!,
       model: { id: DEVIN_MODEL },
-      local: DEVIN_LOCAL ? { cwd: process.cwd() } : undefined,
-    });
+    };
+
+    if (DEVIN_LOCAL) {
+      options.local = { cwd: process.cwd() };
+    } else {
+      options.cloud = { repos: ["broyhill/Historic-Broyhill"] };
+    }
+
+    const result = await Agent.prompt(prompt, options);
 
     if (result.status === "error") {
       console.error("Devin returned error:", result.error);
@@ -84,9 +98,16 @@ export async function createDevinAgent() {
     throw new Error("Devin is not configured (CURSOR_API_KEY is not set).");
   }
 
-  return await Agent.create({
+  const options: any = {
     apiKey: process.env.CURSOR_API_KEY!,
     model: { id: DEVIN_MODEL },
-    local: DEVIN_LOCAL ? { cwd: process.cwd() } : undefined,
-  });
+  };
+
+  if (DEVIN_LOCAL) {
+    options.local = { cwd: process.cwd() };
+  } else {
+    options.cloud = { repos: ["broyhill/Historic-Broyhill"] };
+  }
+
+  return await Agent.create(options);
 }
