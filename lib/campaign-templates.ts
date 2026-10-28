@@ -461,7 +461,7 @@ ${SIGN_OFF}`,
     <h1 style="color: #323a46; font-size: 24px; margin-bottom: 20px;">Thank You, {{firstName}}!</h1>
     <p style="color: #6c757d; font-size: 16px; line-height: 1.6;">It was a pleasure hosting you at {{eventName}}. Historic Broyhill was made for gatherings like yours, and we're grateful you chose us.</p>
     <div style="margin: 30px 0; padding: 25px; background-color: #fff3e0; border-radius: 8px;">
-      <p style="color: #323a46; font-size: 16px; line-height: 1.6; margin: 0;">"${testimonial || "The venue was perfect for our event. The team made everything seamless."}"</p>
+      <p style="color: #323a46; font-size: 16px; line-height: 1.6; margin: 0;">"The venue was perfect for our event. The team made everything seamless."</p>
     </div>
     <p style="color: #323a46; font-size: 16px; line-height: 1.6;">If you're planning another event—whether it's a company celebration, a family gathering, or a community function—we'd love to host you again.</p>
     <div style="margin-top: 30px; text-align: center;">
