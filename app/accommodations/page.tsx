@@ -21,7 +21,7 @@ export default function Accommodations() {
             Lodging, Recreation & Entertainment
           </h1>
           <p className="mt-5 max-w-2xl text-[18px] leading-relaxed text-[#bcc6c9]">
-            Make your conference or event a complete experience. We've curated the best local options for lodging, golf, tennis, swimming, and activities—all just minutes from Historic Broyhill.
+            Make your conference or event a complete experience. Historic Broyhill partners with Tanglewood Park to provide exceptional lodging, golf, tennis, swimming, and activities—all just minutes away.
           </p>
         </div>
       </section>
@@ -29,10 +29,10 @@ export default function Accommodations() {
       {/* Lodging */}
       <section className="mx-auto max-w-6xl px-5 py-16 md:py-24">
         <div className="max-w-2xl">
-          <Eyebrow>Lodging</Eyebrow>
-          <h2 className="hb-display mt-4 text-3xl text-[#182c3e] md:text-[2.6rem]">Stay in Tanglewood Park</h2>
+          <Eyebrow>Lodging Partner</Eyebrow>
+          <h2 className="hb-display mt-4 text-3xl text-[#182c3e] md:text-[2.6rem]">Stay at Our Partner: Tanglewood Park</h2>
           <p className="mt-4 text-[17px] leading-relaxed text-[#5a6672]">
-            Just minutes from Historic Broyhill, experience charming accommodations in the heart of Tanglewood Park with access to gardens, trails, and recreation.
+            Historic Broyhill has partnered with Tanglewood Park to offer charming accommodations just minutes away. Experience the historic Manor House with access to gardens, trails, and recreation—all part of our conference guest experience.
           </p>
         </div>
 
@@ -40,7 +40,7 @@ export default function Accommodations() {
           <div className="rounded-xl border border-[#e4dac6] bg-white/60 p-8">
             <h3 className="hb-display text-2xl text-[#182c3e]">Excelsior at the Manor House</h3>
             <p className="mt-3 text-[15px] leading-relaxed text-[#5a6672]">
-              Nestled in Tanglewood Park, this historic manor offers cozy accommodations with vintage-style decor. The Manor House has rich history dating to 1859, once part of the Reynolds estate. Enjoy access to fishing, pedal boats, tennis, the Aquatic Center, gardens, trail systems, horse stables, and golf.
+              Our preferred lodging partner in Tanglewood Park. This historic manor offers cozy accommodations with vintage-style decor. The Manor House has rich history dating to 1859, once part of the Reynolds estate. Guests enjoy access to fishing, pedal boats, tennis, the Aquatic Center, gardens, trail systems, horse stables, and golf.
             </p>
             <ul className="mt-4 space-y-2 text-[15px] text-[#5a6672]">
               <li>· The Manor House</li>
@@ -61,10 +61,10 @@ export default function Accommodations() {
       <section className="bg-[#182c3e] text-[#e9e2d3]">
         <div className="mx-auto max-w-6xl px-5 py-16 md:py-24">
           <div className="max-w-2xl">
-            <Eyebrow light={true}>Recreation</Eyebrow>
+            <Eyebrow light={true}>Recreation Partner</Eyebrow>
             <h2 className="hb-display mt-4 text-3xl text-[#f4ecda] md:text-[2.6rem]">Tanglewood Golf</h2>
             <p className="mt-4 text-[17px] leading-relaxed text-[#bcc6c9]">
-              Home of two championship courses designed by Robert Trent Jones, Sr. One of the premier public golf facilities in the U.S., located along the Yadkin River just minutes from Historic Broyhill.
+              Our golf partner offering two championship courses designed by Robert Trent Jones, Sr. One of the premier public golf facilities in the U.S., located along the Yadkin River just minutes from Historic Broyhill.
             </p>
           </div>
 
@@ -120,10 +120,10 @@ export default function Accommodations() {
       {/* Aquatic Center */}
       <section className="mx-auto max-w-6xl px-5 py-16 md:py-24">
         <div className="max-w-2xl">
-          <Eyebrow>Recreation</Eyebrow>
+          <Eyebrow>Recreation Partner</Eyebrow>
           <h2 className="hb-display mt-4 text-3xl text-[#182c3e] md:text-[2.6rem]">Peter S. Brunstetter Aquatic Center</h2>
           <p className="mt-4 text-[17px] leading-relaxed text-[#5a6672]">
-            Beat the heat at Tanglewood Park's premier aquatic facility. Four sections for all members of the family to enjoy.
+            Our aquatic partner in Tanglewood Park. Beat the heat at this premier aquatic facility with four sections for all members of the family to enjoy.
           </p>
         </div>
 
@@ -170,10 +170,10 @@ export default function Accommodations() {
       <section className="bg-[#182c3e] text-[#e9e2d3]">
         <div className="mx-auto max-w-6xl px-5 py-16 md:py-24">
           <div className="max-w-2xl">
-            <Eyebrow light={true}>Recreation</Eyebrow>
+            <Eyebrow light={true}>Recreation Partner</Eyebrow>
             <h2 className="hb-display mt-4 text-3xl text-[#f4ecda] md:text-[2.6rem]">Tennis at Tanglewood</h2>
             <p className="mt-4 text-[17px] leading-relaxed text-[#bcc6c9]">
-              Tanglewood Park offers tennis facilities for your guests. Excelsior at the Manor House also offers dedicated tennis packages for guests.
+              Our tennis partner in Tanglewood Park. Tanglewood offers tennis facilities for your guests. Excelsior at the Manor House also offers dedicated tennis packages for guests.
             </p>
           </div>
 
@@ -186,10 +186,10 @@ export default function Accommodations() {
       {/* Entertainment */}
       <section className="mx-auto max-w-6xl px-5 py-16 md:py-24">
         <div className="max-w-2xl">
-          <Eyebrow>Entertainment & Activities</Eyebrow>
-          <h2 className="hb-display mt-4 text-3xl text-[#182c3e] md:text-[2.6rem]">More to Explore in Tanglewood Park</h2>
+          <Eyebrow>Entertainment Partner</Eyebrow>
+          <h2 className="hb-display mt-4 text-3xl text-[#182c3e] md:text-[2.6rem]">More to Explore at Tanglewood Park</h2>
           <p className="mt-4 text-[17px] leading-relaxed text-[#5a6672]">
-            Tanglewood Park offers endless activities for conference attendees and their families—all within the park.
+            Our entertainment partner offers endless activities for conference attendees and their families—all within Tanglewood Park.
           </p>
         </div>
 
