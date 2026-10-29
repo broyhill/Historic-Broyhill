@@ -156,8 +156,8 @@ export default function Home() {
           <div className="mt-10 grid gap-4 sm:grid-cols-3">
             {[
               { src: "/photos/heritage-then.jpg", alt: "The school auditorium long ago, with a choir on the stage beneath draped curtains", label: "Then · 1932", note: "The school auditorium, today's Magnolia Room" },
-              { src: "/photos/heritage-music.jpg", alt: "A band playing on the stage of the arched hall during an evening event", label: "Recent years", note: "An evening of live music in the Magnolia Room" },
-              { src: "/photos/heritage-hall.jpg", alt: "The arched hall set with round tables, flowers and candles for a celebration", label: "Recent years", note: "The hall, set for a celebration" },
+              { src: "https://fynjpi72qnkw3hag.public.blob.vercel-storage.com/photos/General/Image%2036-c83dK1e8IdkAyvkybkTrrByQsrUUfg.jpg", alt: "Historic Broyhill event space", label: "Recent years", note: "Events at Historic Broyhill" },
+              { src: "https://fynjpi72qnkw3hag.public.blob.vercel-storage.com/photos/General/Image%2060%201-EKM9RQB4pybjvuiQLxtFYWzI01SBKT.jpg", alt: "Historic Broyhill venue", label: "Recent years", note: "Celebrations at Historic Broyhill" },
             ].map((p) => (
               <figure key={p.src} className="overflow-hidden rounded-lg border border-[#e2d8c3] bg-white">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
