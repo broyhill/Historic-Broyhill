@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import SiteHeader from "../components/SiteHeader";
 
 function Eyebrow({ children, light = false }: { children: React.ReactNode; light?: boolean }) {
@@ -8,7 +11,33 @@ function Eyebrow({ children, light = false }: { children: React.ReactNode; light
   );
 }
 
+function Modal({ isOpen, onClose, title, url }: { isOpen: boolean; onClose: () => void; title: string; url: string }) {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
+      <div className="relative w-full max-w-5xl max-h-[90vh] bg-white rounded-lg shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between border-b border-[#e4dac6] p-4">
+          <h3 className="hb-display text-xl text-[#182c3e]">{title}</h3>
+          <button onClick={onClose} className="text-[#5a6672] hover:text-[#182c3e] text-2xl">&times;</button>
+        </div>
+        <div className="p-4">
+          <iframe src={url} className="w-full h-[70vh] border-0 rounded" title={title} />
+        </div>
+        <div className="border-t border-[#e4dac6] p-4 text-center">
+          <button onClick={onClose} className="rounded-md bg-[#c2a15a] px-6 py-2 text-sm font-semibold uppercase tracking-[0.1em] text-[#182c3e] transition hover:bg-[#d2b268]">Close</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Accommodations() {
+  const [modalOpen, setModalOpen] = useState<string | null>(null);
+
+  const openModal = (title: string, url: string) => setModalOpen(`${title}|${url}`);
+  const closeModal = () => setModalOpen(null);
+
+  const modalData = modalOpen ? { title: modalOpen.split('|')[0], url: modalOpen.split('|')[1] } : null;
   return (
     <main className="hb-body bg-[#f6f1e7] text-[#273440]">
       <SiteHeader />
@@ -48,6 +77,9 @@ export default function Accommodations() {
               <li>· Apartment</li>
               <li>· Cottages</li>
             </ul>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <button onClick={() => openModal('Excelsior at the Manor House', 'https://excelsioratmanor.com')} className="rounded-md border border-[#a8853f] px-4 py-2 text-sm font-semibold uppercase tracking-[0.1em] text-[#182c3e] transition hover:border-[#c2a15a]">View Website</button>
+            </div>
             <p className="mt-4 text-xs text-[#8c7d5f]">Sonja Bledsoe coordinates all lodging arrangements for Historic Broyhill events.</p>
           </div>
         </div>
@@ -174,7 +206,7 @@ export default function Accommodations() {
           </div>
 
           <div className="mt-8 flex flex-wrap gap-3">
-            <a href="https://excelsioratmanor.com/tennis-package-1" target="_blank" rel="noopener noreferrer" className="rounded-md bg-[#c2a15a] px-6 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#182c3e] transition hover:bg-[#d2b268]">Tennis Package</a>
+            <button onClick={() => openModal('Tennis Package', 'https://excelsioratmanor.com/tennis-package-1')} className="rounded-md bg-[#c2a15a] px-6 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#182c3e] transition hover:bg-[#d2b268]">View Tennis Package</button>
           </div>
         </div>
       </section>
@@ -204,6 +236,7 @@ export default function Accommodations() {
               <li>· Carriage rides for special occasions</li>
               <li>· Private and group riding lessons</li>
             </ul>
+            <button onClick={() => openModal('Hay Rides', 'https://tanglewoodstables.com/hay-rides')} className="mt-3 text-sm font-semibold text-[#182c3e] hover:text-[#a8853f]">View Hay Rides →</button>
             <p className="mt-2 text-xs text-[#8c7d5f]">Arranged by Sonja Bledsoe</p>
           </div>
           <div className="rounded-xl border border-[#e4dac6] bg-white/60 p-6">
@@ -239,6 +272,8 @@ export default function Accommodations() {
           <a href="#visit" className="mt-6 inline-block rounded-md bg-[#c2a15a] px-8 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#182c3e] transition hover:bg-[#d2b268]">Contact Sonja</a>
         </div>
       </section>
+
+      <Modal isOpen={!!modalOpen} onClose={closeModal} title={modalData?.title || ''} url={modalData?.url || ''} />
     </main>
   );
 }
