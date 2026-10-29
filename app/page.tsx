@@ -80,7 +80,7 @@ function HeroPhoto() {
       />
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/photos/logo-cream.png"
+        src="https://fynjpi72qnkw3hag.public.blob.vercel-storage.com/photos/General/IMG_6705-8lEsHdQuxlja2spuzGFJbqpi2bUX2i.png"
         alt="Historic Broyhill"
         className="absolute left-1/2 w-[40%] max-w-[540px] -translate-x-1/2"
         style={{ top: "76%", filter: "drop-shadow(0 2px 12px rgba(0,0,0,0.6))" }}
