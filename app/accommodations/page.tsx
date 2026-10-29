@@ -36,7 +36,7 @@ export default function Accommodations() {
           </p>
         </div>
 
-        <div className="mt-10 grid gap-6 md:grid-cols-2">
+        <div className="mt-10">
           <div className="rounded-xl border border-[#e4dac6] bg-white/60 p-8">
             <h3 className="hb-display text-2xl text-[#182c3e]">Excelsior at the Manor House</h3>
             <p className="mt-3 text-[15px] leading-relaxed text-[#5a6672]">
@@ -53,14 +53,6 @@ export default function Accommodations() {
               <a href="tel:3367010470" className="rounded-md border border-[#a8853f] px-6 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#182c3e] transition hover:border-[#c2a15a]">Call (336) 701-0470</a>
             </div>
             <p className="mt-4 text-xs text-[#8c7d5f]">4201 Manor House Cir, Clemmons, NC 27012</p>
-          </div>
-
-          <div className="rounded-xl border border-[#e4dac6] bg-white/60 p-8">
-            <h3 className="hb-display text-2xl text-[#182c3e]">Additional Partner Hotels</h3>
-            <p className="mt-3 text-[15px] leading-relaxed text-[#5a6672]">
-              Historic Broyhill can recommend additional partner hotels in the Clemmons and Winston-Salem area for larger conference groups. Contact us for group rates and availability.
-            </p>
-            <a href="#visit" className="mt-6 inline-block text-sm font-semibold text-[#182c3e] hover:text-[#a8853f]">Request hotel recommendations →</a>
           </div>
         </div>
       </section>
@@ -195,9 +187,9 @@ export default function Accommodations() {
       <section className="mx-auto max-w-6xl px-5 py-16 md:py-24">
         <div className="max-w-2xl">
           <Eyebrow>Entertainment & Activities</Eyebrow>
-          <h2 className="hb-display mt-4 text-3xl text-[#182c3e] md:text-[2.6rem]">More to Explore</h2>
+          <h2 className="hb-display mt-4 text-3xl text-[#182c3e] md:text-[2.6rem]">More to Explore in Tanglewood Park</h2>
           <p className="mt-4 text-[17px] leading-relaxed text-[#5a6672]">
-            Tanglewood Park and the surrounding Clemmons/Winston-Salem area offer plenty of activities for conference attendees and their families.
+            Tanglewood Park offers endless activities for conference attendees and their families—all within the park.
           </p>
         </div>
 
@@ -228,12 +220,12 @@ export default function Accommodations() {
             <p className="mt-2 text-[14px] text-[#5a6672]">Miles of walking and hiking trails throughout Tanglewood Park</p>
           </div>
           <div className="rounded-xl border border-[#e4dac6] bg-white/60 p-6">
-            <h3 className="hb-display text-xl text-[#182c3e]">Winston-Salem</h3>
-            <p className="mt-2 text-[14px] text-[#5a6672]">Just 10 minutes away—dining, arts, culture, and entertainment</p>
+            <h3 className="hb-display text-xl text-[#182c3e]">Playgrounds & Picnic Areas</h3>
+            <p className="mt-2 text-[14px] text-[#5a6672]">Family-friendly playgrounds and picnic shelters throughout the park</p>
           </div>
           <div className="rounded-xl border border-[#e4dac6] bg-white/60 p-6">
-            <h3 className="hb-display text-xl text-[#182c3e]">Old Salem</h3>
-            <p className="mt-2 text-[14px] text-[#5a6672]">Historic Moravian village with museums, gardens, and living history</p>
+            <h3 className="hb-display text-xl text-[#182c3e]">Festival of Lights</h3>
+            <p className="mt-2 text-[14px] text-[#5a6672]">Annual holiday light display (seasonal)—a magical drive-through experience</p>
           </div>
         </div>
       </section>
