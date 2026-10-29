@@ -207,8 +207,17 @@ export default function Accommodations() {
             <p className="mt-2 text-[14px] text-[#5a6672]">Showcases global plant varieties with beautiful gardens and trail systems</p>
           </div>
           <div className="rounded-xl border border-[#e4dac6] bg-white/60 p-6">
-            <h3 className="hb-display text-xl text-[#182c3e]">Horse Stables</h3>
-            <p className="mt-2 text-[14px] text-[#5a6672]">Equestrian facilities and horse riding activities in Tanglewood Park</p>
+            <h3 className="hb-display text-xl text-[#182c3e]">Tanglewood Stables</h3>
+            <p className="mt-2 text-[14px] text-[#5a6672]">Horseback riding on 385 acres along the Yadkin River. Trail rides, pony rides, hay rides, carriage rides, and riding lessons available year-round.</p>
+            <ul className="mt-3 space-y-1 text-[13px] text-[#5a6672]">
+              <li>· Trail rides for all experience levels</li>
+              <li>· Pony rides for children under 6</li>
+              <li>· Hay rides for groups and events</li>
+              <li>· White formal and mahogany carriage rides</li>
+              <li>· Private and group riding lessons</li>
+            </ul>
+            <a href="https://tanglewoodstables.com" target="_blank" rel="noopener noreferrer" className="mt-3 inline-block text-sm font-semibold text-[#182c3e] hover:text-[#a8853f]">Visit Tanglewood Stables →</a>
+            <p className="mt-2 text-xs text-[#8c7d5f]">Stables Office: (336) 766-9540</p>
           </div>
           <div className="rounded-xl border border-[#e4dac6] bg-white/60 p-6">
             <h3 className="hb-display text-xl text-[#182c3e]">Fishing & Pedal Boats</h3>
