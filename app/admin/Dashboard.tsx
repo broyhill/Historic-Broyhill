@@ -15,7 +15,7 @@ export type Section = "dashboard" | "leads" | "queue" | "history" | "campaigns" 
 function Stat({ label, value, tone = "default" }: { label: string; value: React.ReactNode; tone?: "default" | "teal" | "amber" }) {
   const color = tone === "teal" ? "text-success" : tone === "amber" ? "text-warn" : "text-ink";
   return (
-    <div className="py-3 pr-6 border-r border-line last:border-r-0">
+    <div className="py-3 pr-6 border-r border-line [&:nth-child(2n)]:border-r-0 lg:[&:nth-child(2n)]:border-r last:!border-r-0">
       <span className={`hb-display text-[30px] block leading-none tabular-nums ${color}`}>{value}</span>
       <span className="text-[13px] text-muted block mt-1.5">{label}</span>
     </div>
