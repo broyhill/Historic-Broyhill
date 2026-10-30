@@ -154,7 +154,7 @@ export default function AdminConsole() {
       {/* Main */}
       <div className="lg:pl-64">
         <header className="sticky top-0 z-20 flex items-center gap-3 px-4 md:px-8 h-16 bg-canvas/95 backdrop-blur-sm border-b border-line">
-          <button onClick={() => setNavOpen(true)} className="lg:hidden p-2 -ml-2 text-muted hover:text-ink" aria-label="Open navigation">
+          <button onClick={() => setNavOpen(true)} className="lg:hidden h-11 w-11 -ml-2 grid place-items-center text-muted hover:text-ink" aria-label="Open navigation">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" className="h-5 w-5"><path d="M3 12h18M3 6h18M3 18h18" /></svg>
           </button>
           <div className="flex-1">
