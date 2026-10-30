@@ -57,7 +57,10 @@ export default function StudioPanel({ openId, openStarter }: { openId?: string |
     return () => ro.disconnect();
   }, []);
   // Wide screens are shown shrunk to fit the panel, so the email is laid out at the real screen width.
-  const scale = Math.min(1, Math.max(0.2, (boxW - 24) / DEVICES[view].width));
+  // The Email view is different: on a narrow panel it reflows at the panel's width like a phone would,
+  // so the cells stay full size and easy to tap.
+  const frameW = view === "email" ? Math.min(DEVICES.email.width, Math.max(300, boxW - 24)) : DEVICES[view].width;
+  const scale = Math.min(1, Math.max(0.2, (boxW - 24) / frameW));
   const [open, setOpen] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
@@ -260,16 +263,16 @@ export default function StudioPanel({ openId, openStarter }: { openId?: string |
         <div className="space-y-3 min-w-0">
           <div className="rounded-2xl bg-navy-deep p-4">
             <div className="mb-2 flex items-center justify-between text-[12px] text-subtle">
-              <span>{DEVICES[view].label} · {DEVICES[view].width} px wide</span>
+              <span>{DEVICES[view].label} · {frameW} px wide</span>
               <span>Click any part of the email to edit it. Sending is off.</span>
             </div>
             <div ref={boxRef} className="flex justify-center">
-              <div style={{ width: DEVICES[view].width * scale, height: PREVIEW_H }} className={`overflow-hidden bg-white ${view === "mobile" || view === "ipad" ? "rounded-[26px] border-[7px] border-navy-soft" : "rounded border border-navy-soft"}`}>
+              <div style={{ width: frameW * scale, height: PREVIEW_H }} className={`overflow-hidden bg-white ${view === "mobile" || view === "ipad" ? "rounded-[26px] border-[7px] border-navy-soft" : "rounded border border-navy-soft"}`}>
                 <iframe
                   title="Email preview. Click any part to edit it."
                   sandbox="allow-scripts"
                   srcDoc={html}
-                  style={{ width: DEVICES[view].width, height: PREVIEW_H / scale, transform: `scale(${scale})`, transformOrigin: "top left", border: 0, background: "#fff" }}
+                  style={{ width: frameW, height: PREVIEW_H / scale, transform: `scale(${scale})`, transformOrigin: "top left", border: 0, background: "#fff" }}
                 />
               </div>
             </div>
@@ -542,7 +545,7 @@ function Thumb({ design, title }: { design: { blocks: Block[]; brand: Brand }; t
   const scale = w / 640;
   return (
     <div ref={ref} className="h-64 overflow-hidden rounded-lg border border-line bg-white">
-      <iframe title={`Thumbnail ${title}`} sandbox="" tabIndex={-1} srcDoc={renderHtml(design, { title })} className="pointer-events-none" style={{ width: 640, height: 256 / scale, border: 0, transform: `scale(${scale})`, transformOrigin: "top left" }} />
+      <iframe title={`Thumbnail ${title}`} sandbox="" tabIndex={-1} scrolling="no" srcDoc={renderHtml(design, { title })} className="pointer-events-none" style={{ width: 640, height: 256 / scale, border: 0, transform: `scale(${scale})`, transformOrigin: "top left" }} />
     </div>
   );
 }

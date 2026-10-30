@@ -411,7 +411,7 @@ function Thumb({ design, title }: { design: Design; title: string }) {
   const scale = w / 640;
   return (
     <div ref={ref} className="h-56 overflow-hidden bg-canvas border-b border-line">
-      <iframe title={`Preview of ${title}`} sandbox="" tabIndex={-1} srcDoc={renderHtml(design, { title })} className="pointer-events-none" style={{ width: 640, height: 224 / scale, border: 0, transform: `scale(${scale})`, transformOrigin: "top left" }} />
+      <iframe title={`Preview of ${title}`} sandbox="" tabIndex={-1} scrolling="no" srcDoc={renderHtml(design, { title })} className="pointer-events-none" style={{ width: 640, height: 224 / scale, border: 0, transform: `scale(${scale})`, transformOrigin: "top left" }} />
     </div>
   );
 }
