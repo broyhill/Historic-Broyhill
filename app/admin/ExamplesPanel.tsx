@@ -136,10 +136,10 @@ function Preview({ ex }: { ex: Example }) {
       const sb = ex.video.storyboard;
       return (
         <div className="bg-navy-deep p-3 h-56 flex flex-col gap-2">
-          <div className="grid grid-cols-3 gap-1.5 flex-1 min-h-0">
+          <div className="grid grid-cols-3 grid-rows-2 gap-1.5 flex-1 min-h-0 overflow-hidden">
             {sb.scenes.filter((s) => s.kind === "photo").slice(0, 6).map((s) => (
               // eslint-disable-next-line @next/next/no-img-element
-              <img key={s.id} src={s.url} alt={s.alt} className="h-full w-full object-cover rounded" loading="lazy" />
+              <img key={s.id} src={s.url} alt={s.alt} className="h-full w-full min-h-0 object-cover rounded" loading="lazy" />
             ))}
           </div>
           <div className="flex items-center justify-between text-[11.5px] text-white/78">
