@@ -38,36 +38,42 @@ function NavIcon({ section }: { section: Section }) {
   );
 }
 
-const NAV: { key: Section; label: string }[] = [
-  { key: "dashboard", label: "Dashboard" },
-  { key: "ask", label: "Ask Devin" },
-  { key: "leads", label: "Leads" },
-  { key: "campaigns", label: "Campaigns" },
-  { key: "templates", label: "Templates" },
-  { key: "studio", label: "Studio" },
-  { key: "social", label: "Social Posts" },
-  { key: "video", label: "Video Studio" },
-  { key: "photos", label: "Photo Library" },
-  { key: "stock", label: "Free Media" },
-  { key: "queue", label: "Review Queue" },
-  { key: "history", label: "Broadcasts" },
-  { key: "settings", label: "Settings" },
+const NAV_GROUPS: { heading: string | null; items: { key: Section; label: string }[] }[] = [
+  { heading: null, items: [{ key: "dashboard", label: "Today" }] },
+  { heading: "People", items: [{ key: "leads", label: "Leads" }] },
+  { heading: "Outreach", items: [
+    { key: "campaigns", label: "Email campaigns" },
+    { key: "queue", label: "Review queue" },
+    { key: "history", label: "Sent" },
+  ] },
+  { heading: "Content", items: [
+    { key: "templates", label: "Templates" },
+    { key: "studio", label: "Email studio" },
+    { key: "social", label: "Social posts" },
+    { key: "video", label: "Video" },
+    { key: "photos", label: "Photo library" },
+    { key: "stock", label: "Free media" },
+  ] },
+  { heading: "Tools", items: [
+    { key: "ask", label: "Ask" },
+    { key: "settings", label: "Venue & account" },
+  ] },
 ];
 
 const TITLES: Record<Section, string> = {
-  dashboard: "Dashboard",
-  leads: "Lead Directory",
-  queue: "Review Queue",
-  history: "Broadcast History",
-  campaigns: "Email Campaigns",
+  dashboard: "Today",
+  leads: "Leads",
+  queue: "Review queue",
+  history: "Sent broadcasts",
+  campaigns: "Email campaigns",
   templates: "Templates",
-  studio: "Email Studio",
-  social: "Social Posts",
-  video: "Video Studio",
-  photos: "Photo Library",
-  stock: "Free Media (royalty-free)",
-  ask: "Ask Devin",
-  settings: "Settings",
+  studio: "Email studio",
+  social: "Social posts",
+  video: "Video",
+  photos: "Photo library",
+  stock: "Free media",
+  ask: "Ask",
+  settings: "Venue & account",
 };
 
 export default function AdminConsole() {
@@ -105,12 +111,13 @@ export default function AdminConsole() {
         key={key}
         onClick={() => go(key)}
         aria-current={active ? "page" : undefined}
-        className={`ins-navitem ${active ? "is-active" : ""} w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium`}
+        className={`ins-navitem ${active ? "is-active" : ""} w-full flex items-center gap-3 px-3 min-h-[40px] rounded-md text-[14px]`}
       >
+        <span className="ins-navdot h-1.5 w-1.5 rounded-full bg-transparent shrink-0" aria-hidden="true" />
         <NavIcon section={key} />
         <span className="flex-1 text-left">{label}</span>
         {badge !== undefined && badge > 0 && (
-          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${key === "queue" ? "bg-[#1ab394] text-white" : "bg-white/10 text-[#aab8c5]"}`}>{badge}</span>
+          <span className={`text-[11px] font-semibold tabular-nums px-1.5 py-0.5 rounded ${key === "queue" ? "bg-accent-bright text-navy-deep" : "bg-white/10 text-white/80"}`}>{badge}</span>
         )}
       </button>
     );
@@ -123,42 +130,40 @@ export default function AdminConsole() {
 
       {/* Sidebar */}
       <aside className={`ins-sidebar fixed inset-y-0 left-0 z-40 w-64 flex flex-col transform transition-transform lg:translate-x-0 ${navOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="px-5 py-4 border-b border-white/10">
-          <h1 className="font-semibold text-[15px] text-white leading-tight">✦ Historic Broyhill</h1>
-          <p className="text-[10px] uppercase tracking-[0.18em] text-[#1ab394] mt-0.5">Operations Console</p>
+        <div className="px-5 pt-6 pb-5 border-b border-white/10">
+          <h1 className="text-[22px] text-white leading-none">Historic Broyhill</h1>
+          <p className="text-[13px] text-accent-bright mt-1.5">Back office</p>
         </div>
 
-        {/* User block */}
-        <div className="px-5 py-4 flex items-center gap-3 border-b border-white/10">
-          <div className="h-9 w-9 rounded-full bg-[#1ab394]/20 text-[#1ab394] grid place-items-center text-sm font-semibold">HB</div>
-          <div className="min-w-0">
-            <div className="text-[13px] font-semibold text-white truncate">Staff Member</div>
-            <div className="text-[11px] text-[#8ca3bd]">Signed in</div>
-          </div>
-        </div>
-
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          <p className="ins-navlabel px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-[0.14em]">Navigation</p>
-          {NAV.map((n) => navButton(n.key, n.label))}
+        <nav className="flex-1 px-3 py-3 overflow-y-auto" aria-label="Console sections">
+          {NAV_GROUPS.map((g, i) => (
+            <div key={g.heading ?? i} className={i === 0 ? "" : "mt-5"}>
+              {g.heading && <p className="ins-navlabel px-3 pb-1 text-[12px]">{g.heading}</p>}
+              <div className="space-y-0.5">{g.items.map((n) => navButton(n.key, n.label))}</div>
+            </div>
+          ))}
         </nav>
         <div className="p-3 border-t border-white/10">
-          <button onClick={signOut} className="ins-navitem w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] hover:!text-red-300">
+          <button onClick={signOut} className="ins-navitem w-full flex items-center gap-3 px-3 min-h-[40px] rounded-md text-[14px]">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px]"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" /></svg>
-            Sign Out
+            Sign out
           </button>
         </div>
       </aside>
 
       {/* Main */}
       <div className="lg:pl-64">
-        <header className="sticky top-0 z-20 flex items-center gap-3 px-4 md:px-8 h-[65px] bg-white border-b border-[#e7e9eb]">
-          <button onClick={() => setNavOpen(true)} className="lg:hidden p-2 -ml-2 text-[#6c757d] hover:text-[#323a46]" aria-label="Open navigation">
+        <header className="sticky top-0 z-20 flex items-center gap-3 px-4 md:px-8 h-16 bg-canvas/95 backdrop-blur-sm border-b border-line">
+          <button onClick={() => setNavOpen(true)} className="lg:hidden p-2 -ml-2 text-muted hover:text-ink" aria-label="Open navigation">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" className="h-5 w-5"><path d="M3 12h18M3 6h18M3 18h18" /></svg>
           </button>
           <div className="flex-1">
-            <h2 className="text-[17px] font-semibold text-[#323a46]">{TITLES[section]}</h2>
+            <h2 className="text-[22px] text-ink leading-none">{TITLES[section]}</h2>
           </div>
-          <button onClick={refreshMetrics} className="h-9 w-9 grid place-items-center border border-[#e7e9eb] bg-white rounded-md text-[#6c757d] hover:text-[#1ab394] hover:border-[#1ab394]/40" aria-label="Refresh">↻</button>
+          <button onClick={refreshMetrics} className="h-10 px-3 inline-flex items-center gap-2 border border-line bg-white rounded-md text-[13px] text-muted hover:text-ink hover:border-faint" aria-label="Refresh counts">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" /></svg>
+            Refresh
+          </button>
         </header>
 
         <main className="p-4 md:p-8 max-w-6xl">
@@ -185,17 +190,17 @@ export default function AdminConsole() {
 // (broyhill.net); no fabricated or editable settings.
 function SettingsPanel() {
   const row = (label: string, value: React.ReactNode) => (
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 py-2.5 border-b border-[#e7e9eb] last:border-0">
-      <span className="text-[11px] font-semibold uppercase tracking-wider text-[#9ba6b7]">{label}</span>
-      <span className="text-sm text-[#323a46]">{value}</span>
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 py-2.5 border-b border-line last:border-0">
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-subtle">{label}</span>
+      <span className="text-sm text-ink">{value}</span>
     </div>
   );
   return (
     <div className="space-y-6 max-w-2xl">
       <section className="ibox">
-        <div className="ibox-title"><h3 className="text-sm font-semibold text-[#323a46]">Session</h3></div>
+        <div className="ibox-title"><h3 className="text-sm font-semibold text-ink">Session</h3></div>
         <div className="ibox-content">
-          <p className="text-[13px] text-[#6c757d] leading-relaxed">
+          <p className="text-[13px] text-muted leading-relaxed">
             You are signed in with the staff passcode. Access expires automatically after 12 hours, or use
             Sign Out in the sidebar to end this session now.
           </p>
@@ -203,13 +208,13 @@ function SettingsPanel() {
       </section>
 
       <section className="ibox">
-        <div className="ibox-title"><h3 className="text-sm font-semibold text-[#323a46]">Venue contact</h3></div>
+        <div className="ibox-title"><h3 className="text-sm font-semibold text-ink">Venue contact</h3></div>
         <div className="ibox-content pt-1">
           {row("Address", "3540 Clemmons Road, Suite 111, Clemmons, NC 27012")}
-          {row("Phone", <a href="tel:+13367931191" className="text-[#1ab394] hover:underline">336-793-1191</a>)}
-          {row("Email", <a href="mailto:Info@Broyhill.net" className="text-[#1ab394] hover:underline">Info@Broyhill.net</a>)}
-          {row("Bookings", <a href="https://broyhill.skedda.com" target="_blank" rel="noopener noreferrer" className="text-[#1ab394] hover:underline">broyhill.skedda.com ↗</a>)}
-          {row("Website", <a href="https://www.broyhill.net" target="_blank" rel="noopener noreferrer" className="text-[#1ab394] hover:underline">www.broyhill.net ↗</a>)}
+          {row("Phone", <a href="tel:+13367931191" className="text-accent hover:underline">336-793-1191</a>)}
+          {row("Email", <a href="mailto:Info@Broyhill.net" className="text-accent hover:underline">Info@Broyhill.net</a>)}
+          {row("Bookings", <a href="https://broyhill.skedda.com" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">broyhill.skedda.com ↗</a>)}
+          {row("Website", <a href="https://www.broyhill.net" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">www.broyhill.net ↗</a>)}
         </div>
       </section>
     </div>

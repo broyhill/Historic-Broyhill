@@ -11,10 +11,10 @@ interface Checkpoint { id: string; title: string; at: string; storyboard: Storyb
 interface Saved { id: string; name: string; seconds: number }
 type Kind = "you" | "claude" | "done" | "skip";
 
-const inputCls = "w-full rounded-md border border-[#e7e9eb] px-3 py-2 text-[14px] text-[#323a46] focus:outline-none focus:border-[#1ab394]";
-const btnPrimary = "h-9 px-4 rounded-md bg-[#1ab394] text-white text-[13px] font-semibold disabled:opacity-50";
-const btnGhost = "h-8 px-3 rounded-md border border-[#e7e9eb] text-[#6c757d] text-[12.5px] hover:border-[#1ab394]/50 disabled:opacity-50";
-const lbl = "text-[12px] font-semibold text-[#6c757d]";
+const inputCls = "w-full rounded-md border border-line px-3 py-2 text-[14px] text-ink focus:outline-none focus:border-accent";
+const btnPrimary = "h-9 px-4 rounded-md bg-accent text-white text-[13px] font-semibold disabled:opacity-50";
+const btnGhost = "h-8 px-3 rounded-md border border-line text-muted text-[12.5px] hover:border-accent/50 disabled:opacity-50";
+const lbl = "text-[12px] font-semibold text-muted";
 const W = 1280, H = 720;
 
 async function call(url: string, init?: RequestInit) {
@@ -257,47 +257,47 @@ export default function VideoPanel() {
         </select>
         <input className={`${inputCls} !w-64`} placeholder="Name this video" value={name} onChange={(e) => { setName(e.target.value); setDirty(true); }} />
       </div>
-      {notice && <p className="text-[13px] text-[#1a7f68]">{notice}</p>}
-      {error && <p className="text-[13px] text-[#b83232]">{error}</p>}
+      {notice && <p className="text-[13px] text-success">{notice}</p>}
+      {error && <p className="text-[13px] text-danger">{error}</p>}
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(340px,1fr)]">
         {/* Stage */}
         <div className="min-w-0 space-y-3">
-          <div className="rounded-2xl bg-[#14171a] p-4">
-            <div className="mb-2 flex items-center justify-between text-[12px] text-[#8b95a1]"><span>Preview · 16:9 · {fmt(total)}</span><span>Preview only. Nothing is posted.</span></div>
+          <div className="rounded-2xl bg-navy-deep p-4">
+            <div className="mb-2 flex items-center justify-between text-[12px] text-subtle"><span>Preview · 16:9 · {fmt(total)}</span><span>Preview only. Nothing is posted.</span></div>
             <canvas ref={canvasRef} width={W} height={H} className="w-full rounded bg-black" aria-label="Video preview" />
             <div className="mt-3 flex items-center gap-3">
-              <button className="h-9 w-9 rounded-full bg-[#1ab394] text-white" onClick={play} disabled={!sb.scenes.length} aria-label={playing ? "Pause" : "Play"}>{playing ? "❚❚" : "▶"}</button>
+              <button className="h-9 w-9 rounded-full bg-accent text-white" onClick={play} disabled={!sb.scenes.length} aria-label={playing ? "Pause" : "Play"}>{playing ? "❚❚" : "▶"}</button>
               <input type="range" min={0} max={Math.max(total, 0.1)} step={0.05} value={time} onChange={(e) => { setPlaying(false); seek(Number(e.target.value)); }} className="flex-1" aria-label="Position in the video" />
-              <span className="w-24 text-right text-[12px] tabular-nums text-[#8b95a1]">{fmt(time)} / {fmt(total)}</span>
+              <span className="w-24 text-right text-[12px] tabular-nums text-subtle">{fmt(time)} / {fmt(total)}</span>
             </div>
             <div className="mt-3 space-y-2">
               {log.length > 0 && (
-                <ul className="max-h-40 space-y-1 overflow-y-auto rounded-lg bg-[#1c2024] p-2 text-[12.5px]" aria-label="What the assistant did">
-                  {log.map((e) => (<li key={e.id} className={e.kind === "you" ? "text-[#e8eaed]" : e.kind === "claude" ? "text-[#9ad7c6]" : e.kind === "done" ? "text-[#8b95a1]" : "text-[#e2b24a]"}>{e.kind === "you" ? "You: " : e.kind === "claude" ? "Claude: " : e.kind === "done" ? "✓ " : "– "}{e.text}</li>))}
+                <ul className="max-h-40 space-y-1 overflow-y-auto rounded-lg bg-navy p-2 text-[12.5px]" aria-label="What the assistant did">
+                  {log.map((e) => (<li key={e.id} className={e.kind === "you" ? "text-line" : e.kind === "claude" ? "text-success-tint" : e.kind === "done" ? "text-subtle" : "text-warn"}>{e.kind === "you" ? "You: " : e.kind === "claude" ? "Claude: " : e.kind === "done" ? "✓ " : "– "}{e.text}</li>))}
                 </ul>
               )}
               <form className="flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); runCommand(); }}>
-                <input className="h-10 flex-1 rounded-lg border border-[#2b2f36] bg-[#1c2024] px-3 text-[14px] text-[#e8eaed] placeholder:text-[#6c757d] focus:outline-none focus:border-[#1ab394]" placeholder="Give me a command to edit the video (e.g. make scene 2 longer)" value={cmd} onChange={(e) => setCmd(e.target.value)} aria-label="Command for the assistant" />
-                <button type="submit" disabled={busy !== null || !cmd.trim() || !sb.scenes.length} className="h-10 rounded-lg bg-[#1ab394] px-4 text-[13px] font-semibold text-white disabled:opacity-50">{busy === "command" ? "Working…" : "Send"}</button>
-                <button type="button" onClick={undoStep} disabled={past.length === 0} aria-label="Undo" title={past.length ? `Undo: ${past[past.length - 1].label}` : "Nothing to undo"} className="h-10 w-10 rounded-lg border border-[#2b2f36] text-[#e8eaed] disabled:opacity-40">↶</button>
-                <button type="button" onClick={redoStep} disabled={future.length === 0} aria-label="Redo" title={future.length ? `Redo: ${future[0].label}` : "Nothing to redo"} className="h-10 w-10 rounded-lg border border-[#2b2f36] text-[#e8eaed] disabled:opacity-40">↷</button>
+                <input className="h-10 flex-1 rounded-lg border border-navy-soft bg-navy px-3 text-[14px] text-line placeholder:text-muted focus:outline-none focus:border-accent" placeholder="Give me a command to edit the video (e.g. make scene 2 longer)" value={cmd} onChange={(e) => setCmd(e.target.value)} aria-label="Command for the assistant" />
+                <button type="submit" disabled={busy !== null || !cmd.trim() || !sb.scenes.length} className="h-10 rounded-lg bg-accent px-4 text-[13px] font-semibold text-white disabled:opacity-50">{busy === "command" ? "Working…" : "Send"}</button>
+                <button type="button" onClick={undoStep} disabled={past.length === 0} aria-label="Undo" title={past.length ? `Undo: ${past[past.length - 1].label}` : "Nothing to undo"} className="h-10 w-10 rounded-lg border border-navy-soft text-line disabled:opacity-40">↶</button>
+                <button type="button" onClick={redoStep} disabled={future.length === 0} aria-label="Redo" title={future.length ? `Redo: ${future[0].label}` : "Nothing to redo"} className="h-10 w-10 rounded-lg border border-navy-soft text-line disabled:opacity-40">↷</button>
               </form>
-              <div className="flex justify-between text-[11.5px] text-[#6c757d]"><span>Each change can be undone. Claude only uses pictures from your Photo Library.</span><span>{aiCount} AI action{aiCount === 1 ? "" : "s"} this session</span></div>
+              <div className="flex justify-between text-[11.5px] text-muted"><span>Each change can be undone. Claude only uses pictures from your Photo Library.</span><span>{aiCount} AI action{aiCount === 1 ? "" : "s"} this session</span></div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[#e7e9eb] bg-white p-3">
-            <div className="mb-2 flex items-center justify-between"><div className="text-[14px] font-semibold text-[#323a46]">Storyboard <span className="ml-1 rounded-full bg-[#eef0f2] px-2 text-[11.5px] font-normal text-[#6c757d]">{sb.scenes.length}</span></div>
+          <div className="rounded-2xl border border-line bg-white p-3">
+            <div className="mb-2 flex items-center justify-between"><div className="text-[14px] font-semibold text-ink">Storyboard <span className="ml-1 rounded-full bg-line px-2 text-[11.5px] font-normal text-muted">{sb.scenes.length}</span></div>
               <button className={btnGhost} onClick={() => openPicker("add")} disabled={sb.scenes.length >= MAX_SCENES}>+ Add picture</button></div>
-            {sb.scenes.length === 0 ? <p className="text-[12.5px] text-[#9ba6b7]">No scenes yet. Add pictures from your Photo Library, or ask Claude for a storyboard draft.</p> : (
+            {sb.scenes.length === 0 ? <p className="text-[12.5px] text-subtle">No scenes yet. Add pictures from your Photo Library, or ask Claude for a storyboard draft.</p> : (
               <div className="flex gap-3 overflow-x-auto pb-1">
                 {sb.scenes.map((s, i) => (
-                  <button key={s.id} onClick={() => { setSel(s.id); setPlaying(false); seek(sb.scenes.slice(0, i).reduce((t, x) => t + x.seconds, 0) + 0.6); }} className={`w-[190px] shrink-0 text-left ${sel === s.id ? "ring-2 ring-[#1ab394] rounded-lg" : ""}`}>
+                  <button key={s.id} onClick={() => { setSel(s.id); setPlaying(false); seek(sb.scenes.slice(0, i).reduce((t, x) => t + x.seconds, 0) + 0.6); }} className={`w-[190px] shrink-0 text-left ${sel === s.id ? "ring-2 ring-accent rounded-lg" : ""}`}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={s.url} alt={s.alt} className={`h-[107px] w-full rounded-lg object-cover ${cur?.sceneIndex === i ? "outline outline-2 outline-[#1ab394]" : ""}`} />
-                    <div className="mt-1 flex justify-between text-[11.5px] text-[#6c757d]"><span>{i + 1}</span><span>{s.seconds}s</span></div>
-                    <div className="truncate text-[12.5px] text-[#323a46]">{s.caption || <span className="text-[#9ba6b7]">No caption</span>}</div>
+                    <img src={s.url} alt={s.alt} className={`h-[107px] w-full rounded-lg object-cover ${cur?.sceneIndex === i ? "outline outline-2 outline-accent" : ""}`} />
+                    <div className="mt-1 flex justify-between text-[11.5px] text-muted"><span>{i + 1}</span><span>{s.seconds}s</span></div>
+                    <div className="truncate text-[12.5px] text-ink">{s.caption || <span className="text-subtle">No caption</span>}</div>
                   </button>
                 ))}
               </div>
@@ -306,12 +306,12 @@ export default function VideoPanel() {
         </div>
 
         {/* Controls */}
-        <div className="flex flex-col overflow-hidden rounded-2xl border border-[#e7e9eb] bg-white lg:sticky lg:top-4 lg:h-[calc(100vh-170px)] lg:min-h-[560px]">
+        <div className="flex flex-col overflow-hidden rounded-2xl border border-line bg-white lg:sticky lg:top-4 lg:h-[calc(100vh-170px)] lg:min-h-[560px]">
           <div className="flex-1 space-y-3 overflow-y-auto p-3">
             {picking && (
-              <div className="rounded-lg border border-[#e7e9eb] p-2">
+              <div className="rounded-lg border border-line p-2">
                 <div className="mb-1 flex items-center justify-between"><span className={lbl}>{picking === "add" ? "Add a picture" : "Change the picture"}</span><button className={btnGhost} onClick={() => setPicking(null)}>Close</button></div>
-                {photos === null ? <p className="text-[12px] text-[#9ba6b7]">Loading…</p> : photos.length === 0 ? <p className="text-[12px] text-[#9ba6b7]">No photos available (the photo store may not be connected yet).</p> : (
+                {photos === null ? <p className="text-[12px] text-subtle">Loading…</p> : photos.length === 0 ? <p className="text-[12px] text-subtle">No photos available (the photo store may not be connected yet).</p> : (
                   <div className="grid max-h-56 grid-cols-4 gap-2 overflow-auto">{photos.map((p) => (
                     <button key={p.url} onClick={() => choose(p)}>{/* eslint-disable-next-line @next/next/no-img-element */}<img src={p.url} alt={p.name} className="h-16 w-full rounded object-cover" /></button>))}</div>
                 )}
@@ -319,7 +319,7 @@ export default function VideoPanel() {
             )}
 
             {selected ? (
-              <div className="space-y-2 rounded-lg bg-[#fafbfc] p-3">
+              <div className="space-y-2 rounded-lg bg-canvas p-3">
                 <div className="flex items-center justify-between"><span className={lbl}>Scene {sb.scenes.findIndex((s) => s.id === selected.id) + 1}</span>
                   <div className="flex gap-1">
                     <button className={btnGhost} onClick={() => moveScene(selected.id, -1)} aria-label="Move earlier">←</button>
@@ -336,19 +336,19 @@ export default function VideoPanel() {
                 <select className={inputCls} value={selected.motion} onChange={(e) => patchScene(selected.id, { motion: e.target.value === "none" ? "none" : e.target.value === "pull" ? "pull" : "push" })}><option value="push">Slow push in</option><option value="pull">Slow pull out</option><option value="none">Still</option></select>
                 <input className={inputCls} placeholder="Describe the picture (for people who can't see it)" value={selected.alt} onChange={(e) => patchScene(selected.id, { alt: e.target.value })} />
               </div>
-            ) : <p className="rounded-lg bg-[#fafbfc] p-3 text-[12.5px] text-[#9ba6b7]">Click a scene in the storyboard to edit its caption, length and camera move.</p>}
+            ) : <p className="rounded-lg bg-canvas p-3 text-[12.5px] text-subtle">Click a scene in the storyboard to edit its caption, length and camera move.</p>}
 
-            <div className="space-y-2 rounded-lg bg-[#fafbfc] p-3">
+            <div className="space-y-2 rounded-lg bg-canvas p-3">
               <span className={lbl}>Music (optional)</span>
               <input className={inputCls} placeholder="Link to a music file you're licensed to use (https://…mp3)" value={sb.music?.url ?? ""} onChange={(e) => edit(normalizeStoryboard({ ...sb, music: e.target.value ? { url: e.target.value, name: sb.music?.name || "Music", volume: sb.music?.volume ?? 0.8, fadeOutSeconds: sb.music?.fadeOutSeconds ?? 3 } : null }))} />
               <button type="button" className={btnGhost} onClick={openMusic}>{pickingMusic ? "Close music library" : "Choose from the music library"}</button>
               {pickingMusic && (
                 <div className="space-y-1.5">
-                  {tracks === null && <p className="text-[12px] text-[#9ba6b7]">Loading…</p>}
-                  {tracks?.length === 0 && <p className="text-[12px] text-[#9ba6b7]">No music yet. In Photo Library, open a "Music" folder and upload an MP3 you're licensed to use.</p>}
+                  {tracks === null && <p className="text-[12px] text-subtle">Loading…</p>}
+                  {tracks?.length === 0 && <p className="text-[12px] text-subtle">No music yet. In Photo Library, open a "Music" folder and upload an MP3 you're licensed to use.</p>}
                   {tracks?.map((t) => (
-                    <div key={t.url} className="rounded-md border border-[#e7e9eb] p-2 space-y-1">
-                      <div className="text-[12.5px] text-[#323a46] truncate" title={t.name}>🎵 {t.name} <span className="text-[#9ba6b7]">· {t.folder}</span></div>
+                    <div key={t.url} className="rounded-md border border-line p-2 space-y-1">
+                      <div className="text-[12.5px] text-ink truncate" title={t.name}>🎵 {t.name} <span className="text-subtle">· {t.folder}</span></div>
                       <audio src={t.url} controls preload="none" className="w-full" />
                       <button type="button" className={btnGhost} onClick={() => { edit(normalizeStoryboard({ ...sb, music: { url: t.url, name: t.name.replace(/\.[^.]+$/, ""), volume: sb.music?.volume ?? 0.8, fadeOutSeconds: sb.music?.fadeOutSeconds ?? 3 } })); setPickingMusic(false); }}>Use this track</button>
                     </div>
@@ -358,21 +358,21 @@ export default function VideoPanel() {
               {sb.music && <>
                 <label className="block"><span className={lbl}>Volume ({Math.round(sb.music.volume * 100)}%)</span><input type="range" min={0} max={1} step={0.05} value={sb.music.volume} onChange={(e) => edit({ ...sb, music: { ...sb.music!, volume: Number(e.target.value) } })} className="w-full" /></label>
                 <label className="block"><span className={lbl}>Fade out ({sb.music.fadeOutSeconds}s)</span><input type="range" min={0} max={8} step={0.5} value={sb.music.fadeOutSeconds} onChange={(e) => edit({ ...sb, music: { ...sb.music!, fadeOutSeconds: Number(e.target.value) } })} className="w-full" /></label>
-                <p className="text-[11.5px] text-[#9ba6b7]">Mix level at the end: {Math.round(musicGain(sb, total) * 100)}%. Only use music you have the right to use.</p></>}
+                <p className="text-[11.5px] text-subtle">Mix level at the end: {Math.round(musicGain(sb, total) * 100)}%. Only use music you have the right to use.</p></>}
             </div>
 
-            <div className="space-y-2 rounded-lg bg-[#fafbfc] p-3">
+            <div className="space-y-2 rounded-lg bg-canvas p-3">
               <span className={lbl}>Checkpoints</span>
               <div className="flex gap-2"><input className={inputCls} placeholder="Name this version" value={cpTitle} onChange={(e) => setCpTitle(e.target.value)} /><button className={btnGhost} disabled={busy !== null || !cpTitle.trim() || !name.trim() || !sb.scenes.length} onClick={() => save(cpTitle.trim())}>Save</button></div>
-              {checkpoints.length === 0 ? <p className="text-[12px] text-[#9ba6b7]">None yet. Save a checkpoint before a big change.</p> : (
-                <ul className="space-y-1">{checkpoints.map((c) => (<li key={c.id} className="flex items-center justify-between text-[12.5px]"><span className="truncate text-[#323a46]">{c.title}</span><button className={btnGhost} onClick={() => restore(c)}>Restore</button></li>))}</ul>)}
+              {checkpoints.length === 0 ? <p className="text-[12px] text-subtle">None yet. Save a checkpoint before a big change.</p> : (
+                <ul className="space-y-1">{checkpoints.map((c) => (<li key={c.id} className="flex items-center justify-between text-[12.5px]"><span className="truncate text-ink">{c.title}</span><button className={btnGhost} onClick={() => restore(c)}>Restore</button></li>))}</ul>)}
             </div>
 
-            {issues.length > 0 && <ul className="list-disc space-y-0.5 pl-5 text-[12.5px] text-[#b7791f]">{issues.slice(0, 5).map((i, k) => <li key={k}>{i.message}</li>)}</ul>}
+            {issues.length > 0 && <ul className="list-disc space-y-0.5 pl-5 text-[12.5px] text-warn">{issues.slice(0, 5).map((i, k) => <li key={k}>{i.message}</li>)}</ul>}
           </div>
 
-          <div className="space-y-2 border-t border-[#e7e9eb] bg-[#fafbfc] p-3">
-            <div className="rounded-lg border border-[#e7e9eb] bg-white p-2 space-y-2">
+          <div className="space-y-2 border-t border-line bg-canvas p-3">
+            <div className="rounded-lg border border-line bg-white p-2 space-y-2">
               <div className={lbl}>Ask Devin for a storyboard</div>
               <div className="flex gap-2"><input className={inputCls} placeholder="e.g. A 30-second intro to the venue for Facebook" value={goal} onChange={(e) => setGoal(e.target.value)} /><button className={btnGhost} disabled={busy !== null || !goal.trim()} onClick={draftVideo}>{busy === "draft" ? "Planning…" : "Draft"}</button></div>
             </div>
@@ -381,7 +381,7 @@ export default function VideoPanel() {
               <button className={btnGhost} disabled={busy !== null || !sb.scenes.length} onClick={renderVideo}>{renderPct !== null ? `Rendering ${renderPct}%` : "Render .webm"}</button>
               {id && <button className={btnGhost} disabled={busy !== null} onClick={remove}>Delete</button>}
             </div>
-            <p className="text-[11.5px] text-[#9ba6b7]">Rendering happens in your browser and saves a file to your Downloads. Nothing is uploaded or posted.</p>
+            <p className="text-[11.5px] text-subtle">Rendering happens in your browser and saves a file to your Downloads. Nothing is uploaded or posted.</p>
           </div>
         </div>
       </div>

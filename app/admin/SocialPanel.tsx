@@ -7,10 +7,10 @@ interface Photo { url: string; folder: string; name: string }
 interface Draft { id: string; title: string; caption: string; platform: Platform; hashtags: string[]; mediaUrl: string; imageAlt: string; videoUrl?: string; updatedAt: string }
 interface Option { caption: string; hashtags: string[] }
 
-const inputCls = "w-full rounded-md border border-[#e7e9eb] px-3 py-2 text-[14px] text-[#323a46] focus:outline-none focus:border-[#1ab394]";
-const btnPrimary = "h-9 px-4 rounded-md bg-[#1ab394] text-white text-[13px] font-semibold disabled:opacity-50";
-const btnGhost = "h-8 px-3 rounded-md border border-[#e7e9eb] text-[#6c757d] text-[12.5px] hover:border-[#1ab394]/50 disabled:opacity-50";
-const lbl = "text-[12px] font-semibold text-[#6c757d]";
+const inputCls = "w-full rounded-md border border-line px-3 py-2 text-[14px] text-ink focus:outline-none focus:border-accent";
+const btnPrimary = "h-9 px-4 rounded-md bg-accent text-white text-[13px] font-semibold disabled:opacity-50";
+const btnGhost = "h-8 px-3 rounded-md border border-line text-muted text-[12.5px] hover:border-accent/50 disabled:opacity-50";
+const lbl = "text-[12px] font-semibold text-muted";
 
 async function call(url: string, init?: RequestInit) {
   const res = await fetch(url, init);
@@ -96,36 +96,36 @@ export default function SocialPanel() {
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(340px,1fr)]">
       {/* Preview and drafts */}
       <div className="min-w-0 space-y-3">
-        <div className="rounded-2xl bg-[#14171a] p-4">
-          <div className="mb-2 flex items-center justify-between text-[12px] text-[#8b95a1]">
+        <div className="rounded-2xl bg-navy-deep p-4">
+          <div className="mb-2 flex items-center justify-between text-[12px] text-subtle">
             <span>{p.label} preview</span><span>Preview only. Nothing is posted.</span>
           </div>
           <div className="mx-auto max-w-[420px] overflow-hidden rounded-xl bg-white shadow">
             <div className="flex items-center gap-2 px-3 py-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#8a5a2b] text-[13px] font-bold text-white">HB</div>
-              <div><div className="text-[13.5px] font-semibold text-[#1c1e21]">Historic Broyhill</div><div className="text-[11.5px] text-[#65676b]">Just now · {p.label}</div></div>
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-warn text-[13px] font-bold text-white">HB</div>
+              <div><div className="text-[13.5px] font-semibold text-ink">Historic Broyhill</div><div className="text-[11.5px] text-muted">Just now · {p.label}</div></div>
             </div>
-            {platform !== "instagram" && <div className="whitespace-pre-wrap px-3 pb-2 text-[14px] text-[#1c1e21]">{full || <span className="text-[#9ba6b7]">Your post appears here.</span>}</div>}
+            {platform !== "instagram" && <div className="whitespace-pre-wrap px-3 pb-2 text-[14px] text-ink">{full || <span className="text-subtle">Your post appears here.</span>}</div>}
             {mediaUrl && (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={mediaUrl} alt={imageAlt} className="w-full object-cover" style={{ aspectRatio: p.ratio.replace(" / ", "/") }} />
             )}
-            {platform === "instagram" && <div className="whitespace-pre-wrap px-3 py-2 text-[14px] text-[#1c1e21]"><strong>historicbroyhill </strong>{full || <span className="text-[#9ba6b7]">Your post appears here.</span>}</div>}
+            {platform === "instagram" && <div className="whitespace-pre-wrap px-3 py-2 text-[14px] text-ink"><strong>historicbroyhill </strong>{full || <span className="text-subtle">Your post appears here.</span>}</div>}
           </div>
         </div>
 
-        <div className="rounded-2xl border border-[#e7e9eb] bg-white p-3">
+        <div className="rounded-2xl border border-line bg-white p-3">
           <div className="mb-2 flex items-center justify-between">
-            <div className="text-[14px] font-semibold text-[#323a46]">My drafts <span className="ml-1 rounded-full bg-[#eef0f2] px-2 text-[11.5px] font-normal text-[#6c757d]">{drafts.length}</span></div>
+            <div className="text-[14px] font-semibold text-ink">My drafts <span className="ml-1 rounded-full bg-line px-2 text-[11.5px] font-normal text-muted">{drafts.length}</span></div>
             <button className={btnGhost} onClick={reset}>New post</button>
           </div>
-          {drafts.length === 0 ? <p className="text-[12.5px] text-[#9ba6b7]">No drafts yet. Write a post and press Save draft.</p> : (
-            <ul className="divide-y divide-[#e7e9eb]">
+          {drafts.length === 0 ? <p className="text-[12.5px] text-subtle">No drafts yet. Write a post and press Save draft.</p> : (
+            <ul className="divide-y divide-line">
               {drafts.map((d) => (
                 <li key={d.id}>
                   <button className="flex w-full items-center gap-3 py-2 text-left" onClick={() => openDraft(d)}>
-                    <span className="w-24 shrink-0 text-[11px] uppercase tracking-wider text-[#9ba6b7]">{PLATFORMS[d.platform].label}</span>
-                    <span className={`flex-1 truncate text-[13.5px] ${d.id === id ? "font-semibold text-[#1ab394]" : "text-[#323a46]"}`}>{d.title}</span>
+                    <span className="w-24 shrink-0 text-[11px] uppercase tracking-wider text-subtle">{PLATFORMS[d.platform].label}</span>
+                    <span className={`flex-1 truncate text-[13.5px] ${d.id === id ? "font-semibold text-accent" : "text-ink"}`}>{d.title}</span>
                   </button>
                 </li>
               ))}
@@ -135,15 +135,15 @@ export default function SocialPanel() {
       </div>
 
       {/* Controls */}
-      <div className="space-y-3 rounded-2xl border border-[#e7e9eb] bg-white p-3 lg:sticky lg:top-4 lg:self-start">
+      <div className="space-y-3 rounded-2xl border border-line bg-white p-3 lg:sticky lg:top-4 lg:self-start">
         <div className="grid grid-cols-3 gap-2">
           {(Object.keys(PLATFORMS) as Platform[]).map((k) => (
             <button key={k} aria-pressed={platform === k} onClick={() => { setPlatform(k); setOptions(null); }}
-              className={`rounded-lg border py-2 text-[12px] font-semibold ${platform === k ? "border-[#1ab394] bg-white text-[#1ab394]" : "border-[#e7e9eb] text-[#6c757d] hover:border-[#1ab394]/50"}`}>{PLATFORMS[k].label}</button>
+              className={`rounded-lg border py-2 text-[12px] font-semibold ${platform === k ? "border-accent bg-white text-accent" : "border-line text-muted hover:border-accent/50"}`}>{PLATFORMS[k].label}</button>
           ))}
         </div>
 
-        <div className="space-y-2 rounded-lg bg-[#fafbfc] p-3">
+        <div className="space-y-2 rounded-lg bg-canvas p-3">
           <div className={lbl}>Ask Devin to write it</div>
           <input className={inputCls} placeholder="What is the post about? e.g. Spring open house for wedding couples" value={goal} onChange={(e) => setGoal(e.target.value)} />
           <div className="flex gap-2">
@@ -153,9 +153,9 @@ export default function SocialPanel() {
           {options && (
             <div className="space-y-2">
               {options.map((o, k) => (
-                <div key={k} className="rounded-md bg-white p-2 text-[13px] text-[#323a46] border border-[#e7e9eb]">
+                <div key={k} className="rounded-md bg-white p-2 text-[13px] text-ink border border-line">
                   <div className="whitespace-pre-wrap">{o.caption}</div>
-                  {o.hashtags.length > 0 && <div className="mt-1 text-[#6c757d]">{o.hashtags.map((t) => `#${t}`).join(" ")}</div>}
+                  {o.hashtags.length > 0 && <div className="mt-1 text-muted">{o.hashtags.map((t) => `#${t}`).join(" ")}</div>}
                   <button className={`${btnGhost} mt-1`} onClick={() => use(o)}>Use this</button>
                 </div>
               ))}
@@ -182,8 +182,8 @@ export default function SocialPanel() {
               {mediaUrl && <button className={btnGhost} onClick={() => { setMediaUrl(""); setImageAlt(""); setDirty(true); }}>Remove</button>}
             </div></div>
           {picking && (
-            <div className="rounded-md border border-[#e7e9eb] p-2">
-              {photos === null ? <p className="text-[12px] text-[#9ba6b7]">Loading…</p> : photos.length === 0 ? <p className="text-[12px] text-[#9ba6b7]">No photos available (the photo store may not be connected yet).</p> : (
+            <div className="rounded-md border border-line p-2">
+              {photos === null ? <p className="text-[12px] text-subtle">Loading…</p> : photos.length === 0 ? <p className="text-[12px] text-subtle">No photos available (the photo store may not be connected yet).</p> : (
                 <div className="grid max-h-48 grid-cols-4 gap-2 overflow-auto">
                   {photos.map((x) => (
                     <button key={x.url} onClick={() => { setMediaUrl(x.url); setImageAlt(imageAlt || x.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ")); setPicking(false); setDirty(true); }}>
@@ -199,18 +199,18 @@ export default function SocialPanel() {
         </div>
 
         {p.video && (
-          <div className="space-y-2 rounded-lg bg-[#fafbfc] p-3">
+          <div className="space-y-2 rounded-lg bg-canvas p-3">
             <div className="flex items-center justify-between"><span className={lbl}>Video from the library</span>
               <div className="flex gap-2">
                 <button className={btnGhost} onClick={openVideoPicker}>Choose video</button>
                 {videoUrl && <button className={btnGhost} onClick={() => { setVideoUrl(""); setDirty(true); }}>Remove</button>}
               </div></div>
             {pickingVideo && (
-              <div className="rounded-md border border-[#e7e9eb] bg-white p-2">
-                {videos === null ? <p className="text-[12px] text-[#9ba6b7]">Loading…</p> : videos.length === 0 ? <p className="text-[12px] text-[#9ba6b7]">No videos yet. Upload some in Photos (General-Videos).</p> : (
+              <div className="rounded-md border border-line bg-white p-2">
+                {videos === null ? <p className="text-[12px] text-subtle">Loading…</p> : videos.length === 0 ? <p className="text-[12px] text-subtle">No videos yet. Upload some in Photos (General-Videos).</p> : (
                   <ul className="max-h-40 space-y-1 overflow-auto">
                     {videos.map((x) => (
-                      <li key={x.url}><button className="w-full truncate rounded px-2 py-1 text-left text-[12.5px] text-[#323a46] hover:bg-[#f3f4f6]" onClick={() => { setVideoUrl(x.url); setPickingVideo(false); setDirty(true); }}>{x.folder} · {x.name}</button></li>
+                      <li key={x.url}><button className="w-full truncate rounded px-2 py-1 text-left text-[12.5px] text-ink hover:bg-canvas" onClick={() => { setVideoUrl(x.url); setPickingVideo(false); setDirty(true); }}>{x.folder} · {x.name}</button></li>
                     ))}
                   </ul>
                 )}
@@ -224,23 +224,23 @@ export default function SocialPanel() {
                   <button className={btnGhost} onClick={() => navigator.clipboard.writeText(videoUrl).then(() => setNotice("Video link copied."))}>Copy video link</button>
                 </div>
               </div>
-            ) : <p className="text-[12.5px] text-[#6c757d]">{p.label} is a video platform. This draft is the {platform === "youtube" ? "title and description" : "caption"}; pick the video here, download it, and upload it when you post.</p>}
+            ) : <p className="text-[12.5px] text-muted">{p.label} is a video platform. This draft is the {platform === "youtube" ? "title and description" : "caption"}; pick the video here, download it, and upload it when you post.</p>}
           </div>
         )}
-        <div className="rounded-lg border border-[#e7e9eb] p-3 text-[12.5px]">
-          <div className="mb-1 flex items-center justify-between"><span className={lbl}>Check</span><span className="text-[#9ba6b7]">{full.length.toLocaleString()} / {p.maxChars.toLocaleString()} characters</span></div>
-          {isClean(checks) ? <p className="text-[#1a7f68]">Looks good for {p.label}.</p> : <ul className="list-disc space-y-0.5 pl-5 text-[#b7791f]">{problems.map((c, k) => <li key={k}>{c.message}</li>)}</ul>}
+        <div className="rounded-lg border border-line p-3 text-[12.5px]">
+          <div className="mb-1 flex items-center justify-between"><span className={lbl}>Check</span><span className="text-subtle">{full.length.toLocaleString()} / {p.maxChars.toLocaleString()} characters</span></div>
+          {isClean(checks) ? <p className="text-success">Looks good for {p.label}.</p> : <ul className="list-disc space-y-0.5 pl-5 text-warn">{problems.map((c, k) => <li key={k}>{c.message}</li>)}</ul>}
         </div>
 
         <input className={inputCls} placeholder="Name this draft (optional)" value={title} onChange={(e) => { setTitle(e.target.value); setDirty(true); }} />
-        {notice && <p className="text-[13px] text-[#1a7f68]">{notice}</p>}
-        {error && <p className="text-[13px] text-[#b83232]">{error}</p>}
+        {notice && <p className="text-[13px] text-success">{notice}</p>}
+        {error && <p className="text-[13px] text-danger">{error}</p>}
         <div className="flex items-center gap-2">
           <button className={`${btnPrimary} flex-1`} disabled={busy !== null || !caption.trim()} onClick={save}>{busy === "save" ? "Saving…" : "Save draft"}</button>
           <button className={btnGhost} disabled={busy !== null || !full} onClick={copy}>Copy</button>
           {id && <button className={btnGhost} disabled={busy !== null} onClick={remove}>Delete</button>}
         </div>
-        <p className="text-[11.5px] text-[#9ba6b7]">Posting is off. Copy the text and post it yourself on {p.label} for now.</p>
+        <p className="text-[11.5px] text-subtle">Posting is off. Copy the text and post it yourself on {p.label} for now.</p>
       </div>
     </div>
   );

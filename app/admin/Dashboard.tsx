@@ -13,13 +13,11 @@ export interface Metrics {
 export type Section = "dashboard" | "leads" | "queue" | "history" | "campaigns" | "templates" | "studio" | "social" | "video" | "photos" | "stock" | "ask" | "settings";
 
 function Stat({ label, value, tone = "default" }: { label: string; value: React.ReactNode; tone?: "default" | "teal" | "amber" }) {
-  const color = tone === "teal" ? "text-[#1ab394]" : tone === "amber" ? "text-[#f5a623]" : "text-[#323a46]";
+  const color = tone === "teal" ? "text-success" : tone === "amber" ? "text-warn" : "text-ink";
   return (
-    <div className="ibox">
-      <div className="ibox-content">
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-[#9ba6b7] block">{label}</span>
-        <span className={`text-[28px] font-bold mt-1 block leading-none ${color}`}>{value}</span>
-      </div>
+    <div className="py-3 pr-6 border-r border-line last:border-r-0">
+      <span className={`hb-display text-[30px] block leading-none tabular-nums ${color}`}>{value}</span>
+      <span className="text-[13px] text-muted block mt-1.5">{label}</span>
     </div>
   );
 }
@@ -33,13 +31,13 @@ export default function Dashboard({ metrics, onNavigate, onAsk }: { metrics: Met
   };
   return (
     <div className="space-y-6">
-      <section className="ibox border-[#1ab394]/40">
+      <section className="ibox border-accent/40">
         <div className="ibox-content">
           <div className="flex items-center justify-between gap-3">
-            <h3 className="text-sm font-semibold text-[#323a46]">Ask Devin</h3>
-            <button onClick={() => onNavigate("ask")} className="text-[12px] text-[#1ab394] hover:underline">Open full chat →</button>
+            <h3 className="text-[15px] font-semibold text-ink">Ask</h3>
+            <button onClick={() => onNavigate("ask")} className="text-[12px] text-accent hover:underline">Open full chat →</button>
           </div>
-          <p className="mt-1 text-[13px] text-[#6c757d]">Ask a question, or tell Devin what to look up or draft. It never sends anything on its own.</p>
+          <p className="mt-1 text-[13px] text-muted">Ask about the leads or have a draft written. Nothing is sent without your approval.</p>
           <form onSubmit={submit} className="mt-3 flex gap-2">
             <input
               value={question}
@@ -47,13 +45,13 @@ export default function Dashboard({ metrics, onNavigate, onAsk }: { metrics: Met
               maxLength={2000}
               placeholder="e.g. How many leads are missing a name?"
               aria-label="Ask Devin"
-              className="flex-1 rounded-md border border-[#e7e9eb] px-3 py-2 text-[14px] text-[#323a46] focus:outline-none focus:border-[#1ab394]"
+              className="flex-1 rounded-md border border-line px-3 py-2 text-[14px] text-ink focus:outline-none focus:border-accent"
             />
-            <button type="submit" disabled={!question.trim()} className="h-10 px-4 rounded-md bg-[#1ab394] text-white text-[13px] font-semibold disabled:opacity-50">Ask</button>
+            <button type="submit" disabled={!question.trim()} className="h-10 px-4 rounded-md bg-navy text-white text-[14px] font-semibold disabled:opacity-50">Ask</button>
           </form>
         </div>
       </section>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 bg-white border border-line rounded-lg px-6 py-2">
         <Stat label="Total Leads" value={m?.totalLeads ?? "—"} />
         <Stat label="VIP / High Net Worth" value={m?.vipLeads ?? "—"} tone="amber" />
         <Stat label="Awaiting Authorization" value={m?.pendingReview ?? "—"} tone="amber" />
@@ -64,14 +62,14 @@ export default function Dashboard({ metrics, onNavigate, onAsk }: { metrics: Met
         {/* Pending outreach — the thing that needs the admin's attention */}
         <button
           onClick={() => onNavigate("queue")}
-          className="ibox text-left hover:border-[#1ab394]/50 transition group"
+          className="ibox text-left hover:border-accent/50 transition group"
         >
           <div className="ibox-content">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-[#9ba6b7]">Review Queue</span>
-              <span className="text-[#c3c9d1] group-hover:text-[#1ab394] transition">→</span>
+              <span className="text-[15px] font-semibold text-ink">Review queue</span>
+              <span className="text-faint group-hover:text-accent transition">→</span>
             </div>
-            <p className="mt-2 text-sm text-[#4c4c5c]">
+            <p className="mt-2 text-sm text-ink">
               {m && m.pendingReview > 0
                 ? `${m.pendingReview} draft${m.pendingReview === 1 ? "" : "s"} awaiting your authorization.`
                 : "No outreach is waiting for review."}
@@ -81,14 +79,14 @@ export default function Dashboard({ metrics, onNavigate, onAsk }: { metrics: Met
 
         <button
           onClick={() => onNavigate("leads")}
-          className="ibox text-left hover:border-[#1c84c6]/50 transition group"
+          className="ibox text-left hover:border-info/50 transition group"
         >
           <div className="ibox-content">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-[#9ba6b7]">Lead Directory</span>
-              <span className="text-[#c3c9d1] group-hover:text-[#1c84c6] transition">→</span>
+              <span className="text-[15px] font-semibold text-ink">Leads</span>
+              <span className="text-faint group-hover:text-info transition">→</span>
             </div>
-            <p className="mt-2 text-sm text-[#4c4c5c]">
+            <p className="mt-2 text-sm text-ink">
               {m ? `${m.totalLeads} contact${m.totalLeads === 1 ? "" : "s"} on file. ` : ""}Search, filter, import a list, or export to CSV.
             </p>
           </div>

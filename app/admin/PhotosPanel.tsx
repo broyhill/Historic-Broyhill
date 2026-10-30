@@ -8,9 +8,9 @@ import { MAX_AUDIO_BYTES, MAX_PHOTO_BYTES, MAX_VIDEO_BYTES, SUGGESTED_FOLDERS, c
 interface Photo { url: string; folder: string; name: string; size: number; uploadedAt: string }
 interface Folder { name: string; count: number }
 
-const inputCls = "w-full rounded-md border border-[#e7e9eb] px-3 py-2 text-[14px] text-[#323a46] focus:outline-none focus:border-[#1ab394]";
-const btnPrimary = "h-9 px-4 rounded-md bg-[#1ab394] text-white text-[13px] font-semibold disabled:opacity-50";
-const btnGhost = "h-8 px-3 rounded-md border border-[#e7e9eb] text-[#6c757d] text-[12.5px] hover:border-[#1ab394]/50 disabled:opacity-50";
+const inputCls = "w-full rounded-md border border-line px-3 py-2 text-[14px] text-ink focus:outline-none focus:border-accent";
+const btnPrimary = "h-9 px-4 rounded-md bg-accent text-white text-[13px] font-semibold disabled:opacity-50";
+const btnGhost = "h-8 px-3 rounded-md border border-line text-muted text-[12.5px] hover:border-accent/50 disabled:opacity-50";
 const ALL = "__all__";
 
 async function call(url: string, init?: RequestInit) {
@@ -159,13 +159,13 @@ export default function PhotosPanel() {
     catch { setNotice(url); }
   };
 
-  if (!loaded) return <p className="text-[13px] text-[#9ba6b7]">Loading…</p>;
+  if (!loaded) return <p className="text-[13px] text-subtle">Loading…</p>;
 
   if (notConnected) return (
     <section className="ibox max-w-2xl"><div className="ibox-content space-y-3">
-      <h3 className="text-sm font-semibold text-[#323a46]">Photo storage isn't connected yet</h3>
-      <p className="text-[13px] text-[#6c757d] leading-relaxed">The library keeps pictures in a Vercel storage area. Once it exists, this page works with nothing else to do.</p>
-      <ol className="text-[13px] text-[#323a46] list-decimal pl-5 space-y-1">
+      <h3 className="text-sm font-semibold text-ink">Photo storage isn't connected yet</h3>
+      <p className="text-[13px] text-muted leading-relaxed">The library keeps pictures in a Vercel storage area. Once it exists, this page works with nothing else to do.</p>
+      <ol className="text-[13px] text-ink list-decimal pl-5 space-y-1">
         <li>Open Vercel → your <b>historic-broyhill</b> project → <b>Storage</b>.</li>
         <li>Choose <b>Create Database</b> → <b>Blob</b>, name it <b>hb-photos</b>, and set access to <b>Public</b>.</li>
         <li>Connect it to the project, then redeploy (Vercel offers the button).</li>
@@ -178,33 +178,33 @@ export default function PhotosPanel() {
     <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-5 max-w-5xl">
       <aside className="space-y-3">
         <section className="ibox"><div className="ibox-content p-2">
-          <button onClick={() => setCurrent(ALL)} className={`w-full text-left px-3 py-2 rounded-md text-[13.5px] flex justify-between ${current === ALL ? "bg-[#1ab394]/12 text-[#1ab394] font-semibold" : "text-[#323a46] hover:bg-[#f1f2f7]"}`}>
-            <span>All photos</span><span className="text-[12px] text-[#9ba6b7]">{photos.length}</span></button>
+          <button onClick={() => setCurrent(ALL)} className={`w-full text-left px-3 py-2 rounded-md text-[13.5px] flex justify-between ${current === ALL ? "bg-accent/12 text-accent font-semibold" : "text-ink hover:bg-canvas"}`}>
+            <span>All photos</span><span className="text-[12px] text-subtle">{photos.length}</span></button>
           {folders.map((f) => (
-            <button key={f.name} onClick={() => setCurrent(f.name)} className={`w-full text-left px-3 py-2 rounded-md text-[13.5px] flex justify-between gap-2 ${current === f.name ? "bg-[#1ab394]/12 text-[#1ab394] font-semibold" : "text-[#323a46] hover:bg-[#f1f2f7]"}`}>
-              <span className="truncate">📁 {f.name}</span><span className="text-[12px] text-[#9ba6b7]">{f.count}</span></button>
+            <button key={f.name} onClick={() => setCurrent(f.name)} className={`w-full text-left px-3 py-2 rounded-md text-[13.5px] flex justify-between gap-2 ${current === f.name ? "bg-accent/12 text-accent font-semibold" : "text-ink hover:bg-canvas"}`}>
+              <span className="truncate">📁 {f.name}</span><span className="text-[12px] text-subtle">{f.count}</span></button>
           ))}
-          {folders.length === 0 && <p className="px-3 py-2 text-[12.5px] text-[#9ba6b7]">No categories yet. Add General and General-Videos below.</p>}
+          {folders.length === 0 && <p className="px-3 py-2 text-[12.5px] text-subtle">No categories yet. Add General and General-Videos below.</p>}
         </div></section>
 
         <section className="ibox"><div className="ibox-content space-y-2">
-          <div className="text-[12px] font-semibold text-[#6c757d]">Add category (folder)</div>
+          <div className="text-[12px] font-semibold text-muted">Add category (folder)</div>
           <form onSubmit={(e) => { e.preventDefault(); if (newFolder.trim()) addFolder(newFolder); }} className="flex gap-2">
             <input value={newFolder} onChange={(e) => setNewFolder(e.target.value)} placeholder="Folder name" maxLength={60} className={inputCls} aria-label="New folder name" />
             <button type="submit" className={btnPrimary} disabled={!newFolder.trim() || busy !== null}>Add</button>
           </form>
           {missingSuggestions.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
-              {missingSuggestions.map((s) => <button key={s} onClick={() => addFolder(s)} disabled={busy !== null} className="text-[11.5px] px-2 py-1 rounded-full border border-[#e7e9eb] text-[#6c757d] hover:border-[#1ab394]/60">+ {s}</button>)}
+              {missingSuggestions.map((s) => <button key={s} onClick={() => addFolder(s)} disabled={busy !== null} className="text-[11.5px] px-2 py-1 rounded-full border border-line text-muted hover:border-accent/60">+ {s}</button>)}
             </div>
           )}
         </div></section>
       </aside>
 
       <div className="space-y-4 min-w-0">
-        <section className={`ibox ${dragging ? "ring-2 ring-[#1ab394]" : ""}`} onDragOver={(e) => { e.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={(e) => { e.preventDefault(); setDragging(false); if (busy === null) upload(e.dataTransfer.files); }}><div className="ibox-content space-y-3">
+        <section className={`ibox ${dragging ? "ring-2 ring-accent" : ""}`} onDragOver={(e) => { e.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={(e) => { e.preventDefault(); setDragging(false); if (busy === null) upload(e.dataTransfer.files); }}><div className="ibox-content space-y-3">
           <div className="flex items-center gap-3 flex-wrap">
-            <h3 className="text-sm font-semibold text-[#323a46] flex-1">{current === ALL ? "All photos" : current}</h3>
+            <h3 className="text-sm font-semibold text-ink flex-1">{current === ALL ? "All photos" : current}</h3>
             {current !== ALL && (<>
               <button className={btnGhost} disabled={busy !== null} onClick={() => {
                 const to = window.prompt(`Rename the folder "${current}" to:`, current);
@@ -217,23 +217,23 @@ export default function PhotosPanel() {
             </>)}
             <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/quicktime,video/webm,.mp4,.mov,.m4v,.webm,audio/mpeg,audio/mp4,audio/wav,audio/ogg,.mp3,.m4a,.wav,.ogg" multiple className="hidden" onChange={(e) => upload(e.target.files)} aria-label="Choose photos to upload" />
             <input ref={dirRef} type="file" multiple className="hidden" {...({ webkitdirectory: "", directory: "" } as any)} onChange={(e) => upload(e.target.files)} aria-label="Choose a whole folder to upload" />
-            <label className="flex items-center gap-1.5 text-[12px] text-[#6c757d]"><input type="checkbox" checked={webCopies} onChange={(e) => setWebCopies(e.target.checked)} />Also make smaller web copies of big videos</label>
+            <label className="flex items-center gap-1.5 text-[12px] text-muted"><input type="checkbox" checked={webCopies} onChange={(e) => setWebCopies(e.target.checked)} />Also make smaller web copies of big videos</label>
             <button className={btnGhost} disabled={busy !== null} onClick={() => dirRef.current?.click()}>Upload a whole folder</button>
             <button className={btnPrimary} disabled={busy !== null} onClick={() => fileRef.current?.click()}>
               {busy === "upload" ? "Uploading…" : current === ALL ? "Upload photos, videos or music (to General)" : "Upload photos, videos or music"}</button>
           </div>
           {error && <p className="text-[13px] text-red-600" role="alert">{error}</p>}
-          {progress && <p className="text-[13px] text-[#6c757d]">Uploading {progress}</p>}
-          {notice && !error && <p className="text-[13px] text-[#1ab394]">{notice}</p>}
-          <p className="text-[11.5px] text-[#9ba6b7]">Photos: JPG, PNG, GIF or WebP, up to 40 MB each, kept at full size. Videos: MP4, MOV or WebM, up to 1 GB. Videos of 50-300 MB also get a smaller "-web" copy made in your browser (slow; keep the page open); the original is never changed. For picture messages, aim for under 1 MB; videos are for links and websites, not texts. Only upload your own real photos and videos.</p>
+          {progress && <p className="text-[13px] text-muted">Uploading {progress}</p>}
+          {notice && !error && <p className="text-[13px] text-accent">{notice}</p>}
+          <p className="text-[11.5px] text-subtle">Photos: JPG, PNG, GIF or WebP, up to 40 MB each, kept at full size. Videos: MP4, MOV or WebM, up to 1 GB. Videos of 50-300 MB also get a smaller "-web" copy made in your browser (slow; keep the page open); the original is never changed. For picture messages, aim for under 1 MB; videos are for links and websites, not texts. Only upload your own real photos and videos.</p>
         </div></section>
 
         {shown.length > 0 && (
-          <div className="flex items-center gap-2 flex-wrap text-[12.5px] text-[#6c757d]">
+          <div className="flex items-center gap-2 flex-wrap text-[12.5px] text-muted">
             <button className={btnGhost} disabled={busy !== null} onClick={() => setPicked(new Set(shown.map((p) => p.url)))}>Select all ({shown.length})</button>
             {selected.length > 0 && (<>
               <button className={btnGhost} disabled={busy !== null} onClick={() => setPicked(new Set())}>Clear</button>
-              <span className="font-semibold text-[#323a46]">{selected.length} selected</span>
+              <span className="font-semibold text-ink">{selected.length} selected</span>
               <select value={moveTo} onChange={(e) => setMoveTo(e.target.value)} className={inputCls + " !w-auto"} aria-label="Move selected to folder">
                 <option value="">Move to…</option>
                 {folders.filter((f) => f.name !== current).map((f) => <option key={f.name} value={f.name}>{f.name}</option>)}</select>
@@ -241,13 +241,13 @@ export default function PhotosPanel() {
             </>)}
           </div>
         )}
-        {shown.length === 0 && <p className="text-[13px] text-[#9ba6b7]">{current === ALL ? "No photos yet. Click Upload a whole folder, or drag files here." : "This folder is empty. Click Upload photos."}</p>}
+        {shown.length === 0 && <p className="text-[13px] text-subtle">{current === ALL ? "No photos yet. Click Upload a whole folder, or drag files here." : "This folder is empty. Click Upload photos."}</p>}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
           {shown.map((p) => (
-            <div key={p.url} className={`ibox overflow-hidden relative ${picked.has(p.url) ? "ring-2 ring-[#1ab394]" : ""}`}>
-              <input type="checkbox" checked={picked.has(p.url)} onChange={() => toggle(p.url)} className="absolute top-2 left-2 z-10 h-5 w-5 accent-[#1ab394]" aria-label={`Select ${p.name}`} />
+            <div key={p.url} className={`ibox overflow-hidden relative ${picked.has(p.url) ? "ring-2 ring-accent" : ""}`}>
+              <input type="checkbox" checked={picked.has(p.url)} onChange={() => toggle(p.url)} className="absolute top-2 left-2 z-10 h-5 w-5 accent-accent" aria-label={`Select ${p.name}`} />
               {isAudioName(p.name) ? (
-                <div className="w-full aspect-[4/3] bg-[#f1f2f7] flex flex-col items-center justify-center gap-2 px-3">
+                <div className="w-full aspect-[4/3] bg-canvas flex flex-col items-center justify-center gap-2 px-3">
                   <span className="text-3xl" aria-hidden>🎵</span>
                   <audio src={p.url} controls preload="none" className="w-full" aria-label={p.name} />
                 </div>
@@ -255,7 +255,7 @@ export default function PhotosPanel() {
                 <video src={p.url} controls preload="metadata" playsInline className="w-full aspect-[4/3] object-cover bg-black" aria-label={p.name} />
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={p.url} alt={p.name} loading="lazy" className="w-full aspect-[4/3] object-cover bg-[#f1f2f7]" />
+                <img src={p.url} alt={p.name} loading="lazy" className="w-full aspect-[4/3] object-cover bg-canvas" />
               )}
               <div className="p-3 space-y-2">
                 {editing?.url === p.url ? (
@@ -266,8 +266,8 @@ export default function PhotosPanel() {
                     <div className="flex gap-2"><button type="submit" className={btnPrimary} disabled={busy !== null}>Save</button><button type="button" className={btnGhost} onClick={() => setEditing(null)}>Cancel</button></div>
                   </form>
                 ) : (<>
-                  <div className="text-[12.5px] font-semibold text-[#323a46] truncate" title={p.name}>{p.name}</div>
-                  <div className="text-[11.5px] text-[#9ba6b7]">{current === ALL ? `${p.folder} · ` : ""}{kb(p.size)}{p.size > 1024 * 1024 ? (isAudioName(p.name) ? " · audio" : isVideoName(p.name) ? " · video" : " · large for texts") : ""}</div>
+                  <div className="text-[12.5px] font-semibold text-ink truncate" title={p.name}>{p.name}</div>
+                  <div className="text-[11.5px] text-subtle">{current === ALL ? `${p.folder} · ` : ""}{kb(p.size)}{p.size > 1024 * 1024 ? (isAudioName(p.name) ? " · audio" : isVideoName(p.name) ? " · video" : " · large for texts") : ""}</div>
                   <div className="flex gap-1.5 flex-wrap">
                     <button className={btnGhost} onClick={() => copyLink(p.url)}>Copy link</button>
                     <button className={btnGhost} onClick={() => setEditing({ url: p.url, name: p.name.replace(/\.[^.]+$/, ""), folder: p.folder })}>Edit</button>

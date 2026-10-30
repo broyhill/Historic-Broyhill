@@ -1,9 +1,10 @@
-import { Open_Sans } from "next/font/google";
+import { Source_Sans_3 } from "next/font/google";
 
-// Inspinia's typeface. Scoped to the /admin subtree so the public site keeps
-// its Playfair/EB Garamond branding.
-const openSans = Open_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-admin", display: "swap" });
+// Console body face, scoped to /admin. Headings reuse the public site's
+// Playfair Display (--font-display from the root layout) so both faces of the
+// building share one identity.
+const sourceSans = Source_Sans_3({ subsets: ["latin"], weight: ["400", "600", "700"], variable: "--font-admin", display: "swap" });
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  return <div className={openSans.variable}>{children}</div>;
+  return <div className={sourceSans.variable}>{children}</div>;
 }
