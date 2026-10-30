@@ -7,6 +7,7 @@ import { CAMPAIGN_TEMPLATES, TEXT_TEMPLATES } from "@/lib/campaign-templates";
 import { defaultSettings, resolveLabel, type ListName, type TemplateSettings } from "@/lib/template-categories";
 import { renderHtml, type Design } from "@/lib/studio";
 import { starterDesigns } from "@/lib/studio-starters";
+import { useBrand } from "@/lib/use-brand";
 
 type Channel = "email" | "sms" | "mms";
 interface Saved { id: string; name: string; subject: string; previewText: string; body: string; mediaUrl: string; category: string; kind: string; studio?: boolean }
@@ -131,7 +132,8 @@ export default function TemplatesPanel({ onOpenStudio, onOpenStarter, prefill }:
     return c;
   }, [allStarters, saved]);
   const starters = filter ? allStarters.filter((s) => s.category === filter) : allStarters;
-  const designById = useMemo(() => Object.fromEntries(starterDesigns().map((d) => [d.id, d])), []);
+  const kit = useBrand();
+  const designById = useMemo(() => Object.fromEntries(starterDesigns(kit).map((d) => [d.id, d])), [kit]);
   const savedShown = filter ? saved.filter((s) => s.category === filter) : saved;
 
   return (

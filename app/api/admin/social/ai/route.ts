@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { brandContext } from "@/lib/brand-context";
 import { z } from "zod";
 import { claudeEnabled, claudeJson } from "@/lib/ai";
 import { PLATFORMS, cleanTags, isPlatform, type Platform } from "@/lib/social";
@@ -20,6 +21,7 @@ const clip = (v: unknown, n: number) => (typeof v === "string" ? v.trim().slice(
 
 // Suggestions only: the person picks one and edits it. Nothing is posted.
 export async function POST(request: Request) {
+  const BRAND = await brandContext();
   try {
     if (!claudeEnabled()) return NextResponse.json({ error: "Claude is not configured (ANTHROPIC_API_KEY is not set)." }, { status: 503 });
     const b = await request.json().catch(() => ({}));
@@ -31,7 +33,8 @@ export async function POST(request: Request) {
     if (b.action === "write") {
       if (!goal) return NextResponse.json({ error: "Say what the post is about." }, { status: 400 });
       const out = await claudeJson({
-        system: `${FACTS}\nWrite 3 different ${p.label} post options (different angles, not rewordings). Aim for about ${p.goodChars} characters or fewer. ${p.maxTags ? `Give at most ${p.goodTags} relevant hashtags per option, without the # sign, in the hashtags list (not inside the caption).` : "Do not use hashtags; return an empty hashtags list."} ${p.linksClickable ? "" : "Do not put a web link in the caption; say \"link in bio\" or \"call us\" only if the request gives that."} Warm, specific, local. Tone: ${clip(b.tone, 60) || "warm and welcoming"}. ${STYLE[platform] ?? ""}`,
+        system: `${FACTS}
+${BRAND}\nWrite 3 different ${p.label} post options (different angles, not rewordings). Aim for about ${p.goodChars} characters or fewer. ${p.maxTags ? `Give at most ${p.goodTags} relevant hashtags per option, without the # sign, in the hashtags list (not inside the caption).` : "Do not use hashtags; return an empty hashtags list."} ${p.linksClickable ? "" : "Do not put a web link in the caption; say \"link in bio\" or \"call us\" only if the request gives that."} Warm, specific, local. Tone: ${clip(b.tone, 60) || "warm and welcoming"}. ${STYLE[platform] ?? ""}`,
         user: `What the post is about: ${goal}\nPicture: ${clip(b.photoNote, 200) || "none chosen"}`,
         schema: z.object({ options: z.array(z.object({ caption: z.string(), hashtags: z.array(z.string()) })).min(1).max(3) }),
         maxTokens: 3000,
@@ -44,7 +47,8 @@ export async function POST(request: Request) {
       const caption = clip(b.caption, 3000);
       if (!caption) return NextResponse.json({ error: "Write something first." }, { status: 400 });
       const out = await claudeJson({
-        system: `${FACTS}\nRewrite this ${p.label} post as asked. Keep the same facts and add none. Return 3 versions, about ${p.goodChars} characters or fewer. Put hashtags only in the hashtags list.`,
+        system: `${FACTS}
+${BRAND}\nRewrite this ${p.label} post as asked. Keep the same facts and add none. Return 3 versions, about ${p.goodChars} characters or fewer. Put hashtags only in the hashtags list.`,
         user: `Instruction: ${clip(b.instruction, 200) || "Make it warmer and clearer."}\nPost:\n${caption}`,
         schema: z.object({ options: z.array(z.object({ caption: z.string(), hashtags: z.array(z.string()) })).min(1).max(3) }),
         maxTokens: 3000,

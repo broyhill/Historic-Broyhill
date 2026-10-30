@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { BUSINESS_TYPES, INDUSTRIES, SOCIAL_KEYS, brandAddressLine, emptyBrand, type BrandKit } from "@/lib/brand";
+import { resetBrandCache } from "@/lib/use-brand";
 
 const inputCls = "w-full rounded-md border border-line px-3 py-2 text-[14px] text-ink focus:outline-none focus:border-accent min-h-[44px]";
 const lbl = "block text-[12px] font-semibold text-muted";
@@ -45,7 +46,7 @@ export default function BrandPanel() {
   });
   const save = (confirmed: boolean) => run(confirmed ? "confirm" : "save", async () => {
     const d = await call("/api/admin/brand", post({ action: "save", brand, confirmed }));
-    setBrand(d.brand); setDirty(false);
+    setBrand(d.brand); setDirty(false); resetBrandCache();
     setNotice(confirmed ? "Brand confirmed. Examples, the Studio and the AI drafts now use it." : "Saved as a draft. Confirm when it looks right.");
   });
   const set = (patch: Partial<BrandKit>) => { setBrand((b) => ({ ...b, ...patch })); setDirty(true); };

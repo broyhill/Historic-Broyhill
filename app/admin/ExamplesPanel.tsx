@@ -7,6 +7,8 @@ import { renderHtml, type Design } from "@/lib/studio";
 import { starterById } from "@/lib/studio-starters";
 import { totalSeconds } from "@/lib/video";
 import { defaultSettings, type TemplateSettings } from "@/lib/template-categories";
+import { useBrand } from "@/lib/use-brand";
+import type { BrandKit } from "@/lib/brand";
 
 const btnPrimary = "min-h-[44px] sm:min-h-[40px] px-4 rounded-md bg-accent-deep text-white text-[13px] font-semibold hover:bg-navy disabled:opacity-50";
 const btnGhost = "min-h-[44px] sm:min-h-[40px] px-3 rounded-md border border-line text-muted text-[13px] hover:border-accent/50 hover:text-ink disabled:opacity-50";
@@ -19,7 +21,8 @@ export default function ExamplesPanel({ onUse, initialChannel }: { onUse: (ex: E
   useEffect(() => {
     fetch("/api/admin/template-settings").then((r) => (r.ok ? r.json() : null)).then((d) => d?.settings && setSettings(d.settings)).catch(() => {});
   }, []);
-  const all = useMemo(() => examples(), []);
+  const kit = useBrand();
+  const all = useMemo(() => examples(kit), [kit]);
   const counts = useMemo(() => {
     const c: Record<string, number> = {};
     for (const e of all) if (!channel || e.channel === channel) c[e.category] = (c[e.category] || 0) + 1;
@@ -65,7 +68,7 @@ export default function ExamplesPanel({ onUse, initialChannel }: { onUse: (ex: E
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         {shown.map((ex) => (
           <article key={ex.id} className="rounded-lg border border-line bg-white overflow-hidden flex flex-col hover:border-accent transition-colors motion-reduce:transition-none">
-            <Preview ex={ex} />
+            <Preview ex={ex} kit={kit} />
             <div className="p-3 flex-1 flex flex-col gap-1">
               <span className="text-[11px] uppercase tracking-wider text-subtle">{CHANNELS.find((c) => c.key === ex.channel)?.label} · {ex.category} · {ex.kind}</span>
               <span className="text-[14px] font-semibold text-ink leading-tight">{ex.title}</span>
@@ -88,10 +91,10 @@ export default function ExamplesPanel({ onUse, initialChannel }: { onUse: (ex: E
   );
 }
 
-function Preview({ ex }: { ex: Example }) {
+function Preview({ ex, kit }: { ex: Example; kit: BrandKit }) {
   switch (ex.channel) {
     case "email": {
-      const st = starterById(ex.starterId);
+      const st = starterById(ex.starterId, kit);
       return st ? <EmailThumb design={st.design} title={ex.title} /> : <div className="h-56 bg-canvas" />;
     }
     case "social": {

@@ -9,6 +9,7 @@ import { TEXT_TEMPLATES } from "./campaign-templates";
 import type { Platform } from "./social";
 import { BOOKING_URL, PHOTO_BASE, starterDesigns } from "./studio-starters";
 import { newSceneId, type Storyboard } from "./video";
+import type { BrandKit } from "./brand";
 
 export type ExampleChannel = "email" | "social" | "sms" | "mms" | "photo" | "video";
 export const CHANNELS: { key: ExampleChannel; label: string; tool: string }[] = [
@@ -164,16 +165,17 @@ const VIDEOS: { id: string; category: string; kind: string; title: string; descr
       ]) } },
 ];
 
-let cache: Example[] | null = null;
-export function examples(): Example[] {
-  if (cache) return cache;
+const cache = new Map<string, Example[]>();
+export function examples(kit?: BrandKit | null): Example[] {
+  const key = kit?.confirmedAt ? JSON.stringify([kit.colors, kit.fonts, kit.logoUrl, kit.name]) : "";
+  const hit = cache.get(key); if (hit) return hit;
   const out: Example[] = [];
-  for (const s of starterDesigns()) out.push({ id: `ex-${s.id}`, channel: "email", category: s.category, kind: s.kind, title: s.name, description: `${s.description} ${s.look} look.`, starterId: s.id });
+  for (const s of starterDesigns(kit)) out.push({ id: `ex-${s.id}`, channel: "email", category: s.category, kind: s.kind, title: s.name, description: `${s.description} ${s.look} look.`, starterId: s.id });
   for (const s of SOCIAL) out.push({ ...s, id: `ex-${s.id}`, channel: "social" });
   for (const t of TEXT_TEMPLATES) out.push({ id: `ex-${t.id}`, channel: t.channel, category: t.category, kind: t.kind, title: t.name, description: t.description, text: { body: t.body, mediaUrl: t.mediaUrl && !t.mediaUrl.includes("{{") ? t.mediaUrl : (t.channel === "mms" ? photo("exterior-day.jpg") : undefined) } });
   for (const t of EXTRA_TEXTS) out.push({ ...t, id: `ex-${t.id}` });
   for (const p of PHOTOS) out.push({ id: `ex-photo-${p.url.split("/").pop()!.replace(/\.\w+$/, "")}`, channel: "photo", category: SPACE_CATEGORY[p.space] ?? "General", kind: p.space, title: p.alt, description: p.space, photo: p });
   for (const v of VIDEOS) out.push({ ...v, id: `ex-${v.id}`, channel: "video" });
-  cache = out;
+  cache.set(key, out);
   return out;
 }

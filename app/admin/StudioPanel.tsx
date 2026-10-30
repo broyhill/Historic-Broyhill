@@ -5,6 +5,7 @@ import { applyOps, linksIn, type Op } from "@/lib/studio-commands";
 import { BLOCK_TYPES, allowedFrom, buildPrompt, VENUE_ADDRESS, defaultBrand, designIssues, duplicateBlock, moveBlock, newBlock, newId, normalizeDesign, renderHtml, type Block, type BlockType, type Brand } from "@/lib/studio";
 import { defaultSettings, type TemplateSettings } from "@/lib/template-categories";
 import { starterById } from "@/lib/studio-starters";
+import { useBrand } from "@/lib/use-brand";
 
 interface Photo { url: string; folder: string; name: string }
 interface SavedDesign { id: string; name: string; updatedAt: string; studio: { blocks: Block[]; brand: Brand } }
@@ -34,6 +35,7 @@ async function call(url: string, init?: RequestInit) {
 const post = (body: unknown): RequestInit => ({ method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
 
 export default function StudioPanel({ openId, openStarter }: { openId?: string | null; openStarter?: string | null }) {
+  const kit = useBrand();
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [brand, setBrand] = useState<Brand>(defaultBrand());
   const [id, setId] = useState<string | null>(null);
@@ -90,7 +92,7 @@ export default function StudioPanel({ openId, openStarter }: { openId?: string |
   // Coming from the Templates gallery: load the designed starter as an unsaved design.
   useEffect(() => {
     if (!openStarter) return;
-    const st = starterById(openStarter); if (!st) return;
+    const st = starterById(openStarter, kit); if (!st) return;
     setId(null); setName(st.name); setSubject(st.subject); setPreviewText(st.previewText); setCategory(st.category); setKind(st.kind);
     setBlocks(st.design.blocks); setBrand(st.design.brand); setOpen(null); setReview(null); setSuggest(null); setAlts(null); setPast([]); setFuture([]); setLog([]); setDirty(true);
     setNotice(`"${st.name}" is loaded. Click any part of the email to change it, then Save as template to keep your own copy.`);
