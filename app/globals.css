@@ -46,7 +46,7 @@ section[id] {
 .ibox-title { padding: .85rem 1.25rem; border-bottom: 1px solid #e3e6ea; display: flex; align-items: center; justify-content: space-between; }
 .ibox-content { padding: 1.25rem; }
 .ins-input { background: #fff; border: 1px solid #e3e6ea; color: #1f2a36; }
-.ins-input::placeholder { color: #6f7a85; }
+.ins-input::placeholder { color: #68737e; }
 .ins-input:focus { outline: none; border-color: #a8853f; box-shadow: 0 0 0 3px rgba(168,133,63,.18); }
 @media (prefers-reduced-motion: reduce) {
   .ins-navitem { transition: none; }
@@ -57,6 +57,6 @@ section[id] {
 .bg-navy-deep .text-muted,  .bg-navy .text-muted,
 .bg-navy-deep .text-faint,  .bg-navy .text-faint { color: rgba(255,255,255,.78); }
 /* …but a white/light card nested inside that chrome (Social's post preview) gets the normal greys back. */
-:is(.bg-navy-deep, .bg-navy) :is(.bg-white, .bg-surface, .bg-canvas) .text-subtle { color: #6f7a85; }
+:is(.bg-navy-deep, .bg-navy) :is(.bg-white, .bg-surface, .bg-canvas) .text-subtle { color: #68737e; }
 :is(.bg-navy-deep, .bg-navy) :is(.bg-white, .bg-surface, .bg-canvas) .text-muted  { color: #5a6672; }
 :is(.bg-navy-deep, .bg-navy) :is(.bg-white, .bg-surface, .bg-canvas) .text-faint  { color: #b4bcc4; }

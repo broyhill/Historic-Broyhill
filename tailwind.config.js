@@ -10,7 +10,7 @@ module.exports = {
         navy: { DEFAULT: "#182c3e", deep: "#10202e", soft: "#243b50" },
         ink: "#1f2a36",
         muted: "#5a6672",
-        subtle: "#6f7a85",
+        subtle: "#68737e",
         faint: "#b4bcc4",
         line: "#e3e6ea",
         canvas: "#f3f4f6",
