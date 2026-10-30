@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { brandContext } from "@/lib/brand-context";
 import { z } from "zod";
 import { claudeEnabled, claudeJson } from "@/lib/ai";
 import { VENUE_FACTS, WRITING_RULES } from "@/lib/platform-briefing";
@@ -12,6 +13,7 @@ const clip = (v: unknown, n = 1000) => (typeof v === "string" ? v.trim().slice(0
 // Suggests text-message drafts. Nothing is saved or sent; the page shows the options and the user clicks Use.
 // Auth via /api/admin middleware.
 export async function POST(request: Request) {
+  const BRAND = await brandContext();
   try {
     if (!claudeEnabled()) {
       return NextResponse.json({ error: "Claude is not configured (ANTHROPIC_API_KEY is not set)." }, { status: 503 });
@@ -26,7 +28,8 @@ export async function POST(request: Request) {
 
     const limit = channel === "sms" ? "Aim for 160 characters or fewer including the opt-out line (never more than 300). Use plain characters only: no emoji, curly quotes or dashes beyond a simple hyphen." : "Up to 600 characters.";
     const out = await claudeJson({
-      system: `You write marketing text messages for Historic Broyhill. Venue facts you may use (and no others):\n${VENUE_FACTS}\n\n${WRITING_RULES}\nEvery message must: say it is from Historic Broyhill, be one short idea with one clear next step, include {{firstName}} at most once, include the link exactly as given at most once (never invent or shorten a link), and end with "${OPT_OUT}". ${limit} Give 3 genuinely different options.`,
+      system: `${BRAND}
+You write marketing text messages for Historic Broyhill. Venue facts you may use (and no others):\n${VENUE_FACTS}\n\n${WRITING_RULES}\nEvery message must: say it is from Historic Broyhill, be one short idea with one clear next step, include {{firstName}} at most once, include the link exactly as given at most once (never invent or shorten a link), and end with "${OPT_OUT}". ${limit} Give 3 genuinely different options.`,
       user: `Goal: ${goal}\nLink: ${link || "(none)"}\nInclude or avoid: ${include || "(none)"}`,
       schema: z.object({ options: z.array(z.object({ body: z.string() })).min(1).max(3) }),
       maxTokens: 1500,

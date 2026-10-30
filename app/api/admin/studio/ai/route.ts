@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { brandContext } from "@/lib/brand-context";
 import { z } from "zod";
 import { claudeEnabled, claudeJson } from "@/lib/ai";
 import { MAX_PREVIEW_CHARS, MAX_SUBJECT_CHARS, MAX_SUBJECT_WORDS } from "@/lib/campaign-rules";
@@ -30,6 +31,7 @@ const clip = (v: unknown, n = 1500) => (typeof v === "string" ? v.trim().slice(0
 
 // Suggestions only: nothing is changed until the person clicks Use in the Studio.
 export async function POST(request: Request) {
+  const BRAND = await brandContext();
   try {
     if (!claudeEnabled()) return NextResponse.json({ error: "Claude is not configured (ANTHROPIC_API_KEY is not set)." }, { status: 503 });
     const b = await request.json().catch(() => ({}));
@@ -40,7 +42,8 @@ export async function POST(request: Request) {
       const how = clip(b.instruction, 300) || "Make it warmer and clearer.";
       if (!text) return NextResponse.json({ error: "Write something in the block first." }, { status: 400 });
       const out = await claudeJson({
-        system: `${FACTS}\nRewrite the given block text as asked. Keep the same facts; add none. Return 3 different versions.`,
+        system: `${FACTS}
+${BRAND}\nRewrite the given block text as asked. Keep the same facts; add none. Return 3 different versions.`,
         user: `Instruction: ${how}\nBlock type: ${b.blockType === "heading" ? "heading (short, under 8 words)" : "body text"}\nText:\n${text}\n\nRest of the email, for context:\n${context}`,
         schema: z.object({ options: z.array(z.string()).min(1).max(3) }),
       });
@@ -52,7 +55,8 @@ export async function POST(request: Request) {
       const goal = clip(b.goal, 800);
       if (!goal) return NextResponse.json({ error: "Say what this email is for." }, { status: 400 });
       const out = await claudeJson({
-        system: `${FACTS}\nDraft an email as blocks: one heading, 2-3 short text paragraphs, and a short button label. Warm and specific, not salesy.`,
+        system: `${FACTS}
+${BRAND}\nDraft an email as blocks: one heading, 2-3 short text paragraphs, and a short button label. Warm and specific, not salesy.`,
         user: `Goal: ${goal}`,
         schema: z.object({ heading: z.string(), paragraphs: z.array(z.string()).min(1).max(4), buttonLabel: z.string() }),
       });
@@ -78,6 +82,7 @@ export async function POST(request: Request) {
         .map((p: any) => ({ url: p.url as string, name: String(p.name).slice(0, 80) }));
       const out = await claudeJson({
         system: `${FACTS}
+${BRAND}
 You are the editing assistant inside an email builder. The person gives a plain-words command; you answer with the smallest set of edits that does it (at most 8), and one short friendly sentence saying what you did, or a question if the command is unclear.
 Refer to blocks only by their short ids (b1, b2…). Allowed edits (op): set_text (heading or text blocks; blockId, text), set_button (blockId; label and/or link), set_image (blockId; url and/or alt), set_align (blockId; align left|center|right), set_spacer (blockId; height 8-80), add_block (blockType; afterId = a block id, START for the top, or empty for the end; plus text/label/link/url/alt/align as needed), remove_block (blockId), move_block (blockId, afterId as above), set_brand (accent and/or background as #RRGGBB hex, font serif|sans).
 Rules: keep every fact the email states and add none; never invent offers, dates, prices or details. Only use a link that already appears in the email or that the person typed in their command. Only use a picture by exact url from the photo list. Do not remove the only text in the email. Fill unused fields with an empty string (0 for height).`,
@@ -109,6 +114,7 @@ Rules: keep every fact the email states and add none; never invent offers, dates
       const direction = clip(b.direction, 300) || "A clearly more designed, more polished version.";
       const out = await claudeJson({
         system: `${FACTS}
+${BRAND}
 You are a senior email designer. Redesign the given email into 3 clearly different alternatives (for example: elegant and airy; bold and photo-led; warm and simple). Use only these block types: heading, text, image, button, divider, spacer. Colors are 6-digit hex like #8a5a2b; background is the page color around the email.
 Strict rules: keep every fact the original states and add none. You may tighten or reorder the wording, but do not invent offers, dates, prices or details. Reuse the original button links exactly as written; never invent a link. Use images only from the photo list, by exact url, with a short plain description; skip images if none fit. For blocks where a field doesn't apply, use an empty string (0 for height). Aim for a strong visual rhythm: a clear opening, short paragraphs, one clear call to action.`,
         user: `Direction: ${direction}\n\nCurrent email (as plain text):\n${renderPlainText(current).slice(0, 5000)}\n\nCurrent colors: button ${current.brand.accent}, page ${current.brand.background}, font ${current.brand.font}\n\nButton links available (use exactly): ${[...allowed.links].join(", ") || "none"}\n\nPhotos available:\n${library.map((p) => `${p.name}: ${p.url}`).join("\n") || "none"}${b.like ? `\n\nThe person liked this one, so make 3 variations in that spirit: ${clip(b.like, 100)}` : ""}`,
@@ -125,7 +131,8 @@ Strict rules: keep every fact the original states and add none. You may tighten 
 
     if (b.action === "review") {
       const out = await claudeJson({
-        system: `${FACTS}\nYou review a finished email for a venue manager. Give up to 5 short, concrete suggestions (clarity, tone, a missing call to action, claims that need checking). Also give 3 subject lines (at most ${MAX_SUBJECT_WORDS} words and ${MAX_SUBJECT_CHARS} characters each) with preview text of at most ${MAX_PREVIEW_CHARS} characters.`,
+        system: `${FACTS}
+${BRAND}\nYou review a finished email for a venue manager. Give up to 5 short, concrete suggestions (clarity, tone, a missing call to action, claims that need checking). Also give 3 subject lines (at most ${MAX_SUBJECT_WORDS} words and ${MAX_SUBJECT_CHARS} characters each) with preview text of at most ${MAX_PREVIEW_CHARS} characters.`,
         user: `Email:\n${context}`,
         schema: z.object({ suggestions: z.array(z.string()).max(5), subjects: z.array(z.object({ subject: z.string(), previewText: z.string() })).max(3) }),
       });

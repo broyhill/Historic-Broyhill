@@ -68,15 +68,15 @@ export default function ReviewPanel({ mode, onChanged }: { mode: "queue" | "hist
   };
 
   if (loading) {
-    return <div className="p-12 text-center text-[#9ba6b7] text-sm">Loading records…</div>;
+    return <div className="p-12 text-center text-subtle text-sm">Loading records…</div>;
   }
 
   if (campaigns.length === 0) {
     return (
       <div className="ibox p-16 text-center space-y-3">
-        <div className="w-10 h-10 rounded-full bg-[#daf8ef] text-[#0acf97] flex items-center justify-center mx-auto">✓</div>
-        <h2 className="text-base font-semibold text-[#323a46]">{mode === "queue" ? "Queue Clear" : "No Broadcast History"}</h2>
-        <p className="text-sm text-[#9ba6b7]">{mode === "queue" ? "No communications pending review." : "Authorized broadcasts will be recorded here."}</p>
+        <div className="w-10 h-10 rounded-full bg-success-tint text-success flex items-center justify-center mx-auto">✓</div>
+        <h2 className="text-base font-semibold text-ink">{mode === "queue" ? "Queue Clear" : "No Broadcast History"}</h2>
+        <p className="text-sm text-subtle">{mode === "queue" ? "No communications pending review." : "Authorized broadcasts will be recorded here."}</p>
       </div>
     );
   }
@@ -86,12 +86,12 @@ export default function ReviewPanel({ mode, onChanged }: { mode: "queue" | "hist
       {campaigns.map((c) => (
         <div key={c.id} className="ibox">
           <div className="ibox-title">
-            <div className="flex items-center gap-3 text-xs text-[#9ba6b7]">
-              <span className="text-[#323a46] font-semibold">{c.channel}</span>
-              <span className="text-[#c3c9d1]">·</span>
+            <div className="flex items-center gap-3 text-xs text-subtle">
+              <span className="text-ink font-semibold">{c.channel}</span>
+              <span className="text-faint">·</span>
               <span>{new Date(c.createdAt).toLocaleString()}</span>
             </div>
-            <span className={`px-2 py-0.5 rounded text-[10px] font-semibold tracking-wider ${c.status === "PUBLISHED" ? "bg-[#daf8ef] text-[#09b080]" : "bg-[#feeede] text-[#d9822b]"}`}>
+            <span className={`px-2 py-0.5 rounded text-[10px] font-semibold tracking-wider ${c.status === "PUBLISHED" ? "bg-success-tint text-success" : "bg-warn-tint text-warn"}`}>
               {c.status}
             </span>
           </div>
@@ -99,15 +99,15 @@ export default function ReviewPanel({ mode, onChanged }: { mode: "queue" | "hist
           <div className="ibox-content space-y-4">
             {c.lead && (
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-                <span className="text-[#323a46] font-semibold">{c.lead.name || c.lead.email}</span>
-                {c.lead.company && (<><span className="text-[#c3c9d1]">·</span><span className="text-[#6c757d]">{c.lead.company}</span></>)}
-                <span className="text-[#c3c9d1]">·</span>
-                <span className="text-[#f5a623] font-medium">Score {c.lead.leadScore}</span>
-                <span className="text-[#c3c9d1]">·</span>
+                <span className="text-ink font-semibold">{c.lead.name || c.lead.email}</span>
+                {c.lead.company && (<><span className="text-faint">·</span><span className="text-muted">{c.lead.company}</span></>)}
+                <span className="text-faint">·</span>
+                <span className="text-warn font-medium">Score {c.lead.leadScore}</span>
+                <span className="text-faint">·</span>
                 {c.lead.linkedinId ? (
-                  <a href={linkedinHref(c.lead.linkedinId)} target="_blank" rel="noopener noreferrer" className="text-[#1c84c6] hover:underline">LinkedIn ↗</a>
+                  <a href={linkedinHref(c.lead.linkedinId)} target="_blank" rel="noopener noreferrer" className="text-info hover:underline">LinkedIn ↗</a>
                 ) : (
-                  <span className="text-[#c3c9d1]">no LinkedIn</span>
+                  <span className="text-faint">no LinkedIn</span>
                 )}
               </div>
             )}
@@ -120,7 +120,7 @@ export default function ReviewPanel({ mode, onChanged }: { mode: "queue" | "hist
                 className="ins-input w-full rounded-md p-3 text-sm leading-relaxed"
               />
             ) : (
-              <div className="bg-[#f8f9fb] border border-[#e7e9eb] rounded-md p-4 text-sm text-[#4c4c5c] whitespace-pre-wrap leading-relaxed">
+              <div className="bg-canvas border border-line rounded-md p-4 text-sm text-ink whitespace-pre-wrap leading-relaxed">
                 {c.suggestedDraft}
               </div>
             )}
@@ -129,21 +129,21 @@ export default function ReviewPanel({ mode, onChanged }: { mode: "queue" | "hist
               <div className="flex items-center justify-end gap-3 pt-1">
                 {editingId === c.id ? (
                   <>
-                    <button onClick={() => setEditingId(null)} className="px-4 py-2 border border-[#e7e9eb] rounded-md text-xs font-medium text-[#6c757d] hover:bg-[#f1f2f7]">Cancel</button>
-                    <button onClick={() => handleAction(c.id, "APPROVE")} className="px-4 py-2 bg-[#1ab394] text-white rounded-md text-xs font-semibold hover:bg-[#16987e]">Save &amp; Authorize</button>
+                    <button onClick={() => setEditingId(null)} className="px-4 py-2 border border-line rounded-md text-xs font-medium text-muted hover:bg-canvas">Cancel</button>
+                    <button onClick={() => handleAction(c.id, "APPROVE")} className="px-4 py-2 bg-accent text-white rounded-md text-xs font-semibold hover:bg-accent-deep">Save &amp; Authorize</button>
                   </>
                 ) : (
                   <>
-                    <button onClick={() => handleAction(c.id, "DISMISS")} className="px-4 py-2 border border-[#e7e9eb] rounded-md text-xs font-medium text-[#9ba6b7] hover:text-[#ed5565] hover:border-[#ed5565]/40">Dismiss</button>
-                    <button onClick={() => { setEditingId(c.id); setEditedDraft(c.suggestedDraft); }} className="px-4 py-2 border border-[#e7e9eb] rounded-md text-xs font-medium text-[#4c4c5c] hover:bg-[#f1f2f7]">Edit Draft</button>
-                    <button onClick={() => handleAction(c.id, "APPROVE")} className="px-4 py-2 bg-[#1ab394] text-white rounded-md text-xs font-semibold hover:bg-[#16987e]">Authorize Broadcast</button>
+                    <button onClick={() => handleAction(c.id, "DISMISS")} className="px-4 py-2 border border-line rounded-md text-xs font-medium text-subtle hover:text-danger hover:border-danger/40">Dismiss</button>
+                    <button onClick={() => { setEditingId(c.id); setEditedDraft(c.suggestedDraft); }} className="px-4 py-2 border border-line rounded-md text-xs font-medium text-ink hover:bg-canvas">Edit Draft</button>
+                    <button onClick={() => handleAction(c.id, "APPROVE")} className="px-4 py-2 bg-accent text-white rounded-md text-xs font-semibold hover:bg-accent-deep">Authorize Broadcast</button>
                   </>
                 )}
               </div>
             )}
 
             {mode === "history" && c.publishedAt && (
-              <div className="text-right text-[11px] text-[#9ba6b7]">
+              <div className="text-right text-[11px] text-subtle">
                 Published: {new Date(c.publishedAt).toLocaleString()}
               </div>
             )}

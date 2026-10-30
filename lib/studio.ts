@@ -112,6 +112,11 @@ const paragraphs = (text: string) =>
 
 function renderBlock(b: Block, brand: Brand): string {
   const font = FONTS[brand.font];
+  const row = renderBlockInner(b, brand, font);
+  return row ? row.replace("<tr>", `<tr data-block="${esc(b.id)}" data-type="${b.type}">`) : "";
+}
+
+function renderBlockInner(b: Block, brand: Brand, font: string): string {
   switch (b.type) {
     case "heading":
       return `<tr><td class="pad" style="padding:20px 32px 4px;text-align:${b.align};font-family:${font};font-size:26px;line-height:1.25;color:#2b2118;font-weight:bold">${esc(b.text)}</td></tr>`;
@@ -142,10 +147,21 @@ function renderFooter(brand: Brand): string {
   return `<tr><td class="pad" style="padding:22px 32px 28px;border-top:1px solid #d9cfc0;text-align:center;font-family:${font};font-size:12px;line-height:1.6;color:#7a6f63">${esc(VENUE_ADDRESS)}<br>You are receiving this because you asked to hear from us. <a href="${UNSUBSCRIBE_MARKER}" style="color:${brand.accent}">Unsubscribe</a></td></tr>`;
 }
 
-export function renderHtml(design: Design, opts: { title?: string } = {}): string {
+export interface RenderOpts { title?: string; editable?: boolean; selected?: string | null }
+
+// editable: the preview inside the Studio. Each block row lights up on hover, the selected one is
+// outlined, and a click tells the parent window which block to open. Only used by the Studio's
+// srcDoc preview iframe; the saved/sent HTML never carries this.
+const EDIT_CSS = `tr[data-block]>td{cursor:pointer;transition:box-shadow .12s ease-out}tr[data-block]:hover>td{box-shadow:inset 0 0 0 2px rgba(168,133,63,.55)}tr[data-block].is-selected>td{box-shadow:inset 0 0 0 2px #a8853f}@media (prefers-reduced-motion:reduce){tr[data-block]>td{transition:none}}`;
+const EDIT_JS = `document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a');if(a){e.preventDefault();}var tr=e.target.closest&&e.target.closest('tr[data-block]');if(!tr)return;document.querySelectorAll('tr.is-selected').forEach(function(x){x.classList.remove('is-selected')});tr.classList.add('is-selected');parent.postMessage({source:'hb-studio',block:tr.getAttribute('data-block')},'*')});`;
+
+export function renderHtml(design: Design, opts: RenderOpts = {}): string {
   const d = normalizeDesign(design);
   const rows = d.blocks.map((b) => renderBlock(b, d.brand)).join("");
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(opts.title ?? "Historic Broyhill")}</title><style>@media only screen and (max-width:620px){.wrap{width:100%!important}.pad{padding-left:18px!important;padding-right:18px!important}}</style></head><body style="margin:0;padding:0;background:${d.brand.background}"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${d.brand.background}"><tr><td align="center" style="padding:20px 8px"><table role="presentation" class="wrap" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;background:#ffffff">${rows}${renderFooter(d.brand)}</table></td></tr></table></body></html>`;
+  const sel = opts.editable && opts.selected ? esc(opts.selected) : "";
+  const edit = opts.editable ? `<style>${EDIT_CSS}</style>` : "";
+  const script = opts.editable ? `<script>${EDIT_JS}${sel ? `var s=document.querySelector('tr[data-block="${sel}"]');if(s){s.classList.add('is-selected');}` : ""}</script>` : "";
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(opts.title ?? "Historic Broyhill")}</title><style>@media only screen and (max-width:620px){.wrap{width:100%!important}.pad{padding-left:18px!important;padding-right:18px!important}}</style>${edit}</head><body style="margin:0;padding:0;background:${d.brand.background}"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${d.brand.background}"><tr><td align="center" style="padding:20px 8px"><table role="presentation" class="wrap" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;background:#ffffff">${rows}${renderFooter(d.brand)}</table></td></tr></table>${script}</body></html>`;
 }
 
 // What the design reads like with no styling, for the plain-text half of an email and for AI context.

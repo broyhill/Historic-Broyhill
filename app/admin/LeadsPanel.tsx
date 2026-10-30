@@ -289,15 +289,15 @@ export default function LeadsPanel() {
 
   const arrow = (key: SortKey) => (sortKey === key ? (sortDir === "asc" ? " ↑" : " ↓") : "");
 
-  const th = "px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-[#9ba6b7] whitespace-nowrap";
-  const thSort = `${th} cursor-pointer select-none hover:text-[#323a46]`;
-  const td = "px-3 py-2.5 text-xs text-[#4c4c5c] align-middle";
+  const th = "px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-subtle whitespace-nowrap";
+  const thSort = `${th} cursor-pointer select-none hover:text-ink`;
+  const td = "px-3 py-2.5 text-xs text-ink align-middle";
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col lg:flex-row lg:flex-wrap lg:items-center gap-3">
         <div className="relative lg:flex-1 lg:min-w-[220px]">
-          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#9ba6b7] text-sm">⌕</span>
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-subtle text-sm">⌕</span>
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -322,62 +322,62 @@ export default function LeadsPanel() {
         <input ref={fileRef} type="file" accept=".csv,text/csv" onChange={onPickFile} className="hidden" />
         <button
           onClick={() => fileRef.current?.click()}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-[#e7e9eb] bg-white text-[#4c4c5c] rounded-md text-xs font-semibold hover:bg-[#f1f2f7] transition whitespace-nowrap"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-line bg-white text-ink rounded-md text-xs font-semibold hover:bg-canvas transition whitespace-nowrap"
         >
           ↑ Import CSV
         </button>
         <a
           href={`/api/admin/leads/export?${query}`}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#1ab394] text-white rounded-md text-xs font-semibold hover:bg-[#16987e] transition whitespace-nowrap"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-accent text-white rounded-md text-xs font-semibold hover:bg-accent-deep transition whitespace-nowrap"
         >
           ↓ Export CSV
         </a>
         <button
           onClick={() => setEnrichPhase("confirm")}
           disabled={enrichPhase === "running"}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-[#1c84c6] bg-[#eef6fc] text-[#1870a8] rounded-md text-xs font-semibold hover:bg-[#ddedf6] transition whitespace-nowrap disabled:opacity-60"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-info bg-info-tint text-info rounded-md text-xs font-semibold hover:bg-info-tint transition whitespace-nowrap disabled:opacity-60"
         >
-          ✦ Enrich from email
+          Enrich from email
         </button>
         <button
           onClick={runFindPeople}
           disabled={findBusy}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-[#7754f6] bg-[#f4f0ff] text-[#5b3fc4] rounded-md text-xs font-semibold hover:bg-[#ebe4ff] transition whitespace-nowrap disabled:opacity-60"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-navy bg-canvas text-navy rounded-md text-xs font-semibold hover:bg-line transition whitespace-nowrap disabled:opacity-60"
         >
           {findBusy ? "Searching…" : "🔎 Find people (web · 10)"}
         </button>
         <button
           onClick={runSplitNames}
           disabled={splitBusy}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-[#e7e9eb] bg-white text-[#4c4c5c] rounded-md text-xs font-semibold hover:bg-[#f1f2f7] transition whitespace-nowrap disabled:opacity-60"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-line bg-white text-ink rounded-md text-xs font-semibold hover:bg-canvas transition whitespace-nowrap disabled:opacity-60"
         >
           {splitBusy ? "Splitting…" : "Split names"}
         </button>
       </div>
 
       {splitNote && (
-        <div className="rounded-md border border-[#e7e9eb] bg-[#f8f9fb] px-3 py-2.5 text-xs text-[#4c4c5c] flex items-center justify-between gap-3">
+        <div className="rounded-md border border-line bg-canvas px-3 py-2.5 text-xs text-ink flex items-center justify-between gap-3">
           <span>{splitNote}</span>
-          <button onClick={() => setSplitNote(null)} className="text-[#9ba6b7] hover:text-[#323a46]">✕</button>
+          <button onClick={() => setSplitNote(null)} className="text-subtle hover:text-ink">✕</button>
         </div>
       )}
 
       {findError && (
-        <div role="alert" className="rounded-md border border-[#f5c2c7] bg-[#fdeeee] px-3 py-2.5 text-xs text-[#c0392b]">{findError}</div>
+        <div role="alert" className="rounded-md border border-danger-tint bg-danger-tint px-3 py-2.5 text-xs text-danger">{findError}</div>
       )}
 
       {findResults && (
         <div className="ibox">
           <div className="ibox-title">
-            <h3 className="text-sm font-semibold text-[#323a46]">Web search results</h3>
+            <h3 className="text-sm font-semibold text-ink">Web search results</h3>
             <div className="flex items-center gap-3">
-              <span className="text-[11px] text-[#9ba6b7]">{findSummary}</span>
-              <button onClick={() => setFindResults(null)} className="text-[#9ba6b7] hover:text-[#323a46]">✕</button>
+              <span className="text-[11px] text-subtle">{findSummary}</span>
+              <button onClick={() => setFindResults(null)} className="text-subtle hover:text-ink">✕</button>
             </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
-              <thead className="bg-[#f8f9fb] border-b border-[#e7e9eb]">
+              <thead className="bg-canvas border-b border-line">
                 <tr>
                   <th className={th}>Email</th>
                   <th className={th}>Found</th>
@@ -387,89 +387,89 @@ export default function LeadsPanel() {
                   <th className={th}>Saved</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#eef1f4]">
+              <tbody className="divide-y divide-line">
                 {findResults.map((r, i) => (
-                  <tr key={i} className="hover:bg-[#f7f8fa]">
-                    <td className={`${td} text-[#6c757d]`}>{r.email}</td>
-                    <td className={`${td} text-[#323a46] font-medium`}>
-                      {r.name || <span className="text-[#c3c9d1]">—</span>}
-                      {r.source && <a href={r.source} target="_blank" rel="noopener noreferrer" className="ml-2 text-[#1c84c6] hover:underline">src ↗</a>}
+                  <tr key={i} className="hover:bg-canvas">
+                    <td className={`${td} text-muted`}>{r.email}</td>
+                    <td className={`${td} text-ink font-medium`}>
+                      {r.name || <span className="text-faint">—</span>}
+                      {r.source && <a href={r.source} target="_blank" rel="noopener noreferrer" className="ml-2 text-info hover:underline">src ↗</a>}
                     </td>
-                    <td className={`${td} text-[#6c757d]`}>{r.title || "—"}</td>
-                    <td className={td}>{r.linkedin ? <a href={r.linkedin} target="_blank" rel="noopener noreferrer" className="text-[#1c84c6] hover:underline">profile ↗</a> : "—"}</td>
+                    <td className={`${td} text-muted`}>{r.title || "—"}</td>
+                    <td className={td}>{r.linkedin ? <a href={r.linkedin} target="_blank" rel="noopener noreferrer" className="text-info hover:underline">profile ↗</a> : "—"}</td>
                     <td className={td}>
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${r.confidence === "high" ? "bg-[#daf8ef] text-[#09916b]" : r.confidence === "medium" ? "bg-[#feeede] text-[#d9822b]" : "bg-[#eef2f7] text-[#9ba6b7]"}`}>{r.confidence}</span>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${r.confidence === "high" ? "bg-success-tint text-success" : r.confidence === "medium" ? "bg-warn-tint text-warn" : "bg-line text-subtle"}`}>{r.confidence}</span>
                     </td>
-                    <td className={td}>{r.applied ? <span className="text-[#09916b]">✓</span> : <span className="text-[#c3c9d1]">—</span>}</td>
+                    <td className={td}>{r.applied ? <span className="text-success">✓</span> : <span className="text-faint">—</span>}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
           <div className="ibox-content flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <p className="text-[11px] text-[#9ba6b7]">Only high/medium confidence matches are saved. Review the sources, then keep going.</p>
+            <p className="text-[11px] text-subtle">Only high/medium confidence matches are saved. Review the sources, then keep going.</p>
             <div className="flex items-center gap-2">
-              <button onClick={runFindPeople} disabled={findBusy} className="px-4 py-2 border border-[#7754f6] text-[#5b3fc4] rounded-md text-xs font-semibold hover:bg-[#f4f0ff] disabled:opacity-60">{findBusy ? "Searching…" : "Find 10 more"}</button>
-              <button onClick={runFindAll} disabled={findBusy} className="px-4 py-2 bg-[#7754f6] text-white rounded-md text-xs font-semibold hover:bg-[#5b3fc4] disabled:opacity-60">{findBusy ? "Searching…" : "Find all remaining"}</button>
+              <button onClick={runFindPeople} disabled={findBusy} className="px-4 py-2 border border-navy text-navy rounded-md text-xs font-semibold hover:bg-canvas disabled:opacity-60">{findBusy ? "Searching…" : "Find 10 more"}</button>
+              <button onClick={runFindAll} disabled={findBusy} className="px-4 py-2 bg-navy text-white rounded-md text-xs font-semibold hover:bg-navy disabled:opacity-60">{findBusy ? "Searching…" : "Find all remaining"}</button>
             </div>
           </div>
         </div>
       )}
 
       {enrichPhase === "confirm" && (
-        <div className="rounded-md border border-[#a4cee8] bg-[#f3f9fd] p-4 space-y-3">
-          <p className="text-sm text-[#2b4a5e]">
+        <div className="rounded-md border border-info-tint bg-info-tint p-4 space-y-3">
+          <p className="text-sm text-ink">
             Fill in <strong>company name, city/state, and company LinkedIn</strong> for your contacts with
             a work email, using AI to identify the company from each email domain. Personal emails
             (gmail, yahoo…) are skipped. Nothing is emailed, and existing data isn&apos;t overwritten.
           </p>
           <div className="flex items-center gap-3">
-            <button onClick={runEnrichment} className="px-4 py-2 bg-[#1c84c6] text-white rounded-md text-xs font-semibold hover:bg-[#1870a8]">Run enrichment</button>
-            <button onClick={() => setEnrichPhase("idle")} className="px-4 py-2 border border-[#e7e9eb] rounded-md text-xs font-medium text-[#6c757d] hover:bg-[#f1f2f7]">Cancel</button>
+            <button onClick={runEnrichment} className="px-4 py-2 bg-info text-white rounded-md text-xs font-semibold hover:bg-info">Run enrichment</button>
+            <button onClick={() => setEnrichPhase("idle")} className="px-4 py-2 border border-line rounded-md text-xs font-medium text-muted hover:bg-canvas">Cancel</button>
           </div>
         </div>
       )}
 
       {enrichPhase === "running" && (
-        <div className="rounded-md border border-[#a4cee8] bg-[#f3f9fd] px-3 py-2.5 text-xs text-[#1870a8] font-medium flex items-center gap-2">
-          <span className="inline-block h-3 w-3 rounded-full border-2 border-[#1c84c6] border-t-transparent animate-spin" />
+        <div className="rounded-md border border-info-tint bg-info-tint px-3 py-2.5 text-xs text-info font-medium flex items-center gap-2">
+          <span className="inline-block h-3 w-3 rounded-full border-2 border-info border-t-transparent animate-spin" />
           Enriching… {enrichUpdated} contacts updated{enrichRemaining != null ? ` · ${enrichRemaining} leads left to scan` : ""}
         </div>
       )}
 
       {enrichPhase === "done" && enrichNote && (
-        <div className="rounded-md border border-[#9decd5] bg-[#daf8ef] px-3 py-2.5 text-xs text-[#09916b] flex items-center justify-between gap-3">
-          <span>✦ {enrichNote}</span>
-          <button onClick={() => setEnrichPhase("idle")} className="text-[#09916b]/70 hover:text-[#09916b]">✕</button>
+        <div className="rounded-md border border-success-tint bg-success-tint px-3 py-2.5 text-xs text-success flex items-center justify-between gap-3">
+          <span>{enrichNote}</span>
+          <button onClick={() => setEnrichPhase("idle")} className="text-success/70 hover:text-success">✕</button>
         </div>
       )}
       {enrichPhase === "idle" && enrichNote && (
-        <div role="alert" className="rounded-md border border-[#f5c2c7] bg-[#fdeeee] px-3 py-2.5 text-xs text-[#c0392b]">{enrichNote}</div>
+        <div role="alert" className="rounded-md border border-danger-tint bg-danger-tint px-3 py-2.5 text-xs text-danger">{enrichNote}</div>
       )}
 
       {importError && (
-        <div role="alert" className="rounded-md border border-[#f5c2c7] bg-[#fdeeee] px-3 py-2.5 text-xs text-[#c0392b]">{importError}</div>
+        <div role="alert" className="rounded-md border border-danger-tint bg-danger-tint px-3 py-2.5 text-xs text-danger">{importError}</div>
       )}
       {importDone && (
-        <div className="rounded-md border border-[#9decd5] bg-[#daf8ef] px-3 py-2.5 text-xs text-[#09916b]">{importDone}</div>
+        <div className="rounded-md border border-success-tint bg-success-tint px-3 py-2.5 text-xs text-success">{importDone}</div>
       )}
 
-      <div className="text-[11px] text-[#9ba6b7]">
+      <div className="text-[11px] text-subtle">
         {loading ? "Loading leads…" : `${sorted.length} lead${sorted.length === 1 ? "" : "s"}${query ? " (filtered)" : ""}`}
       </div>
 
       {loading ? (
-        <div className="p-12 text-center text-[#9ba6b7] text-xs">Loading records…</div>
+        <div className="p-12 text-center text-subtle text-xs">Loading records…</div>
       ) : sorted.length === 0 ? (
         <div className="ibox p-16 text-center space-y-3">
-          <div className="w-10 h-10 rounded-full bg-[#eef2f7] text-[#9ba6b7] flex items-center justify-center mx-auto">∅</div>
-          <h2 className="text-base font-semibold text-[#323a46]">No leads match</h2>
-          <p className="text-xs text-[#9ba6b7]">Try clearing the search or filters.</p>
+          <div className="w-10 h-10 rounded-full bg-line text-subtle flex items-center justify-center mx-auto">∅</div>
+          <h2 className="text-base font-semibold text-ink">No leads match</h2>
+          <p className="text-xs text-subtle">Try clearing the search or filters.</p>
         </div>
       ) : (
         <div className="ibox overflow-x-auto">
           <table className="w-full border-collapse">
-            <thead className="bg-[#f8f9fb] border-b border-[#e7e9eb]">
+            <thead className="bg-canvas border-b border-line">
               <tr>
                 <th className={thSort} onClick={() => toggleSort("firstName")}>First Name{arrow("firstName")}</th>
                 <th className={thSort} onClick={() => toggleSort("lastName")}>Last Name{arrow("lastName")}</th>
@@ -481,37 +481,37 @@ export default function LeadsPanel() {
                 <th className={`${thSort} text-right`} onClick={() => toggleSort("createdAt")}>Captured{arrow("createdAt")}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#eef1f4]">
+            <tbody className="divide-y divide-line">
               {sorted.map((l) => (
-                <tr key={l.id} className="hover:bg-[#f7f8fa]">
-                  <td className={`${td} text-[#323a46] font-semibold`} title={l.name || undefined}>
+                <tr key={l.id} className="hover:bg-canvas">
+                  <td className={`${td} text-ink font-semibold`} title={l.name || undefined}>
                     {[l.salutation, l.firstName].filter(Boolean).join(" ") || (l.name ? l.name.split(" ")[0] : "—")}
                   </td>
-                  <td className={`${td} text-[#323a46]`}>{l.lastName || "—"}</td>
+                  <td className={`${td} text-ink`}>{l.lastName || "—"}</td>
                   <td className={td}>
                     <div className="flex flex-col gap-0.5">
-                      <span className="text-[#4c4c5c]">{l.company || "—"}</span>
-                      {(l.city || l.state) && <span className="text-[#9ba6b7]">{[l.city, l.state].filter(Boolean).join(", ")}</span>}
+                      <span className="text-ink">{l.company || "—"}</span>
+                      {(l.city || l.state) && <span className="text-subtle">{[l.city, l.state].filter(Boolean).join(", ")}</span>}
                       {l.companyLinkedin && (
-                        <a href={l.companyLinkedin} target="_blank" rel="noopener noreferrer" className="text-[#1c84c6] hover:underline">Company ↗</a>
+                        <a href={l.companyLinkedin} target="_blank" rel="noopener noreferrer" className="text-info hover:underline">Company ↗</a>
                       )}
                     </div>
                   </td>
                   <td className={td}>
                     <div className="flex flex-col gap-0.5">
-                      <a href={`mailto:${l.email}`} className="text-[#4c4c5c] hover:text-[#1ab394]">{l.email}</a>
-                      {l.phone && <a href={`tel:${l.phone}`} className="text-[#9ba6b7] hover:text-[#1ab394]">{l.phone}</a>}
+                      <a href={`mailto:${l.email}`} className="text-ink hover:text-accent">{l.email}</a>
+                      {l.phone && <a href={`tel:${l.phone}`} className="text-subtle hover:text-accent">{l.phone}</a>}
                       {l.linkedinId && (
-                        <a href={linkedinHref(l.linkedinId)} target="_blank" rel="noopener noreferrer" className="text-[#1c84c6] hover:underline">LinkedIn ↗</a>
+                        <a href={linkedinHref(l.linkedinId)} target="_blank" rel="noopener noreferrer" className="text-info hover:underline">LinkedIn ↗</a>
                       )}
                     </div>
                   </td>
-                  <td className={`${td} text-[#6c757d]`}>{l.primaryTrack}</td>
-                  <td className={`${td} text-right ${l.leadScore >= 80 ? "text-[#1ab394] font-bold" : "text-[#4c4c5c]"}`}>{l.leadScore}</td>
+                  <td className={`${td} text-muted`}>{l.primaryTrack}</td>
+                  <td className={`${td} text-right ${l.leadScore >= 80 ? "text-accent font-bold" : "text-ink"}`}>{l.leadScore}</td>
                   <td className={td}>
-                    <span className="inline-block px-2 py-0.5 rounded text-[10px] font-medium tracking-wider bg-[#eef2f7] text-[#6c757d]">{l.leadStatus}</span>
+                    <span className="inline-block px-2 py-0.5 rounded text-[10px] font-medium tracking-wider bg-line text-muted">{l.leadStatus}</span>
                   </td>
-                  <td className={`${td} text-right text-[#9ba6b7] whitespace-nowrap`}>{new Date(l.createdAt).toLocaleDateString()}</td>
+                  <td className={`${td} text-right text-subtle whitespace-nowrap`}>{new Date(l.createdAt).toLocaleDateString()}</td>
                 </tr>
               ))}
             </tbody>
@@ -521,47 +521,47 @@ export default function LeadsPanel() {
 
       {preview && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-label="Confirm import">
-          <div className="w-full max-w-lg bg-white border border-[#e7e9eb] rounded-lg shadow-2xl p-6 space-y-5">
+          <div className="w-full max-w-lg bg-white border border-line rounded-lg shadow-2xl p-6 space-y-5">
             <div>
-              <h3 className="text-lg font-semibold text-[#323a46]">Import leads</h3>
-              <p className="text-xs text-[#9ba6b7] mt-1 truncate">{preview.fileName}</p>
+              <h3 className="text-lg font-semibold text-ink">Import leads</h3>
+              <p className="text-xs text-subtle mt-1 truncate">{preview.fileName}</p>
             </div>
 
             <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-md border border-[#9decd5] bg-[#daf8ef] p-3 text-center">
-                <div className="text-2xl font-bold text-[#09916b]">{preview.counts.toCreate}</div>
-                <div className="text-[10px] font-semibold uppercase tracking-wider text-[#6c757d] mt-0.5">New</div>
+              <div className="rounded-md border border-success-tint bg-success-tint p-3 text-center">
+                <div className="text-2xl font-bold text-success">{preview.counts.toCreate}</div>
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-muted mt-0.5">New</div>
               </div>
-              <div className="rounded-md border border-[#a4cee8] bg-[#ddedf6] p-3 text-center">
-                <div className="text-2xl font-bold text-[#1870a8]">{preview.counts.toUpdate}</div>
-                <div className="text-[10px] font-semibold uppercase tracking-wider text-[#6c757d] mt-0.5">Update</div>
+              <div className="rounded-md border border-info-tint bg-info-tint p-3 text-center">
+                <div className="text-2xl font-bold text-info">{preview.counts.toUpdate}</div>
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-muted mt-0.5">Update</div>
               </div>
-              <div className="rounded-md border border-[#e7e9eb] bg-[#f1f2f7] p-3 text-center">
-                <div className="text-2xl font-bold text-[#9ba6b7]">{preview.counts.skipped}</div>
-                <div className="text-[10px] font-semibold uppercase tracking-wider text-[#6c757d] mt-0.5">Skipped</div>
+              <div className="rounded-md border border-line bg-canvas p-3 text-center">
+                <div className="text-2xl font-bold text-subtle">{preview.counts.skipped}</div>
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-muted mt-0.5">Skipped</div>
               </div>
             </div>
 
-            <div className="rounded-md border border-[#e7e9eb] bg-[#f8f9fb] p-3 space-y-1.5">
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-[#9ba6b7] mb-1">Detected columns</div>
+            <div className="rounded-md border border-line bg-canvas p-3 space-y-1.5">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-subtle mb-1">Detected columns</div>
               {(["email", "name", "company", "phone", "linkedin"] as const).map((f) => (
                 <div key={f} className="flex items-center justify-between text-xs">
-                  <span className="text-[#6c757d] capitalize">{f}</span>
-                  <span className={preview.columns[f] ? "text-[#323a46] font-medium" : "text-[#c3c9d1]"}>
+                  <span className="text-muted capitalize">{f}</span>
+                  <span className={preview.columns[f] ? "text-ink font-medium" : "text-faint"}>
                     {preview.columns[f] || "— not found"}
                   </span>
                 </div>
               ))}
             </div>
 
-            <p className="text-[11px] text-[#9ba6b7] leading-relaxed">
-              Matches on email: existing contacts are updated, the rest are added as <span className="text-[#6c757d] font-medium">Client</span> records.
+            <p className="text-[11px] text-subtle leading-relaxed">
+              Matches on email: existing contacts are updated, the rest are added as <span className="text-muted font-medium">Client</span> records.
               Rows without a valid email are skipped. Nothing is emailed.
             </p>
 
             <div className="flex items-center justify-end gap-3 pt-1">
-              <button onClick={() => setPreview(null)} disabled={importBusy} className="px-4 py-2 border border-[#e7e9eb] rounded-md text-xs font-medium text-[#6c757d] hover:bg-[#f1f2f7] disabled:opacity-60">Cancel</button>
-              <button onClick={commitImport} disabled={importBusy || (preview.counts.toCreate + preview.counts.toUpdate === 0)} className="px-4 py-2 bg-[#1ab394] text-white rounded-md text-xs font-semibold hover:bg-[#16987e] disabled:opacity-60">
+              <button onClick={() => setPreview(null)} disabled={importBusy} className="px-4 py-2 border border-line rounded-md text-xs font-medium text-muted hover:bg-canvas disabled:opacity-60">Cancel</button>
+              <button onClick={commitImport} disabled={importBusy || (preview.counts.toCreate + preview.counts.toUpdate === 0)} className="px-4 py-2 bg-accent text-white rounded-md text-xs font-semibold hover:bg-accent-deep disabled:opacity-60">
                 {importBusy ? "Importing…" : `Import ${preview.counts.toCreate + preview.counts.toUpdate} leads`}
               </button>
             </div>

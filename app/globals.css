@@ -22,22 +22,41 @@ section[id] {
   font-family: var(--font-body), Georgia, 'Times New Roman', serif;
 }
 
-/* ───── Inspinia-inspired admin skin (internal console only) ─────
-   Palette borrowed from the Inspinia template: navy sidebar #1b2e4a,
-   light #f1f2f7 content, white ibox cards, teal-green #1ab394 accent. */
+/* ───── Historic Broyhill console (internal /admin only) ─────
+   Same family as the public site: navy #182c3e, gold #a8853f, serif headings.
+   Tokens live in tailwind.config.js; these are the few shared primitives. */
 .ins-app {
-  font-family: var(--font-admin), 'Open Sans', system-ui, -apple-system, sans-serif;
-  background: #f1f2f7;
-  color: #4c4c5c;
+  font-family: var(--font-admin), system-ui, -apple-system, sans-serif;
+  background: #f3f4f6;
+  color: #1f2a36;
+  font-size: 14px;
 }
-.ins-sidebar { background: #1b2e4a; }
-.ins-navlabel { color: #637a97; }
-.ins-navitem { color: #8ca3bd; transition: color .15s ease, background .15s ease; }
-.ins-navitem:hover { color: #e9ecf1; background: #1e3447; }
-.ins-navitem.is-active { color: #1ab394; background: #1e3447; box-shadow: inset 3px 0 0 #1ab394; }
-.ibox { background: #fff; border: 1px solid #e7e9eb; border-radius: .375rem; box-shadow: 0 .0625rem .125rem rgba(76,76,92,.06); }
-.ibox-title { padding: .9rem 1.25rem; border-bottom: 1px solid #e7e9eb; display: flex; align-items: center; justify-content: space-between; }
+.ins-app h1, .ins-app h2, .ins-app .hb-display {
+  font-family: var(--font-display), Georgia, 'Times New Roman', serif;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.ins-sidebar { background: #182c3e; color: #c9d3dd; }
+.ins-navlabel { color: #8a9bae; }
+.ins-navitem { color: #c9d3dd; transition: color .15s cubic-bezier(.22,1,.36,1), background .15s cubic-bezier(.22,1,.36,1); }
+.ins-navitem:hover { color: #fff; background: #243b50; }
+.ins-navitem.is-active { color: #fff; background: #243b50; }
+.ins-navitem.is-active .ins-navdot { background: #c2a15a; }
+.ibox { background: #fff; border: 1px solid #e3e6ea; border-radius: .5rem; }
+.ibox-title { padding: .85rem 1.25rem; border-bottom: 1px solid #e3e6ea; display: flex; align-items: center; justify-content: space-between; }
 .ibox-content { padding: 1.25rem; }
-.ins-input { background: #fff; border: 1px solid #e7e9eb; color: #4c4c5c; }
-.ins-input::placeholder { color: #9ba6b7; }
-.ins-input:focus { outline: none; border-color: #1ab394; box-shadow: 0 0 0 3px rgba(26,179,148,.15); }
+.ins-input { background: #fff; border: 1px solid #e3e6ea; color: #1f2a36; }
+.ins-input::placeholder { color: #68737e; }
+.ins-input:focus { outline: none; border-color: #a8853f; box-shadow: 0 0 0 3px rgba(168,133,63,.18); }
+@media (prefers-reduced-motion: reduce) {
+  .ins-navitem { transition: none; }
+}
+/* Secondary text inside the dark preview chrome (Studio / Social / Video). The
+   grey tokens are tuned for white cards; on navy they fall under 4.5:1. */
+.bg-navy-deep .text-subtle, .bg-navy .text-subtle,
+.bg-navy-deep .text-muted,  .bg-navy .text-muted,
+.bg-navy-deep .text-faint,  .bg-navy .text-faint { color: rgba(255,255,255,.78); }
+/* …but a white/light card nested inside that chrome (Social's post preview) gets the normal greys back. */
+:is(.bg-navy-deep, .bg-navy) :is(.bg-white, .bg-surface, .bg-canvas) .text-subtle { color: #68737e; }
+:is(.bg-navy-deep, .bg-navy) :is(.bg-white, .bg-surface, .bg-canvas) .text-muted  { color: #5a6672; }
+:is(.bg-navy-deep, .bg-navy) :is(.bg-white, .bg-surface, .bg-canvas) .text-faint  { color: #b4bcc4; }
