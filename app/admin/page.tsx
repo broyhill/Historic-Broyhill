@@ -10,6 +10,7 @@ import PhotosPanel from "./PhotosPanel";
 import StockSearch from "./StockSearch";
 import StudioPanel from "./StudioPanel";
 import ExamplesPanel from "./ExamplesPanel";
+import BrandPanel from "./BrandPanel";
 import type { Example } from "@/lib/examples";
 import type { SocialPrefill } from "./SocialPanel";
 import type { TextPrefill } from "./TemplatesPanel";
@@ -33,6 +34,7 @@ const icons: Record<Section, React.ReactNode> = {
   photos: <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />,
   stock: <path d="M12 2l3 6.5 7 .9-5.1 4.8 1.3 7L12 17.8 5.8 21.2l1.3-7L2 9.4l7-.9z" />,
   ask: <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />,
+  brand: <path d="M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 14.3 7.2 16.9l.9-5.4L4.2 7.7l5.4-.8z" />,
   settings: <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />,
 };
 
@@ -63,6 +65,7 @@ const NAV_GROUPS: { heading: string | null; items: { key: Section; label: string
   ] },
   { heading: "Tools", items: [
     { key: "ask", label: "Ask" },
+    { key: "brand", label: "Brand setup" },
     { key: "settings", label: "Venue & account" },
   ] },
 ];
@@ -81,6 +84,7 @@ const TITLES: Record<Section, string> = {
   photos: "Photo library",
   stock: "Free media",
   ask: "Ask",
+  brand: "Brand setup",
   settings: "Venue & account",
 };
 
@@ -202,6 +206,7 @@ export default function AdminConsole() {
           {section === "photos" && <PhotosPanel />}
           {section === "stock" && <StockSearch onOpenLibrary={() => go("photos")} />}
           {section === "ask" && <AskPanel onChanged={refreshMetrics} seed={askSeed} />}
+          {section === "brand" && <BrandPanel />}
           {section === "settings" && <SettingsPanel />}
         </main>
       </div>
