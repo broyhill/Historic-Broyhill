@@ -189,7 +189,7 @@ function Editor({ id, onBack }: { id: string; onBack: () => void }) {
                 <button className={btnPrimary} disabled={busy !== null} onClick={() => save({ subject: c.subject, previewText: c.previewText })}>Save</button>
                 <button className={btnGhost} disabled={busy !== null || !c.body.trim()} title={c.body.trim() ? "" : "Write the email body first"}
                   onClick={() => run("subjects", async () => { setOptions((await ai({ action: "subjects" })).options); })}>
-                  {busy === "subjects" ? "Devin is thinking…" : "✦ Suggest with Devin"}</button>
+                  {busy === "subjects" ? "Devin is thinking…" : "Suggest subjects"}</button>
               </div>
               {options.map((o, i) => (
                 <button key={i} onClick={() => { edit({ subject: o.subject, previewText: o.previewText }); setNotice("Applied. Click Save to keep it."); }}
@@ -261,7 +261,7 @@ function Editor({ id, onBack }: { id: string; onBack: () => void }) {
                 <p className="text-[11.5px] text-subtle">A template is only a starting point. Changing your email never changes the template.</p>
               </div>
               <div className="rounded-md border border-dashed border-accent/50 p-3 space-y-2">
-                <div className="text-[12px] font-semibold text-accent">✦ Let Devin draft it</div>
+                <div className="text-[12px] font-semibold text-accent">Draft it for me</div>
                 <input value={brief.goal} onChange={(e) => setBrief({ ...brief, goal: e.target.value })} placeholder="What is this email for? (required)" className={inputCls} maxLength={1000} />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <input value={brief.callToAction} onChange={(e) => setBrief({ ...brief, callToAction: e.target.value })} placeholder="Call to action, e.g. Book a tour" className={inputCls} maxLength={200} />
@@ -280,7 +280,7 @@ function Editor({ id, onBack }: { id: string; onBack: () => void }) {
                 <input value={rewrite} onChange={(e) => setRewrite(e.target.value)} placeholder="Ask Devin to change it, e.g. make it shorter and warmer" className={inputCls} maxLength={500} />
                 <button className={btnGhost} disabled={busy !== null || !rewrite.trim() || !c.body.trim()} onClick={() => run("rewrite", async () => {
                   edit({ body: (await ai({ action: "rewrite", instruction: rewrite })).body }); setRewrite(""); setNotice("Rewritten. Read it, then click Save.");
-                })}>{busy === "rewrite" ? "Rewriting…" : "✦ Rewrite"}</button>
+                })}>{busy === "rewrite" ? "Rewriting…" : "Rewrite"}</button>
               </div>
               <div className="flex gap-2 flex-wrap items-center">
                 <button className={btnPrimary} disabled={busy !== null} onClick={() => save({ body: c.body, subject: c.subject, previewText: c.previewText, designType: "plain" })}>Save</button>

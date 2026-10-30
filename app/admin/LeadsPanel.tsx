@@ -337,7 +337,7 @@ export default function LeadsPanel() {
           disabled={enrichPhase === "running"}
           className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-info bg-info-tint text-info rounded-md text-xs font-semibold hover:bg-info-tint transition whitespace-nowrap disabled:opacity-60"
         >
-          ✦ Enrich from email
+          Enrich from email
         </button>
         <button
           onClick={runFindPeople}
@@ -439,7 +439,7 @@ export default function LeadsPanel() {
 
       {enrichPhase === "done" && enrichNote && (
         <div className="rounded-md border border-success-tint bg-success-tint px-3 py-2.5 text-xs text-success flex items-center justify-between gap-3">
-          <span>✦ {enrichNote}</span>
+          <span>{enrichNote}</span>
           <button onClick={() => setEnrichPhase("idle")} className="text-success/70 hover:text-success">✕</button>
         </div>
       )}

@@ -111,7 +111,7 @@ export default function AdminConsole() {
         key={key}
         onClick={() => go(key)}
         aria-current={active ? "page" : undefined}
-        className={`ins-navitem ${active ? "is-active" : ""} w-full flex items-center gap-3 px-3 min-h-[40px] rounded-md text-[14px]`}
+        className={`ins-navitem ${active ? "is-active" : ""} w-full flex items-center gap-3 px-3 min-h-[44px] rounded-md text-[14px]`}
       >
         <span className="ins-navdot h-1.5 w-1.5 rounded-full bg-transparent shrink-0" aria-hidden="true" />
         <NavIcon section={key} />
@@ -129,7 +129,7 @@ export default function AdminConsole() {
       {navOpen && <div className="fixed inset-0 z-30 bg-black/40 lg:hidden" onClick={() => setNavOpen(false)} aria-hidden="true" />}
 
       {/* Sidebar */}
-      <aside className={`ins-sidebar fixed inset-y-0 left-0 z-40 w-64 flex flex-col transform transition-transform lg:translate-x-0 ${navOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`ins-sidebar fixed inset-y-0 left-0 z-40 w-64 flex flex-col transform transition-transform motion-reduce:transition-none lg:translate-x-0 ${navOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="px-5 pt-6 pb-5 border-b border-white/10">
           <h1 className="text-[22px] text-white leading-none">Historic Broyhill</h1>
           <p className="text-[13px] text-accent-bright mt-1.5">Back office</p>
@@ -144,7 +144,7 @@ export default function AdminConsole() {
           ))}
         </nav>
         <div className="p-3 border-t border-white/10">
-          <button onClick={signOut} className="ins-navitem w-full flex items-center gap-3 px-3 min-h-[40px] rounded-md text-[14px]">
+          <button onClick={signOut} className="ins-navitem w-full flex items-center gap-3 px-3 min-h-[44px] rounded-md text-[14px]">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px]"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" /></svg>
             Sign out
           </button>
@@ -160,7 +160,7 @@ export default function AdminConsole() {
           <div className="flex-1">
             <h2 className="text-[22px] text-ink leading-none">{TITLES[section]}</h2>
           </div>
-          <button onClick={refreshMetrics} className="h-10 px-3 inline-flex items-center gap-2 border border-line bg-white rounded-md text-[13px] text-muted hover:text-ink hover:border-faint" aria-label="Refresh counts">
+          <button onClick={refreshMetrics} className="h-11 px-3 inline-flex items-center gap-2 border border-line bg-white rounded-md text-[13px] text-muted hover:text-ink hover:border-faint" aria-label="Refresh counts">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" /></svg>
             Refresh
           </button>
