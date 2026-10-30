@@ -8,8 +8,8 @@ import { starterById } from "@/lib/studio-starters";
 import { totalSeconds } from "@/lib/video";
 import { defaultSettings, type TemplateSettings } from "@/lib/template-categories";
 
-const btnPrimary = "min-h-[40px] px-4 rounded-md bg-accent-deep text-white text-[13px] font-semibold hover:bg-navy disabled:opacity-50";
-const btnGhost = "min-h-[40px] px-3 rounded-md border border-line text-muted text-[13px] hover:border-accent/50 hover:text-ink disabled:opacity-50";
+const btnPrimary = "min-h-[44px] sm:min-h-[40px] px-4 rounded-md bg-accent-deep text-white text-[13px] font-semibold hover:bg-navy disabled:opacity-50";
+const btnGhost = "min-h-[44px] sm:min-h-[40px] px-3 rounded-md border border-line text-muted text-[13px] hover:border-accent/50 hover:text-ink disabled:opacity-50";
 
 export default function ExamplesPanel({ onUse, initialChannel }: { onUse: (ex: Example) => void; initialChannel?: ExampleChannel | null }) {
   const [channel, setChannel] = useState<ExampleChannel | "">(initialChannel ?? "");

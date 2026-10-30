@@ -110,7 +110,15 @@ export default function StudioPanel({ openId, openStarter }: { openId?: string |
   }, []);
 
   const design = useMemo(() => normalizeDesign({ blocks, brand }), [blocks, brand]);
-  const html = useMemo(() => renderHtml(design, { title: subject || name || "Preview", editable: true, selected: open }), [design, subject, name, open]);
+  const html = useMemo(() => renderHtml(design, { title: subject || name || "Preview", editable: true }), [design, subject, name]);
+  // Selection is applied inside the live preview instead of re-rendering it, so the email keeps its scroll position.
+  const frameRef = useRef<HTMLIFrameElement>(null);
+  const markSelected = () => {
+    const doc = frameRef.current?.contentDocument; if (!doc) return;
+    doc.querySelectorAll("tr.is-selected").forEach((el) => el.classList.remove("is-selected"));
+    if (open) doc.querySelector(`tr[data-block="${open}"]`)?.classList.add("is-selected");
+  };
+  useEffect(markSelected, [open, html]); // eslint-disable-line react-hooks/exhaustive-deps
   const issues = useMemo(() => designIssues(design), [design]);
   const issueFor = (bid: string) => issues.find((i) => i.blockId === bid)?.message;
 
@@ -269,6 +277,8 @@ export default function StudioPanel({ openId, openStarter }: { openId?: string |
             <div ref={boxRef} className="flex justify-center">
               <div style={{ width: frameW * scale, height: PREVIEW_H }} className={`overflow-hidden bg-white ${view === "mobile" || view === "ipad" ? "rounded-[26px] border-[7px] border-navy-soft" : "rounded border border-navy-soft"}`}>
                 <iframe
+                  ref={frameRef}
+                  onLoad={markSelected}
                   title="Email preview. Click any part to edit it."
                   // allow-same-origin keeps the preview in-process: a cross-origin (sandboxed) iframe under a CSS
                   // transform painted blank on some Chrome setups. The document is our own renderHtml() output
