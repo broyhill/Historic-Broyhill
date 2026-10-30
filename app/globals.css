@@ -56,3 +56,7 @@ section[id] {
 .bg-navy-deep .text-subtle, .bg-navy .text-subtle,
 .bg-navy-deep .text-muted,  .bg-navy .text-muted,
 .bg-navy-deep .text-faint,  .bg-navy .text-faint { color: rgba(255,255,255,.78); }
+/* …but a white/light card nested inside that chrome (Social's post preview) gets the normal greys back. */
+:is(.bg-navy-deep, .bg-navy) :is(.bg-white, .bg-surface, .bg-canvas) .text-subtle { color: #6f7a85; }
+:is(.bg-navy-deep, .bg-navy) :is(.bg-white, .bg-surface, .bg-canvas) .text-muted  { color: #5a6672; }
+:is(.bg-navy-deep, .bg-navy) :is(.bg-white, .bg-surface, .bg-canvas) .text-faint  { color: #b4bcc4; }
