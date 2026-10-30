@@ -79,6 +79,7 @@ const TITLES: Record<Section, string> = {
 export default function AdminConsole() {
   const [section, setSection] = useState<Section>("dashboard");
   const [studioId, setStudioId] = useState<string | null>(null);
+  const [studioStarter, setStudioStarter] = useState<string | null>(null);
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [navOpen, setNavOpen] = useState(false); // mobile drawer
   const [askSeed, setAskSeed] = useState<string | undefined>(); // question typed on the Dashboard
@@ -172,8 +173,8 @@ export default function AdminConsole() {
           {section === "queue" && <ReviewPanel mode="queue" onChanged={refreshMetrics} />}
           {section === "history" && <ReviewPanel mode="history" />}
           {section === "campaigns" && <CampaignsPanel />}
-          {section === "templates" && <TemplatesPanel onOpenStudio={(id) => { setStudioId(id); setSection("studio"); }} />}
-          {section === "studio" && <StudioPanel openId={studioId} />}
+          {section === "templates" && <TemplatesPanel onOpenStudio={(id) => { setStudioStarter(null); setStudioId(id); setSection("studio"); }} onOpenStarter={(id) => { setStudioId(null); setStudioStarter(id); setSection("studio"); }} />}
+          {section === "studio" && <StudioPanel openId={studioId} openStarter={studioStarter} />}
           {section === "social" && <SocialPanel />}
           {section === "video" && <VideoPanel />}
           {section === "photos" && <PhotosPanel />}

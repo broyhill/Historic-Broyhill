@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { previewChecks, subjectChecks, unresolvedTags } from "@/lib/campaign-rules";
 import { mediaChecks, smsChecks, smsInfo } from "@/lib/sms-rules";
 import { CAMPAIGN_TEMPLATES, TEXT_TEMPLATES } from "@/lib/campaign-templates";
 import { defaultSettings, resolveLabel, type ListName, type TemplateSettings } from "@/lib/template-categories";
+import { renderHtml, type Design } from "@/lib/studio";
+import { starterDesigns } from "@/lib/studio-starters";
 
 type Channel = "email" | "sms" | "mms";
 interface Saved { id: string; name: string; subject: string; previewText: string; body: string; mediaUrl: string; category: string; kind: string; studio?: boolean }
@@ -35,7 +37,7 @@ function Checks({ items }: { items: { ok: boolean; label: string }[] }) {
 
 // Template library for email, SMS and MMS. A template is only a starting point: nothing here sends.
 // Texting itself is not switched on yet; these are ready for when it is.
-export default function TemplatesPanel({ onOpenStudio }: { onOpenStudio?: (id: string) => void }) {
+export default function TemplatesPanel({ onOpenStudio, onOpenStarter }: { onOpenStudio?: (id: string) => void; onOpenStarter?: (id: string) => void }) {
   const [channel, setChannel] = useState<Channel>("email");
   const [saved, setSaved] = useState<Saved[]>([]);
   const [draft, setDraft] = useState<Draft>(EMPTY);
@@ -120,6 +122,7 @@ export default function TemplatesPanel({ onOpenStudio }: { onOpenStudio?: (id: s
     return c;
   }, [allStarters, saved]);
   const starters = filter ? allStarters.filter((s) => s.category === filter) : allStarters;
+  const designById = useMemo(() => Object.fromEntries(starterDesigns().map((d) => [d.id, d])), []);
   const savedShown = filter ? saved.filter((s) => s.category === filter) : saved;
 
   return (
@@ -189,10 +192,51 @@ export default function TemplatesPanel({ onOpenStudio }: { onOpenStudio?: (id: s
         )}
       </section>
 
+      {channel === "email" ? (
+      <section className="ibox">
+        <div className="ibox-title">
+          <h3 className="text-sm font-semibold text-ink">Finished emails to start from</h3>
+          <span className="text-[12px] text-subtle">Pick a look, then change the words in the Studio</span>
+        </div>
+        <div className="ibox-content grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          {starters.length === 0 && <p className="col-span-full text-[13px] text-subtle">No emails in this category yet.</p>}
+          {starters.map((s) => {
+            const hidden = settings.hiddenStarters.includes(s.id);
+            const st = designById[s.id];
+            return (
+              <article key={s.id} className={`group rounded-lg border border-line bg-white overflow-hidden flex flex-col hover:border-accent transition-colors motion-reduce:transition-none ${hidden ? "opacity-60" : ""}`}>
+                <button type="button" className="block text-left" onClick={() => onOpenStarter?.(s.id)} onMouseEnter={() => st && setPreviewTemplate(renderHtml(st.design, { title: s.name }))} aria-label={`Open ${s.name} in the Studio`}>
+                  {st ? <Thumb design={st.design} title={s.name} /> : <div className="h-56 bg-canvas" />}
+                </button>
+                <div className="p-3 flex-1 flex flex-col gap-1">
+                  <span className="text-[11px] uppercase tracking-wider text-subtle">{[s.category || "Uncategorized", s.kind].filter(Boolean).join(" · ")}{st ? ` · ${st.look}` : ""}</span>
+                  <span className="text-[14px] font-semibold text-ink leading-tight">{s.name}</span>
+                  <span className="text-[12.5px] text-muted">{s.description}</span>
+                  <div className="mt-auto pt-2 flex items-center gap-2">
+                    <button type="button" className={`${btnPrimary} min-h-[44px] sm:min-h-0`} onClick={() => onOpenStarter?.(s.id)}>Use this</button>
+                    <button type="button" className={btnGhost} onClick={() => { setDraft(s.fill); setPreviewTemplate(null); setNotice("Loaded as plain text below."); setError(null); }}>Plain text</button>
+                    <button type="button" className="ml-auto text-[12px] text-subtle hover:text-ink min-h-[44px] sm:min-h-0 px-2" aria-label={`${hidden ? "Show" : "Hide"} starter ${s.name}`}
+                      onClick={() => manage(hidden ? { action: "restore" } : { action: "hide", id: s.id }, hidden ? "All hidden starters are back." : `"${s.name}" is hidden.`)}>{hidden ? "Show" : "Hide"}</button>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+        {hiddenCount > 0 && (
+          <div className="px-5 pb-4 text-[12px] text-subtle">
+            {hiddenCount} starter{hiddenCount === 1 ? "" : "s"} hidden.{" "}
+            <button className="text-accent hover:underline" onClick={() => setShowHidden((v) => !v)}>{showHidden ? "Stop showing them" : "Show them"}</button>
+            {" · "}
+            <button className="text-accent hover:underline" onClick={() => manage({ action: "restore" }, "All hidden starters are back.")}>Bring them all back</button>
+          </div>
+        )}
+      </section>
+      ) : (
       <section className="ibox">
         <div className="ibox-title"><h3 className="text-sm font-semibold text-ink">Starter templates</h3></div>
         <div className="ibox-content grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {starters.length === 0 && <p className="col-span-full text-[13px] text-subtle">No starters in this category for {channel === "email" ? "email" : channel.toUpperCase()} yet. Write your own below and pick the category.</p>}
+          {starters.length === 0 && <p className="col-span-full text-[13px] text-subtle">No starters in this category for {channel.toUpperCase()} yet. Write your own below and pick the category.</p>}
           {starters.map((s) => {
             const hidden = settings.hiddenStarters.includes(s.id);
             return (
@@ -223,6 +267,8 @@ export default function TemplatesPanel({ onOpenStudio }: { onOpenStudio?: (id: s
           </div>
         )}
       </section>
+
+      )}
 
       <section className="ibox">
         <div className="ibox-title"><h3 className="text-sm font-semibold text-ink">My templates</h3>
@@ -331,17 +377,16 @@ export default function TemplatesPanel({ onOpenStudio }: { onOpenStudio?: (id: s
     </div>
 
     {/* Right preview panel */}
-    <div className="w-[400px] bg-white border-l border-line overflow-y-auto" style={{ maxHeight: 'calc(100vh - 100px)' }}>
+    <div className="hidden xl:block w-[400px] shrink-0 bg-white border-l border-line overflow-y-auto" style={{ maxHeight: 'calc(100vh - 100px)' }}>
       <div className="p-4 border-b border-line">
         <h3 className="text-sm font-semibold text-ink">Template Preview</h3>
         <p className="text-[11.5px] text-subtle">Hover over templates to preview</p>
       </div>
       <div className="p-4">
         {previewTemplate ? (
-          <div 
-            className="border border-line rounded-md overflow-hidden"
-            dangerouslySetInnerHTML={{ __html: previewTemplate }}
-          />
+          /<[a-z][\s\S]*>/i.test(previewTemplate)
+            ? <iframe title="Template preview" sandbox="" srcDoc={previewTemplate} className="w-full border border-line rounded-md bg-white" style={{ height: 'calc(100vh - 200px)' }} />
+            : <pre className="border border-line rounded-md p-3 text-[13px] text-ink whitespace-pre-wrap font-admin">{previewTemplate}</pre>
         ) : (
           <div className="text-center py-12 text-subtle">
             <p className="text-[13px]">Hover over a template to see preview</p>
@@ -350,5 +395,23 @@ export default function TemplatesPanel({ onOpenStudio }: { onOpenStudio?: (id: s
       </div>
     </div>
   </div>
+  );
+}
+
+function Thumb({ design, title }: { design: Design; title: string }) {
+  // The email is laid out at its real 600px width and shrunk to the card, so the card shows the
+  // whole top of the email instead of a crop.
+  const ref = useRef<HTMLDivElement>(null);
+  const [w, setW] = useState(300);
+  useEffect(() => {
+    const el = ref.current; if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => setW(el.clientWidth)); ro.observe(el); setW(el.clientWidth);
+    return () => ro.disconnect();
+  }, []);
+  const scale = w / 640;
+  return (
+    <div ref={ref} className="h-56 overflow-hidden bg-canvas border-b border-line">
+      <iframe title={`Preview of ${title}`} sandbox="" tabIndex={-1} srcDoc={renderHtml(design, { title })} className="pointer-events-none" style={{ width: 640, height: 224 / scale, border: 0, transform: `scale(${scale})`, transformOrigin: "top left" }} />
+    </div>
   );
 }

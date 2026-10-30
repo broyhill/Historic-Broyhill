@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { applyOps, linksIn, type Op } from "@/lib/studio-commands";
 import { BLOCK_TYPES, allowedFrom, buildPrompt, VENUE_ADDRESS, defaultBrand, designIssues, duplicateBlock, moveBlock, newBlock, newId, normalizeDesign, renderHtml, type Block, type BlockType, type Brand } from "@/lib/studio";
 import { defaultSettings, type TemplateSettings } from "@/lib/template-categories";
+import { starterById } from "@/lib/studio-starters";
 
 interface Photo { url: string; folder: string; name: string }
 interface SavedDesign { id: string; name: string; updatedAt: string; studio: { blocks: Block[]; brand: Brand } }
@@ -13,8 +14,9 @@ const btnPrimary = "h-9 px-4 rounded-md bg-accent text-white text-[13px] font-se
 const btnGhost = "h-8 px-3 rounded-md border border-line text-muted text-[12.5px] hover:border-accent/50 disabled:opacity-50";
 const lbl = "text-[12px] font-semibold text-muted";
 
-type Device = "mobile" | "ipad" | "laptop" | "desktop";
+type Device = "email" | "mobile" | "ipad" | "laptop" | "desktop";
 const DEVICES: Record<Device, { label: string; width: number }> = {
+  email: { label: "Email", width: 640 },
   mobile: { label: "Mobile", width: 390 },
   ipad: { label: "iPad", width: 820 },
   laptop: { label: "Laptop", width: 1440 },
@@ -31,7 +33,7 @@ async function call(url: string, init?: RequestInit) {
 }
 const post = (body: unknown): RequestInit => ({ method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
 
-export default function StudioPanel({ openId }: { openId?: string | null }) {
+export default function StudioPanel({ openId, openStarter }: { openId?: string | null; openStarter?: string | null }) {
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [brand, setBrand] = useState<Brand>(defaultBrand());
   const [id, setId] = useState<string | null>(null);
@@ -44,7 +46,7 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
   const [saved, setSaved] = useState<SavedDesign[]>([]);
   const [photos, setPhotos] = useState<Photo[] | null>(null);
   const [pickFor, setPickFor] = useState<string | null>(null);
-  const [view, setView] = useState<Device>("desktop");
+  const [view, setView] = useState<Device>("email");
   const boxRef = useRef<HTMLDivElement>(null);
   const [boxW, setBoxW] = useState(520);
   useEffect(() => {
@@ -82,9 +84,30 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
   // Coming from the Templates list: open that design straight away.
   useEffect(() => { if (openId) openDesign(openId); // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openId]);
+  // Coming from the Templates gallery: load the designed starter as an unsaved design.
+  useEffect(() => {
+    if (!openStarter) return;
+    const st = starterById(openStarter); if (!st) return;
+    setId(null); setName(st.name); setSubject(st.subject); setPreviewText(st.previewText); setCategory(st.category); setKind(st.kind);
+    setBlocks(st.design.blocks); setBrand(st.design.brand); setOpen(null); setReview(null); setSuggest(null); setAlts(null); setPast([]); setFuture([]); setLog([]); setDirty(true);
+    setNotice(`"${st.name}" is loaded. Click any part of the email to change it, then Save as template to keep your own copy.`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openStarter]);
+  // Clicking a cell in the preview opens that block's editor on the right.
+  const editorRefs = useRef<Record<string, HTMLLIElement | null>>({});
+  useEffect(() => {
+    const onMsg = (e: MessageEvent) => {
+      const d = e.data as { source?: string; block?: string } | null;
+      if (!d || d.source !== "hb-studio" || typeof d.block !== "string") return;
+      setOpen(d.block);
+      requestAnimationFrame(() => editorRefs.current[d.block!]?.scrollIntoView({ block: "nearest", behavior: "smooth" }));
+    };
+    window.addEventListener("message", onMsg);
+    return () => window.removeEventListener("message", onMsg);
+  }, []);
 
   const design = useMemo(() => normalizeDesign({ blocks, brand }), [blocks, brand]);
-  const html = useMemo(() => renderHtml(design, { title: subject || name || "Preview" }), [design, subject, name]);
+  const html = useMemo(() => renderHtml(design, { title: subject || name || "Preview", editable: true, selected: open }), [design, subject, name, open]);
   const issues = useMemo(() => designIssues(design), [design]);
   const issueFor = (bid: string) => issues.find((i) => i.blockId === bid)?.message;
 
@@ -238,13 +261,13 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
           <div className="rounded-2xl bg-navy-deep p-4">
             <div className="mb-2 flex items-center justify-between text-[12px] text-subtle">
               <span>{DEVICES[view].label} · {DEVICES[view].width} px wide</span>
-              <span>Preview only. Sending is off.</span>
+              <span>Click any part of the email to edit it. Sending is off.</span>
             </div>
             <div ref={boxRef} className="flex justify-center">
               <div style={{ width: DEVICES[view].width * scale, height: PREVIEW_H }} className={`overflow-hidden bg-white ${view === "mobile" || view === "ipad" ? "rounded-[26px] border-[7px] border-navy-soft" : "rounded border border-navy-soft"}`}>
                 <iframe
-                  title="Email preview"
-                  sandbox=""
+                  title="Email preview. Click any part to edit it."
+                  sandbox="allow-scripts"
                   srcDoc={html}
                   style={{ width: DEVICES[view].width, height: PREVIEW_H / scale, transform: `scale(${scale})`, transformOrigin: "top left", border: 0, background: "#fff" }}
                 />
@@ -347,7 +370,7 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
 
           <ol className="space-y-2">
             {blocks.map((b, i) => (
-              <li key={b.id} className={`rounded-lg border bg-white ${issueFor(b.id) ? "border-warn" : "border-line"}`}>
+              <li key={b.id} ref={(el) => { editorRefs.current[b.id] = el; }} className={`rounded-lg border bg-white ${issueFor(b.id) ? "border-warn" : open === b.id ? "border-accent" : "border-line"}`}>
                 <div className="flex items-center gap-2 px-3 py-2">
                   <button className="flex-1 text-left text-[13.5px] font-semibold text-ink capitalize" onClick={() => setOpen(open === b.id ? null : b.id)}>
                     {b.type}
@@ -475,7 +498,7 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
         </div>
         {/* Master control: screen sizes and save, always visible at the bottom of the panel */}
         <div className="border-t border-line bg-canvas p-3 space-y-2">
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-5 gap-2">
             {(Object.keys(DEVICES) as Device[]).map((d) => (
               <button key={d} onClick={() => setView(d)} aria-pressed={view === d}
                 className={`flex flex-col items-center gap-1 rounded-lg border py-2 text-[12px] font-semibold ${view === d ? "border-accent text-accent bg-white" : "border-line text-muted bg-white hover:border-accent/50"}`}>
@@ -509,9 +532,17 @@ function Fold({ n, title, open: startOpen, children }: { n: string; title: strin
 }
 
 function Thumb({ design, title }: { design: { blocks: Block[]; brand: Brand }; title: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [w, setW] = useState(220);
+  useEffect(() => {
+    const el = ref.current; if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => setW(el.clientWidth)); ro.observe(el); setW(el.clientWidth);
+    return () => ro.disconnect();
+  }, []);
+  const scale = w / 640;
   return (
-    <div className="h-64 overflow-hidden rounded-lg border border-line bg-white">
-      <iframe title={`Thumbnail ${title}`} sandbox="" tabIndex={-1} srcDoc={renderHtml(design, { title })} className="pointer-events-none" style={{ width: 600, height: 900, border: 0, transform: "scale(0.366)", transformOrigin: "top left" }} />
+    <div ref={ref} className="h-64 overflow-hidden rounded-lg border border-line bg-white">
+      <iframe title={`Thumbnail ${title}`} sandbox="" tabIndex={-1} srcDoc={renderHtml(design, { title })} className="pointer-events-none" style={{ width: 640, height: 256 / scale, border: 0, transform: `scale(${scale})`, transformOrigin: "top left" }} />
     </div>
   );
 }
@@ -520,6 +551,7 @@ function DeviceIcon({ device }: { device: Device }) {
   const p = { fill: "none", stroke: "currentColor", strokeWidth: 1.6, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
   return (
     <svg viewBox="0 0 24 24" className="h-5 w-5" {...p}>
+      {device === "email" && <><rect x="3" y="6" width="18" height="12" rx="1.5" /><path d="M3 7l9 6 9-6" /></>}
       {device === "mobile" && <><rect x="8" y="3" width="8" height="18" rx="2" /><path d="M11 18h2" /></>}
       {device === "ipad" && <><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M11 18h2" /></>}
       {device === "laptop" && <><rect x="5" y="5" width="14" height="10" rx="1.5" /><path d="M3 19h18" /></>}
