@@ -150,8 +150,8 @@ function renderFooter(brand: Brand): string {
 export interface RenderOpts { title?: string; editable?: boolean; selected?: string | null }
 
 // editable: the preview inside the Studio. Each block row lights up on hover, the selected one is
-// outlined, and a click tells the parent window which block to open. Only used with a sandboxed
-// srcDoc iframe (allow-scripts, no same-origin); the saved/sent HTML never carries this.
+// outlined, and a click tells the parent window which block to open. Only used by the Studio's
+// srcDoc preview iframe; the saved/sent HTML never carries this.
 const EDIT_CSS = `tr[data-block]>td{cursor:pointer;transition:box-shadow .12s ease-out}tr[data-block]:hover>td{box-shadow:inset 0 0 0 2px rgba(168,133,63,.55)}tr[data-block].is-selected>td{box-shadow:inset 0 0 0 2px #a8853f}@media (prefers-reduced-motion:reduce){tr[data-block]>td{transition:none}}`;
 const EDIT_JS = `document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a');if(a){e.preventDefault();}var tr=e.target.closest&&e.target.closest('tr[data-block]');if(!tr)return;document.querySelectorAll('tr.is-selected').forEach(function(x){x.classList.remove('is-selected')});tr.classList.add('is-selected');parent.postMessage({source:'hb-studio',block:tr.getAttribute('data-block')},'*')});`;
 

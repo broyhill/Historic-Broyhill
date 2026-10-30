@@ -270,7 +270,10 @@ export default function StudioPanel({ openId, openStarter }: { openId?: string |
               <div style={{ width: frameW * scale, height: PREVIEW_H }} className={`overflow-hidden bg-white ${view === "mobile" || view === "ipad" ? "rounded-[26px] border-[7px] border-navy-soft" : "rounded border border-navy-soft"}`}>
                 <iframe
                   title="Email preview. Click any part to edit it."
-                  sandbox="allow-scripts"
+                  // allow-same-origin keeps the preview in-process: a cross-origin (sandboxed) iframe under a CSS
+                  // transform painted blank on some Chrome setups. The document is our own renderHtml() output
+                  // (all text escaped, links limited to http/https/mailto), and the only script in it is ours.
+                  sandbox="allow-scripts allow-same-origin"
                   srcDoc={html}
                   style={{ width: frameW, height: PREVIEW_H / scale, transform: `scale(${scale})`, transformOrigin: "top left", border: 0, background: "#fff" }}
                 />
