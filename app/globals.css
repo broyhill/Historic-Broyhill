@@ -51,3 +51,8 @@ section[id] {
 @media (prefers-reduced-motion: reduce) {
   .ins-navitem { transition: none; }
 }
+/* Secondary text inside the dark preview chrome (Studio / Social / Video). The
+   grey tokens are tuned for white cards; on navy they fall under 4.5:1. */
+.bg-navy-deep .text-subtle, .bg-navy .text-subtle,
+.bg-navy-deep .text-muted,  .bg-navy .text-muted,
+.bg-navy-deep .text-faint,  .bg-navy .text-faint { color: rgba(255,255,255,.78); }
