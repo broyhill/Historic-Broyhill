@@ -8,7 +8,7 @@ import { starterById } from "@/lib/studio-starters";
 import { totalSeconds } from "@/lib/video";
 import { defaultSettings, type TemplateSettings } from "@/lib/template-categories";
 
-const btnPrimary = "min-h-[40px] px-4 rounded-md bg-accent text-white text-[13px] font-semibold hover:bg-accent-deep disabled:opacity-50";
+const btnPrimary = "min-h-[40px] px-4 rounded-md bg-accent-deep text-white text-[13px] font-semibold hover:bg-navy disabled:opacity-50";
 const btnGhost = "min-h-[40px] px-3 rounded-md border border-line text-muted text-[13px] hover:border-accent/50 hover:text-ink disabled:opacity-50";
 
 export default function ExamplesPanel({ onUse, initialChannel }: { onUse: (ex: Example) => void; initialChannel?: ExampleChannel | null }) {
@@ -121,7 +121,7 @@ function Preview({ ex }: { ex: Example }) {
               <img src={ex.text.mediaUrl} alt="" className="rounded-2xl rounded-bl-md w-48 aspect-[4/3] object-cover" loading="lazy" />
             )}
             <div className="rounded-2xl rounded-bl-md bg-line/70 px-3 py-2 text-[13px] text-ink leading-snug line-clamp-5">{ex.text.body}</div>
-            <div className="text-[10.5px] text-subtle pl-1">{ex.channel.toUpperCase()} · {ex.text.body.length} characters</div>
+            <div className="text-[11px] text-muted pl-1">{ex.channel.toUpperCase()} · {ex.text.body.length} characters</div>
           </div>
         </div>
       );
@@ -142,7 +142,7 @@ function Preview({ ex }: { ex: Example }) {
               <img key={s.id} src={s.url} alt={s.alt} className="h-full w-full min-h-0 object-cover rounded" loading="lazy" />
             ))}
           </div>
-          <div className="flex items-center justify-between text-[11.5px] text-white/78">
+          <div className="flex items-center justify-between text-[11.5px] text-white/80">
             <span>{sb.scenes.length} scenes · {Math.round(totalSeconds(sb))} s · 1280×720</span>
             <span className="truncate pl-2">“{sb.scenes[0]?.caption}”</span>
           </div>

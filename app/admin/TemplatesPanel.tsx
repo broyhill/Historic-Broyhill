@@ -28,7 +28,7 @@ async function api(url: string, init?: RequestInit) {
 }
 
 const inputCls = "w-full rounded-md border border-line px-3 py-2 text-[14px] text-ink focus:outline-none focus:border-accent";
-const btnPrimary = "h-9 px-4 rounded-md bg-accent text-white text-[13px] font-semibold disabled:opacity-50";
+const btnPrimary = "h-9 px-4 rounded-md bg-accent-deep text-white text-[13px] font-semibold hover:bg-navy disabled:opacity-50";
 const btnGhost = "h-9 px-3 rounded-md border border-line text-muted text-[13px] hover:border-accent/50 disabled:opacity-50";
 
 function Checks({ items }: { items: { ok: boolean; label: string }[] }) {
@@ -376,7 +376,7 @@ export default function TemplatesPanel({ onOpenStudio, onOpenStarter, prefill }:
             <p className="text-[12.5px] text-warn">Blanks to fill when you use this: {blanks.map((t) => `{{${t}}}`).join(", ")}. <b>{"{{firstName}}"}</b> is filled in automatically for each person.</p>
           )}
           {error && <p className="text-[13px] text-red-600" role="alert">{error}</p>}
-          {notice && !error && <p className="text-[13px] text-accent">{notice}</p>}
+          {notice && <p className="text-[13px] text-success">{notice}</p>}
           <div className="flex gap-2">
             <button className={btnPrimary} disabled={busy || !draft.name.trim() || !draft.body.trim()} onClick={save}>{busy ? "Saving…" : draft.id ? "Save changes" : "Save template"}</button>
             {draft.id && <button className={btnGhost} onClick={() => setDraft({ ...draft, id: undefined, name: `${draft.name} copy` })}>Save as a copy</button>}

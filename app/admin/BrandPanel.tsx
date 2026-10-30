@@ -5,7 +5,7 @@ import { BUSINESS_TYPES, INDUSTRIES, SOCIAL_KEYS, brandAddressLine, emptyBrand, 
 
 const inputCls = "w-full rounded-md border border-line px-3 py-2 text-[14px] text-ink focus:outline-none focus:border-accent min-h-[44px]";
 const lbl = "block text-[12px] font-semibold text-muted";
-const btnPrimary = "min-h-[44px] px-5 rounded-md bg-accent text-white text-[14px] font-semibold hover:bg-accent-deep disabled:opacity-50";
+const btnPrimary = "min-h-[44px] px-5 rounded-md bg-accent-deep text-white text-[14px] font-semibold hover:bg-navy disabled:opacity-50";
 const btnGhost = "min-h-[44px] px-4 rounded-md border border-line text-muted text-[14px] hover:border-accent/50 hover:text-ink disabled:opacity-50";
 const SOCIAL_LABEL: Record<(typeof SOCIAL_KEYS)[number], string> = { facebook: "Facebook", instagram: "Instagram", linkedin: "LinkedIn", x: "X (Twitter)", youtube: "YouTube", tiktok: "TikTok" };
 

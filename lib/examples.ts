@@ -124,7 +124,7 @@ const endcard = () => ({ id: newSceneId(), kind: "endcard" as const, url: photo(
 const board = (scenes: Storyboard["scenes"]): Storyboard => ({ scenes, music: null, width: 1280, height: 720, fps: 30 });
 
 const VIDEOS: { id: string; category: string; kind: string; title: string; description: string; video: VideoExample }[] = [
-  { id: "vid-tour", category: "New inquiry", kind: "Invitation", title: "The tour in 25 seconds", description: "Five spaces, one building.",
+  { id: "vid-tour", category: "New inquiry", kind: "Invitation", title: "The tour in 23 seconds", description: "Five spaces, one building.",
     video: { script: ["Open on the schoolhouse from the lawn.", "Magnolia Room, the stage hall.", "The Dock, covered outdoor stage.", "The Loft for meetings.", "Class A suites upstairs.", "End card with the address."],
       storyboard: board([
         scene("exterior-day.jpg", "Historic Broyhill from the lawn", "A 1920s schoolhouse in Clemmons"),
