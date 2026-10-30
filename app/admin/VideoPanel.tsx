@@ -57,7 +57,9 @@ function drawFrame(ctx: CanvasRenderingContext2D, sb: Storyboard, t: number, img
   ctx.globalAlpha = 1;
 }
 
-export default function VideoPanel() {
+export interface VideoPrefill { key: string; name: string; storyboard: Storyboard }
+
+export default function VideoPanel({ prefill }: { prefill?: VideoPrefill | null } = {}) {
   const [sb, setSb] = useState<Storyboard>(emptyStoryboard());
   const [id, setId] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -196,6 +198,14 @@ export default function VideoPanel() {
     const { video } = await call(`/api/admin/video?id=${encodeURIComponent(vid)}`);
     setId(video.id); setName(video.name); setSb(video.storyboard); setCheckpoints(video.checkpoints); setPast([]); setFuture([]); setLog([]); setDirty(false); setSel(video.storyboard.scenes[0]?.id ?? null); seek(0);
   });
+  // Coming from the Examples library: load the storyboard as an unsaved video.
+  useEffect(() => {
+    if (!prefill) return;
+    const nsb = normalizeStoryboard(prefill.storyboard);
+    setId(null); setName(prefill.name); setSb(nsb); setCheckpoints([]); setPast([]); setFuture([]); setLog([]); setDirty(true); setSel(nsb.scenes[0]?.id ?? null); setError("");
+    setNotice("Example loaded. Change the pictures or captions, then save it as your own.");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefill?.key]);
   const startNew = () => {
     if (dirty && !confirm("You have changes that aren't saved. Start a new video anyway?")) return;
     setId(null); setName(""); setSb(emptyStoryboard()); setCheckpoints([]); setPast([]); setFuture([]); setLog([]); setDirty(false); setSel(null); seek(0); setNotice(""); setError("");

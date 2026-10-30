@@ -9,6 +9,11 @@ import TemplatesPanel from "./TemplatesPanel";
 import PhotosPanel from "./PhotosPanel";
 import StockSearch from "./StockSearch";
 import StudioPanel from "./StudioPanel";
+import ExamplesPanel from "./ExamplesPanel";
+import type { Example } from "@/lib/examples";
+import type { SocialPrefill } from "./SocialPanel";
+import type { TextPrefill } from "./TemplatesPanel";
+import type { VideoPrefill } from "./VideoPanel";
 import SocialPanel from "./SocialPanel";
 import VideoPanel from "./VideoPanel";
 import Dashboard, { type Metrics, type Section } from "./Dashboard";
@@ -20,6 +25,7 @@ const icons: Record<Section, React.ReactNode> = {
   queue: <path d="M22 12h-6l-2 3h-4l-2-3H2M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />,
   history: <path d="M3 11l19-9-9 19-2-8-8-2z" />,
   campaigns: <path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM22 6l-10 7L2 6" />,
+  examples: <path d="M3 5a2 2 0 0 1 2-2h4v8H3zM13 3h6a2 2 0 0 1 2 2v3h-8zM13 12h8v7a2 2 0 0 1-2 2h-6zM3 15h6v6H5a2 2 0 0 1-2-2z" />,
   templates: <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h5" />,
   studio: <path d="M12 19l7-7 3 3-7 7-3-3zM18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5zM2 2l7.6 7.6" />,
   social: <path d="M18 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 22a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8.6 13.5l6.8 4M15.4 6.5l-6.8 4" />,
@@ -47,6 +53,7 @@ const NAV_GROUPS: { heading: string | null; items: { key: Section; label: string
     { key: "history", label: "Sent" },
   ] },
   { heading: "Content", items: [
+    { key: "examples", label: "Examples" },
     { key: "templates", label: "Templates" },
     { key: "studio", label: "Email studio" },
     { key: "social", label: "Social posts" },
@@ -66,6 +73,7 @@ const TITLES: Record<Section, string> = {
   queue: "Review queue",
   history: "Sent broadcasts",
   campaigns: "Email campaigns",
+  examples: "Examples",
   templates: "Templates",
   studio: "Email studio",
   social: "Social posts",
@@ -80,6 +88,19 @@ export default function AdminConsole() {
   const [section, setSection] = useState<Section>("dashboard");
   const [studioId, setStudioId] = useState<string | null>(null);
   const [studioStarter, setStudioStarter] = useState<string | null>(null);
+  const [socialPrefill, setSocialPrefill] = useState<SocialPrefill | null>(null);
+  const [textPrefill, setTextPrefill] = useState<TextPrefill | null>(null);
+  const [videoPrefill, setVideoPrefill] = useState<VideoPrefill | null>(null);
+  // An example opens in its tool with everything filled in; the person edits and saves their own copy.
+  const useExample = (ex: Example) => {
+    switch (ex.channel) {
+      case "email": setStudioId(null); setStudioStarter(ex.starterId); setSection("studio"); break;
+      case "social": setSocialPrefill({ key: ex.id, platform: ex.social.platform, title: ex.title, caption: ex.social.caption, hashtags: ex.social.hashtags, mediaUrl: ex.social.photo, imageAlt: ex.social.imageAlt }); setSection("social"); break;
+      case "sms": case "mms": setTextPrefill({ key: ex.id, channel: ex.channel, draft: { name: ex.title, subject: "", previewText: "", body: ex.text.body, mediaUrl: ex.text.mediaUrl ?? "", category: ex.category, kind: ex.kind } }); setSection("templates"); break;
+      case "photo": setSocialPrefill({ key: ex.id, platform: "facebook", title: ex.photo.alt, caption: "", hashtags: [], mediaUrl: ex.photo.url, imageAlt: ex.photo.alt }); setSection("social"); break;
+      case "video": setVideoPrefill({ key: ex.id, name: ex.title, storyboard: ex.video.storyboard }); setSection("video"); break;
+    }
+  };
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [navOpen, setNavOpen] = useState(false); // mobile drawer
   const [askSeed, setAskSeed] = useState<string | undefined>(); // question typed on the Dashboard
@@ -173,10 +194,11 @@ export default function AdminConsole() {
           {section === "queue" && <ReviewPanel mode="queue" onChanged={refreshMetrics} />}
           {section === "history" && <ReviewPanel mode="history" />}
           {section === "campaigns" && <CampaignsPanel />}
-          {section === "templates" && <TemplatesPanel onOpenStudio={(id) => { setStudioStarter(null); setStudioId(id); setSection("studio"); }} onOpenStarter={(id) => { setStudioId(null); setStudioStarter(id); setSection("studio"); }} />}
+          {section === "examples" && <ExamplesPanel onUse={useExample} />}
+          {section === "templates" && <TemplatesPanel prefill={textPrefill} onOpenStudio={(id) => { setStudioStarter(null); setStudioId(id); setSection("studio"); }} onOpenStarter={(id) => { setStudioId(null); setStudioStarter(id); setSection("studio"); }} />}
           {section === "studio" && <StudioPanel openId={studioId} openStarter={studioStarter} />}
-          {section === "social" && <SocialPanel />}
-          {section === "video" && <VideoPanel />}
+          {section === "social" && <SocialPanel prefill={socialPrefill} />}
+          {section === "video" && <VideoPanel prefill={videoPrefill} />}
           {section === "photos" && <PhotosPanel />}
           {section === "stock" && <StockSearch onOpenLibrary={() => go("photos")} />}
           {section === "ask" && <AskPanel onChanged={refreshMetrics} seed={askSeed} />}

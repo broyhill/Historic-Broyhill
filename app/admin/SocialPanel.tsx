@@ -21,7 +21,9 @@ async function call(url: string, init?: RequestInit) {
 }
 const post = (body: unknown): RequestInit => ({ method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
 
-export default function SocialPanel() {
+export interface SocialPrefill { key: string; platform: Platform; title: string; caption: string; hashtags: string[]; mediaUrl: string; imageAlt: string }
+
+export default function SocialPanel({ prefill }: { prefill?: SocialPrefill | null } = {}) {
   const [platform, setPlatform] = useState<Platform>("linkedin");
   const [id, setId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
@@ -61,6 +63,13 @@ export default function SocialPanel() {
     if (dirty && !confirm("You have changes that aren't saved. Start a new post anyway?")) return;
     setId(null); setTitle(""); setCaption(""); setTagText(""); setMediaUrl(""); setImageAlt(""); setOptions(null); setDirty(false); setNotice(""); setError("");
   };
+  // Coming from the Examples library: load the finished post as an unsaved draft.
+  useEffect(() => {
+    if (!prefill) return;
+    setId(null); setPlatform(prefill.platform); setTitle(prefill.title); setCaption(prefill.caption); setTagText(prefill.hashtags.join(" ")); setMediaUrl(prefill.mediaUrl); setImageAlt(prefill.imageAlt); setVideoUrl(""); setOptions(null); setDirty(true); setError("");
+    setNotice(prefill.caption ? "Example loaded. Change the words, then Save draft." : "Picture loaded. Write the post, then Save draft.");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefill?.key]);
   const openDraft = (d: Draft) => {
     if (dirty && !confirm("You have changes that aren't saved. Open another draft anyway?")) return;
     setId(d.id); setTitle(d.title); setCaption(d.caption); setPlatform(d.platform); setTagText(d.hashtags.join(" ")); setMediaUrl(d.mediaUrl); setImageAlt(d.imageAlt); setVideoUrl(d.videoUrl || ""); setOptions(null); setDirty(false); setNotice(""); setError("");

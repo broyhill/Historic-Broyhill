@@ -37,7 +37,9 @@ function Checks({ items }: { items: { ok: boolean; label: string }[] }) {
 
 // Template library for email, SMS and MMS. A template is only a starting point: nothing here sends.
 // Texting itself is not switched on yet; these are ready for when it is.
-export default function TemplatesPanel({ onOpenStudio, onOpenStarter }: { onOpenStudio?: (id: string) => void; onOpenStarter?: (id: string) => void }) {
+export interface TextPrefill { key: string; channel: "sms" | "mms"; draft: Draft }
+
+export default function TemplatesPanel({ onOpenStudio, onOpenStarter, prefill }: { onOpenStudio?: (id: string) => void; onOpenStarter?: (id: string) => void; prefill?: TextPrefill | null }) {
   const [channel, setChannel] = useState<Channel>("email");
   const [saved, setSaved] = useState<Saved[]>([]);
   const [draft, setDraft] = useState<Draft>(EMPTY);
@@ -72,6 +74,13 @@ export default function TemplatesPanel({ onOpenStudio, onOpenStarter }: { onOpen
     catch (e: any) { setError(e.message); }
   }, []);
   useEffect(() => { load(channel); }, [channel, load]);
+  // Coming from the Examples library: switch to that text channel with the example filled in.
+  useEffect(() => {
+    if (!prefill) return;
+    setChannel(prefill.channel); setDraft(prefill.draft); setError(null); setAiOptions([]);
+    setNotice("Example loaded below. Change it, then Save template to keep your own copy.");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefill?.key]);
 
   const [aiGoal, setAiGoal] = useState("");
   const [aiLink, setAiLink] = useState("");
