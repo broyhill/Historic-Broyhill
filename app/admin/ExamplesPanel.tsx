@@ -44,7 +44,7 @@ export default function ExamplesPanel({ onUse, initialChannel }: { onUse: (ex: E
           const n = c.key ? all.filter((e) => e.channel === c.key).length : all.length;
           return (
             <button key={c.key || "all"} role="tab" aria-selected={channel === c.key} onClick={() => setChannel(c.key)}
-              className={`min-h-[40px] px-4 rounded-md text-[13px] font-semibold border ${channel === c.key ? "bg-accent text-white border-accent" : "border-line text-muted hover:border-accent/50"}`}>
+              className={`min-h-[44px] sm:min-h-[40px] px-4 rounded-md text-[13px] font-semibold border ${channel === c.key ? "bg-accent-deep text-white border-accent-deep" : "border-line text-muted hover:border-accent/50"}`}>
               {c.label} <span className={channel === c.key ? "text-white/80 font-normal" : "text-subtle font-normal"}>{n}</span>
             </button>
           );
@@ -57,7 +57,7 @@ export default function ExamplesPanel({ onUse, initialChannel }: { onUse: (ex: E
           if (c && n === 0) return null;
           return (
             <button key={c || "all"} onClick={() => setCategory(c)} aria-pressed={category === c}
-              className={`min-h-[36px] px-3 rounded-full text-[12px] border ${category === c ? "bg-ink text-white border-ink" : "border-line text-muted hover:border-accent/50"}`}>
+              className={`min-h-[44px] sm:min-h-[36px] px-3 rounded-full text-[12px] border ${category === c ? "bg-ink text-white border-ink" : "border-line text-muted hover:border-accent/50"}`}>
               {c || "Everyone"} <span className={category === c ? "text-white/70" : "text-subtle"}>{n}</span>
             </button>
           );

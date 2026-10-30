@@ -203,7 +203,7 @@ export default function VideoPanel({ prefill }: { prefill?: VideoPrefill | null 
     if (!prefill) return;
     const nsb = normalizeStoryboard(prefill.storyboard);
     setId(null); setName(prefill.name); setSb(nsb); setCheckpoints([]); setPast([]); setFuture([]); setLog([]); setDirty(true); setSel(nsb.scenes[0]?.id ?? null); setError("");
-    requestAnimationFrame(() => seek(0));
+    setTimeout(() => seek(0), 50);
     setNotice("Example loaded. Change the pictures or captions, then save it as your own.");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefill?.key]);

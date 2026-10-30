@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { BUSINESS_TYPES, INDUSTRIES, SOCIAL_KEYS, brandAddressLine, emptyBrand, type BrandKit } from "@/lib/brand";
 import { resetBrandCache } from "@/lib/use-brand";
 
@@ -29,6 +29,16 @@ export default function BrandPanel() {
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   const [dirty, setDirty] = useState(false);
+  const msgRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (error || notice) msgRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" }); }, [error, notice]);
+  // Load the kit's fonts from Google Fonts so the preview shows the real faces, not a fallback.
+  useEffect(() => {
+    const fams = [brand.fonts.heading, brand.fonts.body].filter(Boolean).map((f) => `family=${encodeURIComponent(f).replace(/%20/g, "+")}:wght@400;600;700`);
+    if (!fams.length) return;
+    const id = "hb-brand-fonts"; let link = document.getElementById(id) as HTMLLinkElement | null;
+    if (!link) { link = document.createElement("link"); link.id = id; link.rel = "stylesheet"; document.head.appendChild(link); }
+    link.href = `https://fonts.googleapis.com/css2?${fams.join("&")}&display=swap`;
+  }, [brand.fonts.heading, brand.fonts.body]);
 
   useEffect(() => {
     call("/api/admin/brand").then((d) => { setBrand(d.brand); setSite(d.brand.website); }).catch((e) => setError(e.message));
@@ -70,6 +80,10 @@ export default function BrandPanel() {
               <button type="submit" className={btnPrimary} disabled={busy !== null || !site.trim()}>{busy === "pull" ? "Reading…" : "Read the site"}</button>
             </form>
             {found && found.length === 0 && <p className="mt-2 text-[12.5px] text-warn">Nothing recognizable on the home page. Fill the fields below in by hand.</p>}
+            <div ref={msgRef} aria-live="polite">
+              {error && <p className="mt-2 text-[13px] text-danger" role="alert">{error}</p>}
+              {notice && !error && <p className="mt-2 text-[13px] text-success">{notice}</p>}
+            </div>
           </div>
         </section>
 
@@ -107,7 +121,7 @@ export default function BrandPanel() {
           <div className="ibox-content grid gap-3 sm:grid-cols-3">
             {(["primary", "secondary", "background"] as const).map((k) => (
               <label key={k} className={lbl}>{k === "primary" ? "Main color" : k === "secondary" ? "Accent color" : "Page color"}
-                <span className="mt-1 flex items-center gap-2"><input type="color" className="h-11 w-14 rounded-md border border-line" value={brand.colors[k]} onChange={(e) => setColor(k, e.target.value)} aria-label={`${k} color`} /><input className={`${inputCls} font-normal font-mono`} value={brand.colors[k]} onChange={(e) => setColor(k, e.target.value)} maxLength={7} /></span></label>
+                <span className="mt-1 flex items-center gap-2"><input type="color" className="h-11 w-11 shrink-0 rounded-md border border-line p-0.5" value={brand.colors[k]} onChange={(e) => setColor(k, e.target.value)} aria-label={`${k} color`} /><input className={`${inputCls} font-normal font-mono`} value={brand.colors[k]} onChange={(e) => setColor(k, e.target.value)} maxLength={7} /></span></label>
             ))}
             <label className={lbl}>Heading font<input className={`${inputCls} mt-1 font-normal`} value={brand.fonts.heading} onChange={(e) => set({ fonts: { ...brand.fonts, heading: e.target.value } })} /></label>
             <label className={lbl}>Body font<input className={`${inputCls} mt-1 font-normal`} value={brand.fonts.body} onChange={(e) => set({ fonts: { ...brand.fonts, body: e.target.value } })} /></label>
@@ -115,7 +129,7 @@ export default function BrandPanel() {
           </div>
         </section>
 
-        {error && <p className="text-[13px] text-danger" role="alert">{error}</p>}
+        {error && <p className="text-[13px] text-danger">{error}</p>}
         {notice && !error && <p className="text-[13px] text-success">{notice}</p>}
         <div className="flex flex-wrap gap-2">
           <button className={btnPrimary} disabled={busy !== null || !brand.name.trim()} onClick={() => save(true)}>{busy === "confirm" ? "Saving…" : "Looks good — use this brand"}</button>
@@ -124,7 +138,7 @@ export default function BrandPanel() {
       </div>
 
       {/* Does this match your brand? */}
-      <aside className="lg:sticky lg:top-4 self-start">
+      <aside className="lg:sticky lg:top-20 self-start">
         <div className="rounded-2xl bg-info-tint p-6">
           <div className="mx-auto max-w-[380px] rounded-2xl bg-white shadow-sm overflow-hidden" style={{ fontFamily: `'${brand.fonts.body}', system-ui, sans-serif` }}>
             <div className="p-6 text-center" style={{ background: brand.colors.background }}>

@@ -22,7 +22,7 @@ export async function POST(request: Request) {
       const url = httpUrl(site);
       if (!url) return NextResponse.json({ error: "Enter the website address, like broyhill.net." }, { status: 400 });
       const host = new URL(url).hostname;
-      if (BLOCKED_HOST.test(host) || !host.includes(".")) return NextResponse.json({ error: "That address can't be read from here." }, { status: 400 });
+      if (BLOCKED_HOST.test(host) || !/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(host)) return NextResponse.json({ error: "That doesn't look like a website address. Try something like broyhill.net." }, { status: 400 });
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 15_000);
       let res: Response;
@@ -42,7 +42,8 @@ export async function POST(request: Request) {
       const brand = normalizeBrand(b.brand);
       if (!brand.name) return NextResponse.json({ error: "Give the business a name." }, { status: 400 });
       brand.confirmedAt = b.confirmed ? new Date().toISOString() : null;
-      await saveBrand(brand);
+      try { await saveBrand(brand); }
+      catch (error) { console.error("brand save failed", error); return NextResponse.json({ error: "Could not save the brand kit (database not reachable). Your edits are still on screen." }, { status: 500 }); }
       return NextResponse.json({ success: true, brand });
     }
     return NextResponse.json({ error: "Unknown action." }, { status: 400 });
