@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { claudeEnabled, claudeJson } from "@/lib/ai";
+import { claudeEnabled, claudeJson, NOT_CONFIGURED } from "@/lib/ai";
 import { MAX_PREVIEW_CHARS, MAX_SUBJECT_CHARS, MAX_SUBJECT_WORDS } from "@/lib/campaign-rules";
 import { allowedFrom, normalizeDesign, renderPlainText, sanitizeAlternative, type RawAlt } from "@/lib/studio";
 import { withShortIds } from "@/lib/studio-commands";
@@ -31,7 +31,7 @@ const clip = (v: unknown, n = 1500) => (typeof v === "string" ? v.trim().slice(0
 // Suggestions only: nothing is changed until the person clicks Use in the Studio.
 export async function POST(request: Request) {
   try {
-    if (!claudeEnabled()) return NextResponse.json({ error: "Claude is not configured (ANTHROPIC_API_KEY is not set)." }, { status: 503 });
+    if (!claudeEnabled()) return NextResponse.json({ error: NOT_CONFIGURED }, { status: 503 });
     const b = await request.json().catch(() => ({}));
     const context = renderPlainText(normalizeDesign(b.studio)).slice(0, 6000);
 
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
         user: `Instruction: ${how}\nBlock type: ${b.blockType === "heading" ? "heading (short, under 8 words)" : "body text"}\nText:\n${text}\n\nRest of the email, for context:\n${context}`,
         schema: z.object({ options: z.array(z.string()).min(1).max(3) }),
       });
-      if (!out) return NextResponse.json({ error: "Claude could not rewrite that. Try again." }, { status: 422 });
+      if (!out) return NextResponse.json({ error: "The AI could not rewrite that. Try again." }, { status: 422 });
       return NextResponse.json({ success: true, options: out.options });
     }
 
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
         user: `Goal: ${goal}`,
         schema: z.object({ heading: z.string(), paragraphs: z.array(z.string()).min(1).max(4), buttonLabel: z.string() }),
       });
-      if (!out) return NextResponse.json({ error: "Claude could not draft that. Try again." }, { status: 422 });
+      if (!out) return NextResponse.json({ error: "The AI could not draft that. Try again." }, { status: 422 });
       return NextResponse.json({ success: true, draft: out });
     }
 
@@ -93,7 +93,7 @@ Rules: keep every fact the email states and add none; never invent offers, dates
         }),
         maxTokens: 3000,
       });
-      if (!out) return NextResponse.json({ error: "Claude could not do that. Try rephrasing." }, { status: 422 });
+      if (!out) return NextResponse.json({ error: "The AI could not do that. Try rephrasing." }, { status: 422 });
       // Map the short ids back to the real ones before they reach the page.
       const ops = out.ops.map((o) => ({ ...o, blockId: short.toReal.get(o.blockId) ?? "", afterId: o.afterId === "START" ? "START" : short.toReal.get(o.afterId) ?? "" }));
       return NextResponse.json({ success: true, reply: out.reply.trim().slice(0, 400), ops });
@@ -115,7 +115,7 @@ Strict rules: keep every fact the original states and add none. You may tighten 
         schema: ALT_SCHEMA,
         maxTokens: 6000,
       });
-      if (!out) return NextResponse.json({ error: "Claude could not redesign that. Try again." }, { status: 422 });
+      if (!out) return NextResponse.json({ error: "The AI could not redesign that. Try again." }, { status: 422 });
       const alternatives = out.alternatives
         .map((a) => sanitizeAlternative(a as RawAlt, allowed))
         .filter((a) => a.design.blocks.length > 0);
@@ -129,7 +129,7 @@ Strict rules: keep every fact the original states and add none. You may tighten 
         user: `Email:\n${context}`,
         schema: z.object({ suggestions: z.array(z.string()).max(5), subjects: z.array(z.object({ subject: z.string(), previewText: z.string() })).max(3) }),
       });
-      if (!out) return NextResponse.json({ error: "Claude could not review that. Try again." }, { status: 422 });
+      if (!out) return NextResponse.json({ error: "The AI could not review that. Try again." }, { status: 422 });
       return NextResponse.json({ success: true, ...out });
     }
 

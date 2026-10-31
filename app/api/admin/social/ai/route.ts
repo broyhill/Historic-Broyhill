@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { claudeEnabled, claudeJson } from "@/lib/ai";
+import { claudeEnabled, claudeJson, NOT_CONFIGURED } from "@/lib/ai";
 import { PLATFORMS, cleanTags, isPlatform, type Platform } from "@/lib/social";
 
 const STYLE: Partial<Record<Platform, string>> = {
@@ -21,7 +21,7 @@ const clip = (v: unknown, n: number) => (typeof v === "string" ? v.trim().slice(
 // Suggestions only: the person picks one and edits it. Nothing is posted.
 export async function POST(request: Request) {
   try {
-    if (!claudeEnabled()) return NextResponse.json({ error: "Claude is not configured (ANTHROPIC_API_KEY is not set)." }, { status: 503 });
+    if (!claudeEnabled()) return NextResponse.json({ error: NOT_CONFIGURED }, { status: 503 });
     const b = await request.json().catch(() => ({}));
     if (!isPlatform(b.platform)) return NextResponse.json({ error: "Pick a platform." }, { status: 400 });
     const platform: Platform = b.platform;
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
         schema: z.object({ options: z.array(z.object({ caption: z.string(), hashtags: z.array(z.string()) })).min(1).max(3) }),
         maxTokens: 3000,
       });
-      if (!out) return NextResponse.json({ error: "Claude could not write that. Try again." }, { status: 422 });
+      if (!out) return NextResponse.json({ error: "The AI could not write that. Try again." }, { status: 422 });
       return NextResponse.json({ success: true, options: out.options.map((o) => ({ caption: o.caption.trim(), hashtags: cleanTags(o.hashtags).slice(0, p.goodTags) })) });
     }
 
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
         schema: z.object({ options: z.array(z.object({ caption: z.string(), hashtags: z.array(z.string()) })).min(1).max(3) }),
         maxTokens: 3000,
       });
-      if (!out) return NextResponse.json({ error: "Claude could not rewrite that. Try again." }, { status: 422 });
+      if (!out) return NextResponse.json({ error: "The AI could not rewrite that. Try again." }, { status: 422 });
       return NextResponse.json({ success: true, options: out.options.map((o) => ({ caption: o.caption.trim(), hashtags: cleanTags(o.hashtags).slice(0, p.goodTags) })) });
     }
 

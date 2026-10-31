@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { claudeEnabled, claudeJson } from "@/lib/ai";
+import { claudeEnabled, claudeJson, NOT_CONFIGURED, aiErrorMessage } from "@/lib/ai";
 import { VENUE_FACTS, WRITING_RULES } from "@/lib/platform-briefing";
 import { smsChecks, smsInfo } from "@/lib/sms-rules";
 
@@ -14,7 +14,7 @@ const clip = (v: unknown, n = 1000) => (typeof v === "string" ? v.trim().slice(0
 export async function POST(request: Request) {
   try {
     if (!claudeEnabled()) {
-      return NextResponse.json({ error: "Claude is not configured (ANTHROPIC_API_KEY is not set)." }, { status: 503 });
+      return NextResponse.json({ error: NOT_CONFIGURED }, { status: 503 });
     }
     const b = await request.json().catch(() => ({}));
     const channel: "sms" | "mms" = b.channel === "mms" ? "mms" : "sms";
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       schema: z.object({ options: z.array(z.object({ body: z.string() })).min(1).max(3) }),
       maxTokens: 1500,
     });
-    if (!out?.options.length) return NextResponse.json({ error: "Claude could not write a text. Try again with more detail." }, { status: 422 });
+    if (!out?.options.length) return NextResponse.json({ error: "The AI could not write a text. Try again with more detail." }, { status: 422 });
 
     // Safety net: make sure the opt-out line is there, then run the same rule checks the Templates page shows.
     const options = out.options.map((o) => {
@@ -44,6 +44,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, options });
   } catch (error: any) {
     console.error("text draft failed", error);
-    return NextResponse.json({ error: "Something went wrong reaching Claude. Try again in a moment." }, { status: 500 });
+    return NextResponse.json({ error: aiErrorMessage(error) }, { status: 500 });
   }
 }

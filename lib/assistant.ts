@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { buildLeadWhere } from "@/lib/leads-query";
-import { CLAUDE_MODEL, claudeJson, getClient } from "@/lib/ai";
+import { CLAUDE_MODEL, aiErrorMessage, anthropicEnabled, claudeJson, getClient, groqChat, groqEnabled, NOT_CONFIGURED, type GroqMessage, type GroqTool } from "@/lib/ai";
 import { CONSOLE_MAP, VENUE_FACTS, WRITING_RULES } from "@/lib/platform-briefing";
 
 // Staff assistant for the admin console. It can look things up and stage work,
@@ -180,7 +180,7 @@ ${EMAIL_SIGNATURE}`,
       user: `Recipient: ${lead.name || "Valued Contact"}${lead.company ? ` (${lead.company})` : ""}\nWhat the email should do: ${instruction}`,
       schema: z.object({ draft: z.string() }),
     });
-    if (!parsed?.draft.trim()) return { text: "Claude could not produce a draft for that request." };
+    if (!parsed?.draft.trim()) return { text: "The assistant could not produce a draft for that request." };
 
     const campaign = await prisma.aiContentPipeline.create({
       data: {
@@ -221,7 +221,28 @@ export async function executeGated(tool: string, input: Record<string, unknown>)
   return "Draft dismissed. It will not be sent.";
 }
 
-export async function runAssistant(history: { role: "user" | "assistant"; content: string }[]): Promise<AssistantResult> {
+type ToolOutcome = { content: string; isError?: boolean };
+
+// Shared by both providers: gated tools are only proposed, everything else runs now.
+async function handleToolCall(name: string, input: Record<string, any>, callId: string, pending: PendingAction[], actions: string[]): Promise<ToolOutcome> {
+  try {
+    if (isGated(name)) {
+      const summary = await describeGated(name, input);
+      pending.push({ id: callId, tool: name, input, summary });
+      return { content: "Proposed. Waiting for the user to click Confirm; it has NOT been done." };
+    }
+    const out = await runAutoTool(name, input);
+    if (out.log) actions.push(out.log);
+    return { content: out.text };
+  } catch (e: any) {
+    console.error("assistant tool failed", name, e);
+    return { content: "That tool failed. Tell the user and do not retry blindly.", isError: true };
+  }
+}
+
+type History = { role: "user" | "assistant"; content: string }[];
+
+async function runWithClaude(history: History): Promise<AssistantResult> {
   const messages: Anthropic.MessageParam[] = history.map((m) => ({ role: m.role, content: m.content }));
   const pending: PendingAction[] = [];
   const actions: string[] = [];
@@ -237,7 +258,7 @@ export async function runAssistant(history: { role: "user" | "assistant"; conten
       output_config: { effort: "low" },
     });
 
-    if (response.stop_reason === "refusal") return { answer: "Claude could not help with that request.", pending, actions };
+    if (response.stop_reason === "refusal") return { answer: "The assistant could not help with that request.", pending, actions };
 
     answer = response.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim();
     if (response.stop_reason !== "tool_use") break;
@@ -246,24 +267,58 @@ export async function runAssistant(history: { role: "user" | "assistant"; conten
     const results: Anthropic.ToolResultBlockParam[] = [];
     for (const block of response.content) {
       if (block.type !== "tool_use") continue;
-      const input = (block.input ?? {}) as Record<string, any>;
-      try {
-        if (isGated(block.name)) {
-          const summary = await describeGated(block.name, input);
-          pending.push({ id: block.id, tool: block.name, input, summary });
-          results.push({ type: "tool_result", tool_use_id: block.id, content: "Proposed. Waiting for the user to click Confirm; it has NOT been done." });
-        } else {
-          const out = await runAutoTool(block.name, input);
-          if (out.log) actions.push(out.log);
-          results.push({ type: "tool_result", tool_use_id: block.id, content: out.text });
-        }
-      } catch (e: any) {
-        console.error("assistant tool failed", block.name, e);
-        results.push({ type: "tool_result", tool_use_id: block.id, content: "That tool failed. Tell the user and do not retry blindly.", is_error: true });
-      }
+      const out = await handleToolCall(block.name, (block.input ?? {}) as Record<string, any>, block.id, pending, actions);
+      results.push({ type: "tool_result", tool_use_id: block.id, content: out.content, ...(out.isError ? { is_error: true } : {}) });
     }
     messages.push({ role: "user", content: results });
   }
 
   return { answer: answer || "I couldn't finish that. Try asking in smaller steps.", pending, actions };
+}
+
+const GROQ_TOOLS: GroqTool[] = TOOLS.map((t) => ({
+  type: "function",
+  function: { name: t.name, description: t.description, parameters: t.input_schema as Record<string, unknown> },
+}));
+
+async function runWithGroq(history: History): Promise<AssistantResult> {
+  const messages: GroqMessage[] = [{ role: "system", content: SYSTEM }, ...history.map((m) => ({ role: m.role, content: m.content }))];
+  const pending: PendingAction[] = [];
+  const actions: string[] = [];
+  let answer = "";
+
+  for (let step = 0; step < MAX_STEPS; step++) {
+    const response = await groqChat({ messages, tools: GROQ_TOOLS, max_tokens: 1500 });
+    answer = response.content.trim();
+    if (!response.tool_calls.length) break;
+
+    messages.push({ role: "assistant", content: response.content || null, tool_calls: response.tool_calls });
+    for (const call of response.tool_calls) {
+      let input: Record<string, any> = {};
+      try {
+        input = call.function.arguments ? JSON.parse(call.function.arguments) : {};
+      } catch {
+        messages.push({ role: "tool", tool_call_id: call.id, content: "Tool arguments were not valid JSON. Try again with valid JSON." });
+        continue;
+      }
+      const out = await handleToolCall(call.function.name, input, call.id, pending, actions);
+      messages.push({ role: "tool", tool_call_id: call.id, content: out.content });
+    }
+  }
+
+  return { answer: answer || "I couldn't finish that. Try asking in smaller steps.", pending, actions };
+}
+
+// Claude when configured; Groq when Claude is not configured or its call fails.
+export async function runAssistant(history: History): Promise<AssistantResult> {
+  if (anthropicEnabled()) {
+    try {
+      return await runWithClaude(history);
+    } catch (e) {
+      if (!groqEnabled()) throw e;
+      console.warn("Claude failed, falling back to Groq:", aiErrorMessage(e));
+    }
+  }
+  if (groqEnabled()) return runWithGroq(history);
+  throw new Error(NOT_CONFIGURED);
 }

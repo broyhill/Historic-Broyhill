@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { claudeEnabled, claudeJson } from "@/lib/ai";
+import { claudeEnabled, claudeJson, NOT_CONFIGURED } from "@/lib/ai";
 import { MAX_CAPTION, MAX_SCENES, normalizeStoryboard, withShortSceneIds } from "@/lib/video";
 
 export const maxDuration = 60;
@@ -15,7 +15,7 @@ const photos = (v: unknown): { url: string; name: string }[] =>
 // Suggestions only: the page checks every edit and the person can undo it. Nothing is rendered or posted here.
 export async function POST(request: Request) {
   try {
-    if (!claudeEnabled()) return NextResponse.json({ error: "Claude is not configured (ANTHROPIC_API_KEY is not set)." }, { status: 503 });
+    if (!claudeEnabled()) return NextResponse.json({ error: NOT_CONFIGURED }, { status: 503 });
     const b = await request.json().catch(() => ({}));
     const lib = photos(b.photos);
     const listing = lib.map((p) => `${p.name}: ${p.url}`).join("\n") || "none";
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
         schema: z.object({ scenes: z.array(z.object({ url: z.string(), alt: z.string(), seconds: z.number(), caption: z.string(), motion: z.enum(["push", "pull", "none"]) })).min(1).max(MAX_SCENES) }),
         maxTokens: 3000,
       });
-      if (!out) return NextResponse.json({ error: "Claude could not plan that. Try again." }, { status: 422 });
+      if (!out) return NextResponse.json({ error: "The AI could not plan that. Try again." }, { status: 422 });
       return NextResponse.json({ success: true, scenes: out.scenes });
     }
 
@@ -56,7 +56,7 @@ Rules: keep the facts; never invent details. Use a picture only by exact url fro
         }),
         maxTokens: 3000,
       });
-      if (!out) return NextResponse.json({ error: "Claude could not do that. Try rephrasing." }, { status: 422 });
+      if (!out) return NextResponse.json({ error: "The AI could not do that. Try rephrasing." }, { status: 422 });
       const ops = out.ops.map((o) => ({ ...o, sceneId: short.toReal.get(o.sceneId) ?? "", afterId: o.afterId === "START" ? "START" : short.toReal.get(o.afterId) ?? "" }));
       return NextResponse.json({ success: true, reply: out.reply.trim().slice(0, 400), ops });
     }

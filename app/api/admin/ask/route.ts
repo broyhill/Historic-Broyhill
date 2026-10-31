@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { claudeEnabled } from "@/lib/ai";
+import { claudeEnabled, NOT_CONFIGURED, aiErrorMessage } from "@/lib/ai";
 import { runAssistant } from "@/lib/assistant";
 
 // Several model + database round trips can happen in one request.
@@ -14,7 +14,7 @@ const MAX_HISTORY_MESSAGES = 12;
 export async function POST(request: Request) {
   try {
     if (!claudeEnabled()) {
-      return NextResponse.json({ error: "Claude is not configured (ANTHROPIC_API_KEY is not set)." }, { status: 503 });
+      return NextResponse.json({ error: NOT_CONFIGURED }, { status: 503 });
     }
 
     const body = await request.json().catch(() => ({}));
@@ -35,6 +35,6 @@ export async function POST(request: Request) {
     return NextResponse.json(result);
   } catch (error: any) {
     console.error("ask failed", error);
-    return NextResponse.json({ error: "Something went wrong reaching Claude. Try again in a moment." }, { status: 500 });
+    return NextResponse.json({ error: aiErrorMessage(error) }, { status: 500 });
   }
 }
