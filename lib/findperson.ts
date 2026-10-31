@@ -1,4 +1,4 @@
-import { claudeEnabled, claudeWebSearch } from "@/lib/ai";
+import { anthropicEnabled, claudeWebSearch } from "@/lib/ai";
 
 // Person lookup from a work email, using Claude's web search (OpenAI's as a fallback).
 // For each email it searches the live web to identify the individual and
@@ -68,7 +68,7 @@ function toResult(parsed: any, citation: string | null): PersonResult {
 
 export async function findPerson(email: string, companyHint: string | null): Promise<PersonResult> {
   // Claude with its server-side web search tool (preferred when ANTHROPIC_API_KEY is set)
-  if (claudeEnabled()) {
+  if (anthropicEnabled()) {
     try {
       const { text, citation } = await claudeWebSearch({
         system: SYSTEM,
