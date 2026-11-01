@@ -1,4 +1,12 @@
+import type { Metadata } from "next";
 import SiteHeader from "../components/SiteHeader";
+
+
+export const metadata: Metadata = {
+  title: "Team Building & Retreats — Historic Broyhill",
+  description: "Team building, retreats and off-sites in a restored 1920s landmark in Clemmons, NC, minutes from Winston-Salem.",
+};
+
 
 function Eyebrow({ children, light = false }: { children: React.ReactNode; light?: boolean }) {
   return (
@@ -110,7 +118,7 @@ export default function TeamBuilding() {
           <p className="mt-3 text-[16px] text-[#5a6672]">
             Contact us to discuss your team building goals and create a customized experience at Historic Broyhill.
           </p>
-          <a href="#visit" className="mt-6 inline-block rounded-md bg-[#c2a15a] px-8 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#182c3e] transition hover:bg-[#d2b268]">Request Planning Assistance</a>
+          <a href="/plan-your-event" className="mt-6 inline-block rounded-md bg-[#c2a15a] px-8 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#182c3e] transition hover:bg-[#d2b268]">Request Planning Assistance</a>
         </div>
       </section>
     </main>

@@ -269,7 +269,7 @@ export default function Accommodations() {
             <p className="text-[15px] font-semibold text-[#182c3e]">Sonja Kennedy · Event Director</p>
             <p className="text-[14px] text-[#5a6672]">(336) 908-8382 · bledsoesonja1@gmail.com</p>
           </div>
-          <a href="#visit" className="mt-6 inline-block rounded-md bg-[#c2a15a] px-8 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#182c3e] transition hover:bg-[#d2b268]">Contact Sonja</a>
+          <a href="/plan-your-event" className="mt-6 inline-block rounded-md bg-[#c2a15a] px-8 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#182c3e] transition hover:bg-[#d2b268]">Contact Sonja</a>
         </div>
       </section>
 

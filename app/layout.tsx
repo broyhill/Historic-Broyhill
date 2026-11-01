@@ -1,5 +1,6 @@
 import './globals.css';
 import type { Metadata } from 'next';
+import { SITE_URL, venueJsonLd } from '@/lib/site';
 import { Playfair_Display, EB_Garamond } from 'next/font/google';
 
 const display = Playfair_Display({
@@ -18,6 +19,7 @@ const body = EB_Garamond({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: 'Historic Broyhill — Event Venue & Class A Offices in Clemmons, NC',
   description:
     'A 1920s landmark in Clemmons, North Carolina, reimagined as premier event spaces, Class A executive offices, a virtual office program, and a turnkey podcast studio. Request a tour.',
@@ -34,6 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       {/* Each page sets its own theme: the public site is warm/light, the staff console is dark. */}
       <body className={`${display.variable} ${body.variable} min-h-screen antialiased`}>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(venueJsonLd()) }} />
         {children}
       </body>
     </html>
