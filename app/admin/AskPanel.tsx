@@ -102,15 +102,15 @@ export default function AskPanel({ onChanged, seed }: { onChanged?: () => void; 
     <div className="max-w-3xl space-y-4">
       <section className="ibox">
         <div className="ibox-title">
-          <h3 className="text-sm font-semibold text-[#323a46]">Ask Devin</h3>
+          <h3 className="text-sm font-semibold text-ink">Ask Devin</h3>
           {messages.length > 0 && (
-            <button onClick={() => { setMessages([]); setError(null); }} className="text-[12px] text-[#6c757d] hover:text-[#1ab394]">
+            <button onClick={() => { setMessages([]); setError(null); }} className="text-[12px] text-muted hover:text-accent">
               New conversation
             </button>
           )}
         </div>
         <div className="ibox-content">
-          <p className="text-[13px] text-[#6c757d] leading-relaxed">
+          <p className="text-[13px] text-muted leading-relaxed">
             Devin can look up leads and counts, and write email drafts into the Review Queue. Changes to existing
             records wait for your Confirm. It cannot send or approve outreach — you do that in the Review Queue. It can be wrong; check anything important.
           </p>
@@ -122,7 +122,7 @@ export default function AskPanel({ onChanged, seed }: { onChanged?: () => void; 
                   <button
                     key={s}
                     onClick={() => send(s)}
-                    className="text-left text-[12.5px] px-3 py-2 rounded-md border border-[#e7e9eb] text-[#4c4c5c] hover:border-[#1ab394]/50 hover:text-[#1ab394]"
+                    className="text-left text-[12.5px] px-3 py-2 rounded-md border border-line text-ink hover:border-accent/50 hover:text-accent"
                   >
                     {s}
                   </button>
@@ -132,47 +132,47 @@ export default function AskPanel({ onChanged, seed }: { onChanged?: () => void; 
             {messages.map((m, i) => (
               <div key={i} className={m.role === "user" ? "flex justify-end" : "flex flex-col items-start gap-2"}>
                 {m.role === "assistant" && m.actions && m.actions.length > 0 && (
-                  <ul className="text-[11.5px] text-[#9ba6b7] space-y-0.5 pl-1">
+                  <ul className="text-[11.5px] text-subtle space-y-0.5 pl-1">
                     {m.actions.map((a, k) => <li key={k}>✓ {a}</li>)}
                   </ul>
                 )}
                 <div
                   className={`max-w-[88%] whitespace-pre-wrap text-[13.5px] leading-relaxed rounded-lg px-3.5 py-2.5 ${
-                    m.role === "user" ? "bg-[#1ab394] text-white" : "bg-[#f1f2f7] text-[#323a46]"
+                    m.role === "user" ? "bg-accent text-white" : "bg-canvas text-ink"
                   }`}
                 >
                   {m.content}
                 </div>
                 {m.pending?.map((p) => (
-                  <div key={p.id} className="max-w-[88%] w-full rounded-md border border-[#f5a623]/60 bg-[#fffaf0] px-3.5 py-3">
-                    <div className="text-[11px] font-semibold uppercase tracking-wider text-[#b7791f]">Waiting for your OK</div>
-                    <div className="mt-1 text-[13.5px] text-[#323a46]">{p.summary}</div>
+                  <div key={p.id} className="max-w-[88%] w-full rounded-md border border-warn/60 bg-warn-tint px-3.5 py-3">
+                    <div className="text-[11px] font-semibold uppercase tracking-wider text-warn">Waiting for your OK</div>
+                    <div className="mt-1 text-[13.5px] text-ink">{p.summary}</div>
                     {(p.state === "idle" || p.state === "working" || p.state === "error") && (
                       <div className="mt-2 flex items-center gap-2">
                         <button
                           onClick={() => confirm(i, p)}
                           disabled={p.state === "working"}
-                          className="h-8 px-3 rounded-md bg-[#1ab394] text-white text-[12.5px] font-semibold disabled:opacity-50"
+                          className="h-8 px-3 rounded-md bg-accent text-white text-[12.5px] font-semibold disabled:opacity-50"
                         >
                           {p.state === "working" ? "Working…" : "Confirm"}
                         </button>
                         <button
                           onClick={() => updatePending(i, p.id, { state: "cancelled" })}
                           disabled={p.state === "working"}
-                          className="h-8 px-3 rounded-md border border-[#e7e9eb] text-[#6c757d] text-[12.5px]"
+                          className="h-8 px-3 rounded-md border border-line text-muted text-[12.5px]"
                         >
                           Cancel
                         </button>
                         {p.state === "error" && <span className="text-[12.5px] text-red-600" role="alert">{p.result}</span>}
                       </div>
                     )}
-                    {p.state === "done" && <div className="mt-2 text-[13px] text-[#1ab394]">Done. {p.result}</div>}
-                    {p.state === "cancelled" && <div className="mt-2 text-[13px] text-[#9ba6b7]">Cancelled. Nothing was changed.</div>}
+                    {p.state === "done" && <div className="mt-2 text-[13px] text-accent">Done. {p.result}</div>}
+                    {p.state === "cancelled" && <div className="mt-2 text-[13px] text-subtle">Cancelled. Nothing was changed.</div>}
                   </div>
                 ))}
               </div>
             ))}
-            {busy && <div className="text-[13px] text-[#9ba6b7]">Claude is working…</div>}
+            {busy && <div className="text-[13px] text-subtle">Claude is working…</div>}
             {error && <div className="text-[13px] text-red-600" role="alert">{error}</div>}
             <div ref={endRef} />
           </div>
@@ -186,12 +186,12 @@ export default function AskPanel({ onChanged, seed }: { onChanged?: () => void; 
               maxLength={2000}
               placeholder="Ask a question or tell Claude what to do…"
               aria-label="Your message"
-              className="flex-1 resize-none rounded-md border border-[#e7e9eb] px-3 py-2 text-[14px] text-[#323a46] focus:outline-none focus:border-[#1ab394]"
+              className="flex-1 resize-none rounded-md border border-line px-3 py-2 text-[14px] text-ink focus:outline-none focus:border-accent"
             />
             <button
               type="submit"
               disabled={busy || !input.trim()}
-              className="self-end h-10 px-4 rounded-md bg-[#1ab394] text-white text-[13px] font-semibold disabled:opacity-50"
+              className="self-end h-10 px-4 rounded-md bg-accent text-white text-[13px] font-semibold disabled:opacity-50"
             >
               Send
             </button>

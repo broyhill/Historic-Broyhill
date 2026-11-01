@@ -4,17 +4,20 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { applyOps, linksIn, type Op } from "@/lib/studio-commands";
 import { BLOCK_TYPES, allowedFrom, buildPrompt, VENUE_ADDRESS, defaultBrand, designIssues, duplicateBlock, moveBlock, newBlock, newId, normalizeDesign, renderHtml, type Block, type BlockType, type Brand } from "@/lib/studio";
 import { defaultSettings, type TemplateSettings } from "@/lib/template-categories";
+import { starterById } from "@/lib/studio-starters";
+import { useBrand } from "@/lib/use-brand";
 
 interface Photo { url: string; folder: string; name: string }
 interface SavedDesign { id: string; name: string; updatedAt: string; studio: { blocks: Block[]; brand: Brand } }
 
-const inputCls = "w-full rounded-md border border-[#e7e9eb] px-3 py-2 text-[14px] text-[#323a46] focus:outline-none focus:border-[#1ab394]";
-const btnPrimary = "h-9 px-4 rounded-md bg-[#1ab394] text-white text-[13px] font-semibold disabled:opacity-50";
-const btnGhost = "h-8 px-3 rounded-md border border-[#e7e9eb] text-[#6c757d] text-[12.5px] hover:border-[#1ab394]/50 disabled:opacity-50";
-const lbl = "text-[12px] font-semibold text-[#6c757d]";
+const inputCls = "w-full rounded-md border border-line px-3 py-2 text-[14px] text-ink focus:outline-none focus:border-accent";
+const btnPrimary = "h-9 px-4 rounded-md bg-accent text-white text-[13px] font-semibold disabled:opacity-50";
+const btnGhost = "h-8 px-3 rounded-md border border-line text-muted text-[12.5px] hover:border-accent/50 disabled:opacity-50";
+const lbl = "text-[12px] font-semibold text-muted";
 
-type Device = "mobile" | "ipad" | "laptop" | "desktop";
+type Device = "email" | "mobile" | "ipad" | "laptop" | "desktop";
 const DEVICES: Record<Device, { label: string; width: number }> = {
+  email: { label: "Email", width: 640 },
   mobile: { label: "Mobile", width: 390 },
   ipad: { label: "iPad", width: 820 },
   laptop: { label: "Laptop", width: 1440 },
@@ -31,7 +34,8 @@ async function call(url: string, init?: RequestInit) {
 }
 const post = (body: unknown): RequestInit => ({ method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
 
-export default function StudioPanel({ openId }: { openId?: string | null }) {
+export default function StudioPanel({ openId, openStarter }: { openId?: string | null; openStarter?: string | null }) {
+  const kit = useBrand();
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [brand, setBrand] = useState<Brand>(defaultBrand());
   const [id, setId] = useState<string | null>(null);
@@ -44,7 +48,7 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
   const [saved, setSaved] = useState<SavedDesign[]>([]);
   const [photos, setPhotos] = useState<Photo[] | null>(null);
   const [pickFor, setPickFor] = useState<string | null>(null);
-  const [view, setView] = useState<Device>("desktop");
+  const [view, setView] = useState<Device>("email");
   const boxRef = useRef<HTMLDivElement>(null);
   const [boxW, setBoxW] = useState(520);
   useEffect(() => {
@@ -55,7 +59,10 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
     return () => ro.disconnect();
   }, []);
   // Wide screens are shown shrunk to fit the panel, so the email is laid out at the real screen width.
-  const scale = Math.min(1, Math.max(0.2, (boxW - 24) / DEVICES[view].width));
+  // The Email view is different: on a narrow panel it reflows at the panel's width like a phone would,
+  // so the cells stay full size and easy to tap.
+  const frameW = view === "email" ? Math.min(DEVICES.email.width, Math.max(300, boxW - 24)) : DEVICES[view].width;
+  const scale = Math.min(1, Math.max(0.2, (boxW - 24) / frameW));
   const [open, setOpen] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
@@ -82,9 +89,38 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
   // Coming from the Templates list: open that design straight away.
   useEffect(() => { if (openId) openDesign(openId); // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openId]);
+  // Coming from the Templates gallery: load the designed starter as an unsaved design.
+  useEffect(() => {
+    if (!openStarter) return;
+    const st = starterById(openStarter, kit); if (!st) return;
+    setId(null); setName(st.name); setSubject(st.subject); setPreviewText(st.previewText); setCategory(st.category); setKind(st.kind);
+    setBlocks(st.design.blocks); setBrand(st.design.brand); setOpen(null); setReview(null); setSuggest(null); setAlts(null); setPast([]); setFuture([]); setLog([]); setDirty(true);
+    setNotice(`"${st.name}" is loaded. Click any part of the email to change it, then Save as template to keep your own copy.`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openStarter]);
+  // Clicking a cell in the preview opens that block's editor on the right.
+  const editorRefs = useRef<Record<string, HTMLLIElement | null>>({});
+  useEffect(() => {
+    const onMsg = (e: MessageEvent) => {
+      const d = e.data as { source?: string; block?: string } | null;
+      if (!d || d.source !== "hb-studio" || typeof d.block !== "string") return;
+      setOpen(d.block);
+      requestAnimationFrame(() => editorRefs.current[d.block!]?.scrollIntoView({ block: "nearest", behavior: "smooth" }));
+    };
+    window.addEventListener("message", onMsg);
+    return () => window.removeEventListener("message", onMsg);
+  }, []);
 
   const design = useMemo(() => normalizeDesign({ blocks, brand }), [blocks, brand]);
-  const html = useMemo(() => renderHtml(design, { title: subject || name || "Preview" }), [design, subject, name]);
+  const html = useMemo(() => renderHtml(design, { title: subject || name || "Preview", editable: true }), [design, subject, name]);
+  // Selection is applied inside the live preview instead of re-rendering it, so the email keeps its scroll position.
+  const frameRef = useRef<HTMLIFrameElement>(null);
+  const markSelected = () => {
+    const doc = frameRef.current?.contentDocument; if (!doc) return;
+    doc.querySelectorAll("tr.is-selected").forEach((el) => el.classList.remove("is-selected"));
+    if (open) doc.querySelector(`tr[data-block="${open}"]`)?.classList.add("is-selected");
+  };
+  useEffect(markSelected, [open, html]); // eslint-disable-line react-hooks/exhaustive-deps
   const issues = useMemo(() => designIssues(design), [design]);
   const issueFor = (bid: string) => issues.find((i) => i.blockId === bid)?.message;
 
@@ -229,66 +265,71 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
         <button className={btnGhost} disabled={busy !== null || blocks.length === 0} onClick={copyPrompt}>Copy prompt</button>
         <button className={btnGhost} disabled={blocks.length === 0} onClick={downloadHtml}>Download HTML</button>
       </div>
-      {notice && <p className="text-[13px] text-[#1a7f68]">{notice}</p>}
-      {error && <p className="text-[13px] text-[#b83232]">{error}</p>}
+      {notice && <p className="text-[13px] text-success">{notice}</p>}
+      {error && <p className="text-[13px] text-danger">{error}</p>}
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(360px,1fr)]">
         {/* Stage: the live preview, with Claude's alternative designs underneath */}
         <div className="space-y-3 min-w-0">
-          <div className="rounded-2xl bg-[#14171a] p-4">
-            <div className="mb-2 flex items-center justify-between text-[12px] text-[#8b95a1]">
-              <span>{DEVICES[view].label} · {DEVICES[view].width} px wide</span>
-              <span>Preview only. Sending is off.</span>
+          <div className="rounded-2xl bg-navy-deep p-4">
+            <div className="mb-2 flex items-center justify-between text-[12px] text-subtle">
+              <span>{DEVICES[view].label} · {frameW} px wide</span>
+              <span>Click any part of the email to edit it. Sending is off.</span>
             </div>
             <div ref={boxRef} className="flex justify-center">
-              <div style={{ width: DEVICES[view].width * scale, height: PREVIEW_H }} className={`overflow-hidden bg-white ${view === "mobile" || view === "ipad" ? "rounded-[26px] border-[7px] border-[#2b2f36]" : "rounded border border-[#2b2f36]"}`}>
+              <div style={{ width: frameW * scale, height: PREVIEW_H }} className={`overflow-hidden bg-white ${view === "mobile" || view === "ipad" ? "rounded-[26px] border-[7px] border-navy-soft" : "rounded border border-navy-soft"}`}>
                 <iframe
-                  title="Email preview"
-                  sandbox=""
+                  ref={frameRef}
+                  onLoad={markSelected}
+                  title="Email preview. Click any part to edit it."
+                  // allow-same-origin keeps the preview in-process: a cross-origin (sandboxed) iframe under a CSS
+                  // transform painted blank on some Chrome setups. The document is our own renderHtml() output
+                  // (all text escaped, links limited to http/https/mailto), and the only script in it is ours.
+                  sandbox="allow-scripts allow-same-origin"
                   srcDoc={html}
-                  style={{ width: DEVICES[view].width, height: PREVIEW_H / scale, transform: `scale(${scale})`, transformOrigin: "top left", border: 0, background: "#fff" }}
+                  style={{ width: frameW, height: PREVIEW_H / scale, transform: `scale(${scale})`, transformOrigin: "top left", border: 0, background: "#fff" }}
                 />
               </div>
             </div>
             <div className="mt-3 space-y-2">
               {log.length > 0 && (
-                <ul className="max-h-40 space-y-1 overflow-y-auto rounded-lg bg-[#1c2024] p-2 text-[12.5px]" aria-label="What the assistant did">
+                <ul className="max-h-40 space-y-1 overflow-y-auto rounded-lg bg-navy p-2 text-[12.5px]" aria-label="What the assistant did">
                   {log.map((e) => (
-                    <li key={e.id} className={e.kind === "you" ? "text-[#e8eaed]" : e.kind === "claude" ? "text-[#9ad7c6]" : e.kind === "done" ? "text-[#8b95a1]" : "text-[#e2b24a]"}>
+                    <li key={e.id} className={e.kind === "you" ? "text-line" : e.kind === "claude" ? "text-success-tint" : e.kind === "done" ? "text-subtle" : "text-warn"}>
                       {e.kind === "you" ? "You: " : e.kind === "claude" ? "Claude: " : e.kind === "done" ? "✓ " : "– "}{e.text}
                     </li>
                   ))}
                 </ul>
               )}
               <form className="flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); runCommand(); }}>
-                <input className="h-10 flex-1 rounded-lg border border-[#2b2f36] bg-[#1c2024] px-3 text-[14px] text-[#e8eaed] placeholder:text-[#6c757d] focus:outline-none focus:border-[#1ab394]"
+                <input className="h-10 flex-1 rounded-lg border border-navy-soft bg-navy px-3 text-[14px] text-line placeholder:text-muted focus:outline-none focus:border-accent"
                   placeholder="Give me a command to edit the email (e.g. make the intro shorter)" value={cmd} onChange={(e) => setCmd(e.target.value)} aria-label="Command for the assistant" />
-                <button type="submit" disabled={busy !== null || !cmd.trim() || blocks.length === 0} className="h-10 rounded-lg bg-[#1ab394] px-4 text-[13px] font-semibold text-white disabled:opacity-50">{busy === "command" ? "Working…" : "Send"}</button>
-                <button type="button" onClick={undoStep} disabled={past.length === 0} aria-label="Undo" title={past.length ? `Undo: ${past[past.length - 1].label}` : "Nothing to undo"} className="h-10 w-10 rounded-lg border border-[#2b2f36] text-[#e8eaed] disabled:opacity-40">↶</button>
-                <button type="button" onClick={redoStep} disabled={future.length === 0} aria-label="Redo" title={future.length ? `Redo: ${future[0].label}` : "Nothing to redo"} className="h-10 w-10 rounded-lg border border-[#2b2f36] text-[#e8eaed] disabled:opacity-40">↷</button>
+                <button type="submit" disabled={busy !== null || !cmd.trim() || blocks.length === 0} className="h-10 rounded-lg bg-accent px-4 text-[13px] font-semibold text-white disabled:opacity-50">{busy === "command" ? "Working…" : "Send"}</button>
+                <button type="button" onClick={undoStep} disabled={past.length === 0} aria-label="Undo" title={past.length ? `Undo: ${past[past.length - 1].label}` : "Nothing to undo"} className="h-10 w-10 rounded-lg border border-navy-soft text-line disabled:opacity-40">↶</button>
+                <button type="button" onClick={redoStep} disabled={future.length === 0} aria-label="Redo" title={future.length ? `Redo: ${future[0].label}` : "Nothing to redo"} className="h-10 w-10 rounded-lg border border-navy-soft text-line disabled:opacity-40">↷</button>
               </form>
-              <div className="flex justify-between text-[11.5px] text-[#6c757d]"><span>Each change can be undone. Claude only uses links already in your email or typed in your command, and pictures from your library.</span><span>{aiCount} AI action{aiCount === 1 ? "" : "s"} this session</span></div>
+              <div className="flex justify-between text-[11.5px] text-muted"><span>Each change can be undone. Claude only uses links already in your email or typed in your command, and pictures from your library.</span><span>{aiCount} AI action{aiCount === 1 ? "" : "s"} this session</span></div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[#e7e9eb] bg-white p-3">
+          <div className="rounded-2xl border border-line bg-white p-3">
             <div className="mb-2 flex items-center gap-2">
               {(["ideas", "templates"] as const).map((t) => (
-                <button key={t} onClick={() => setStrip(t)} className={`text-[14px] font-semibold ${strip === t ? "text-[#323a46]" : "text-[#9ba6b7] hover:text-[#6c757d]"}`}>
+                <button key={t} onClick={() => setStrip(t)} className={`text-[14px] font-semibold ${strip === t ? "text-ink" : "text-subtle hover:text-muted"}`}>
                   {t === "ideas" ? "Ideas from Claude" : "My templates"}
-                  <span className="ml-1.5 rounded-full bg-[#eef0f2] px-2 text-[11.5px] font-normal text-[#6c757d]">{t === "ideas" ? alts?.length ?? 0 : saved.length}</span>
+                  <span className="ml-1.5 rounded-full bg-line px-2 text-[11.5px] font-normal text-muted">{t === "ideas" ? alts?.length ?? 0 : saved.length}</span>
                 </button>
               ))}
             </div>
             {strip === "ideas" ? (
               !alts ? (
-                <p className="text-[12.5px] text-[#9ba6b7]">{busy === "redesign" ? "Claude is designing three alternatives…" : "Press Redesign in the panel on the right and three alternatives will appear here."}</p>
+                <p className="text-[12.5px] text-subtle">{busy === "redesign" ? "Claude is designing three alternatives…" : "Press Redesign in the panel on the right and three alternatives will appear here."}</p>
               ) : (
                 <div className="flex gap-3 overflow-x-auto pb-1">
                   {alts.map((a, k) => (
                     <div key={k} className="w-[220px] shrink-0 space-y-1">
                       <Thumb design={a.design} title={a.name} />
-                      <div className="text-[12.5px] font-semibold text-[#323a46] truncate">{a.name}</div>
+                      <div className="text-[12.5px] font-semibold text-ink truncate">{a.name}</div>
                       <div className="flex gap-1">
                         <button className={btnGhost} onClick={() => useAlt(a)}>Use this</button>
                         <button className={btnGhost} disabled={busy !== null} onClick={() => redesign(a.name)}>More like this</button>
@@ -298,14 +339,14 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
                 </div>
               )
             ) : saved.length === 0 ? (
-              <p className="text-[12.5px] text-[#9ba6b7]">Nothing saved yet. Build an email and press Save as template, and it will show up here.</p>
+              <p className="text-[12.5px] text-subtle">Nothing saved yet. Build an email and press Save as template, and it will show up here.</p>
             ) : (
               <div className="flex gap-3 overflow-x-auto pb-1">
                 {saved.map((d) => (
                   <div key={d.id} className="w-[220px] shrink-0 space-y-1">
                     <button className="block w-full text-left" onClick={() => openDesign(d.id)} aria-label={`Open ${d.name}`}><Thumb design={d.studio} title={d.name} /></button>
                     <div className="flex items-center justify-between gap-1">
-                      <div className={`truncate text-[12.5px] font-semibold ${d.id === id ? "text-[#1ab394]" : "text-[#323a46]"}`}>{d.name}</div>
+                      <div className={`truncate text-[12.5px] font-semibold ${d.id === id ? "text-accent" : "text-ink"}`}>{d.name}</div>
                       <button className={btnGhost} disabled={busy !== null || d.id === id} onClick={() => openDesign(d.id)}>{d.id === id ? "Open" : "Open"}</button>
                     </div>
                   </div>
@@ -314,8 +355,8 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
             )}
           </div>
 
-          <div className="px-1 pt-2 text-[14px] font-semibold text-[#323a46]">Instructions on how to use</div>
-          <div className="space-y-2 rounded-2xl border border-[#e7e9eb] bg-white p-2">
+          <div className="px-1 pt-2 text-[14px] font-semibold text-ink">Instructions on how to use</div>
+          <div className="space-y-2 rounded-2xl border border-line bg-white p-2">
             <Fold n="01" title="Start with a draft or a template" open>Type what the email is for under Draft on the right and press Draft, or open one of My templates under the preview. Everything Devin writes is a suggestion you can change.</Fold>
             <Fold n="02" title="Build it block by block">Add a heading, text, picture, button, divider or spacer. Click a block to edit it, and use the arrows to move it. Pictures come from your Photo Library.</Fold>
             <Fold n="03" title="Ask Devin for a more designed version">Press Redesign. Three alternatives appear under the preview. Press Use this to switch to one, and keep editing it. The undo arrow under the preview takes you back.</Fold>
@@ -323,8 +364,8 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
             <Fold n="05" title="Save it">Name it, pick a category and type, then Save as template. It appears in My templates here and in the Templates list. Nothing is sent from the Studio.</Fold>
           </div>
 
-          <div className="px-1 pt-2 text-[14px] font-semibold text-[#323a46]">Coming next</div>
-          <div className="space-y-2 rounded-2xl border border-dashed border-[#d9dde3] bg-[#fafbfc] p-2">
+          <div className="px-1 pt-2 text-[14px] font-semibold text-ink">Coming next</div>
+          <div className="space-y-2 rounded-2xl border border-dashed border-line bg-canvas p-2">
             <Fold n="•" title="Send a test to yourself">Not built yet. It will be turned on together with consent and unsubscribe handling, so nothing goes out before the safeguards are in place.</Fold>
             <Fold n="•" title="Different content for different groups">Not built yet. Show one version of a section to weddings, another to chambers, and so on, using the same segments as your categories.</Fold>
             <Fold n="•" title="Funnel templates">Not built yet. Saved wedding, corporate, community and office-suite sequences you can start from.</Fold>
@@ -333,12 +374,12 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
         </div>
 
         {/* Control panel */}
-        <div className="flex flex-col overflow-hidden rounded-2xl border border-[#e7e9eb] bg-white lg:sticky lg:top-4 lg:h-[calc(100vh-170px)] lg:min-h-[560px]">
+        <div className="flex flex-col overflow-hidden rounded-2xl border border-line bg-white lg:sticky lg:top-4 lg:h-[calc(100vh-170px)] lg:min-h-[560px]">
         <div className="flex-1 space-y-3 overflow-y-auto p-3">
-          <div className="rounded-lg border border-[#e7e9eb] bg-white p-3 grid gap-2 sm:grid-cols-2">
+          <div className="rounded-lg border border-line bg-white p-3 grid gap-2 sm:grid-cols-2">
             <label className="block"><span className={lbl}>Subject</span><input className={inputCls} value={subject} onChange={(e) => { setSubject(e.target.value); setDirty(true); }} /></label>
             <label className="block"><span className={lbl}>Preview text</span><input className={inputCls} value={previewText} onChange={(e) => { setPreviewText(e.target.value); setDirty(true); }} /></label>
-            <label className="block"><span className={lbl}>Button color</span><input type="color" className="h-9 w-full rounded-md border border-[#e7e9eb]" value={brand.accent} onChange={(e) => { setBrand({ ...brand, accent: e.target.value }); setDirty(true); }} /></label>
+            <label className="block"><span className={lbl}>Button color</span><input type="color" className="h-9 w-full rounded-md border border-line" value={brand.accent} onChange={(e) => { setBrand({ ...brand, accent: e.target.value }); setDirty(true); }} /></label>
             <label className="block"><span className={lbl}>Letters</span>
               <select className={inputCls} value={brand.font} onChange={(e) => { setBrand({ ...brand, font: e.target.value === "sans" ? "sans" : "serif" }); setDirty(true); }}>
                 <option value="serif">Classic (serif)</option><option value="sans">Clean (sans-serif)</option>
@@ -347,20 +388,20 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
 
           <ol className="space-y-2">
             {blocks.map((b, i) => (
-              <li key={b.id} className={`rounded-lg border bg-white ${issueFor(b.id) ? "border-[#e2b24a]" : "border-[#e7e9eb]"}`}>
+              <li key={b.id} ref={(el) => { editorRefs.current[b.id] = el; }} className={`rounded-lg border bg-white ${issueFor(b.id) ? "border-warn" : open === b.id ? "border-accent" : "border-line"}`}>
                 <div className="flex items-center gap-2 px-3 py-2">
-                  <button className="flex-1 text-left text-[13.5px] font-semibold text-[#323a46] capitalize" onClick={() => setOpen(open === b.id ? null : b.id)}>
+                  <button className="flex-1 text-left text-[13.5px] font-semibold text-ink capitalize" onClick={() => setOpen(open === b.id ? null : b.id)}>
                     {b.type}
-                    <span className="ml-2 font-normal text-[#9ba6b7] normal-case">{b.type === "heading" || b.type === "text" ? b.text.slice(0, 40) : b.type === "button" ? b.label : b.type === "image" ? b.alt : ""}</span>
+                    <span className="ml-2 font-normal text-subtle normal-case">{b.type === "heading" || b.type === "text" ? b.text.slice(0, 40) : b.type === "button" ? b.label : b.type === "image" ? b.alt : ""}</span>
                   </button>
                   <button className={btnGhost} disabled={i === 0} onClick={() => change(moveBlock(blocks, b.id, -1))} aria-label="Move up">↑</button>
                   <button className={btnGhost} disabled={i === blocks.length - 1} onClick={() => change(moveBlock(blocks, b.id, 1))} aria-label="Move down">↓</button>
                   <button className={btnGhost} onClick={() => change(duplicateBlock(blocks, b.id))}>Copy</button>
                   <button className={btnGhost} onClick={() => change(blocks.filter((x) => x.id !== b.id))}>Remove</button>
                 </div>
-                {issueFor(b.id) && <p className="px-3 pb-2 text-[12px] text-[#b7791f]">{issueFor(b.id)}</p>}
+                {issueFor(b.id) && <p className="px-3 pb-2 text-[12px] text-warn">{issueFor(b.id)}</p>}
                 {open === b.id && (
-                  <div className="border-t border-[#e7e9eb] p-3 space-y-2">
+                  <div className="border-t border-line p-3 space-y-2">
                     {(b.type === "heading" || b.type === "text") && (
                       <>
                         {b.type === "heading"
@@ -375,7 +416,7 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
                         {suggest?.blockId === b.id && (
                           <div className="space-y-2">
                             {suggest.options.map((o, k) => (
-                              <div key={k} className="rounded-md bg-[#f6f7f8] p-2 text-[13px] text-[#323a46] whitespace-pre-wrap">
+                              <div key={k} className="rounded-md bg-canvas p-2 text-[13px] text-ink whitespace-pre-wrap">
                                 {o}
                                 <div className="mt-1"><button className={btnGhost} onClick={() => { patch(b.id, { text: o }); setSuggest(null); }}>Use this</button></div>
                               </div>
@@ -393,8 +434,8 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
                         <input className={inputCls} placeholder="Short description of the picture" value={b.alt} onChange={(e) => patch(b.id, { alt: e.target.value })} />
                         <input className={inputCls} placeholder="Link when clicked (optional)" value={b.link} onChange={(e) => patch(b.id, { link: e.target.value })} />
                         {pickFor === b.id && (
-                          <div className="rounded-md border border-[#e7e9eb] p-2">
-                            {photos === null ? <p className="text-[12px] text-[#9ba6b7]">Loading…</p> : photos.length === 0 ? <p className="text-[12px] text-[#9ba6b7]">No photos available (the photo store may not be connected yet).</p> : (
+                          <div className="rounded-md border border-line p-2">
+                            {photos === null ? <p className="text-[12px] text-subtle">Loading…</p> : photos.length === 0 ? <p className="text-[12px] text-subtle">No photos available (the photo store may not be connected yet).</p> : (
                               <div className="grid grid-cols-4 gap-2 max-h-56 overflow-auto">
                                 {photos.map((p) => (
                                   // eslint-disable-next-line @next/next/no-img-element
@@ -419,7 +460,7 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
                       <label className="block"><span className={lbl}>Height ({b.height}px)</span>
                         <input type="range" min={8} max={80} value={b.height} onChange={(e) => patch(b.id, { height: Number(e.target.value) })} className="w-full" /></label>
                     )}
-                    {b.type === "divider" && <p className="text-[12px] text-[#9ba6b7]">A thin line between sections.</p>}
+                    {b.type === "divider" && <p className="text-[12px] text-subtle">A thin line between sections.</p>}
                   </div>
                 )}
               </li>
@@ -430,13 +471,13 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
             {BLOCK_TYPES.map((t) => <button key={t.type} className={btnGhost} onClick={() => add(t.type)}>+ {t.label}</button>)}
           </div>
 
-          <div className="rounded-lg border border-dashed border-[#d9dde3] bg-[#fafbfc] p-3 text-[12px] text-[#6c757d]">
+          <div className="rounded-lg border border-dashed border-line bg-canvas p-3 text-[12px] text-muted">
             <strong>Footer (locked):</strong> {VENUE_ADDRESS} and an unsubscribe link are added to every email automatically. You can't remove or change them here.
           </div>
         </div>
         {/* Claude's tools sit right under the edit controls and above the master buttons */}
-        <div className="max-h-[40%] space-y-2 overflow-y-auto border-t border-[#e7e9eb] bg-[#fafbfc] p-3">
-          <div className="rounded-lg border border-[#e7e9eb] bg-white p-3 space-y-2">
+        <div className="max-h-[40%] space-y-2 overflow-y-auto border-t border-line bg-canvas p-3">
+          <div className="rounded-lg border border-line bg-white p-3 space-y-2">
             <div className={lbl}>Ask Devin for a first draft</div>
             <div className="flex gap-2">
               <input className={inputCls} placeholder="e.g. Invite past wedding clients to a spring open house" value={goal} onChange={(e) => setGoal(e.target.value)} />
@@ -444,7 +485,7 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
             </div>
           </div>
 
-          <div className="rounded-lg border border-[#e7e9eb] bg-white p-3 space-y-2">
+          <div className="rounded-lg border border-line bg-white p-3 space-y-2">
             <div className="flex items-center justify-between">
               <div className={lbl}>Ask Devin for a more designed version</div>
             </div>
@@ -452,20 +493,20 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
               <input className={inputCls} placeholder="Optional: more elegant, more photos, bolder…" value={direction} onChange={(e) => setDirection(e.target.value)} />
               <button className={btnGhost} disabled={busy !== null || blocks.length === 0} onClick={() => redesign()}>{busy === "redesign" ? "Designing…" : "Redesign"}</button>
             </div>
-            <p className="text-[11.5px] text-[#9ba6b7]">Claude keeps your facts and links and only uses pictures from your library. Read the result before you save.</p>
+            <p className="text-[11.5px] text-subtle">Claude keeps your facts and links and only uses pictures from your library. Read the result before you save.</p>
           </div>
 
-          <div className="rounded-lg border border-[#e7e9eb] bg-white p-3 space-y-2">
+          <div className="rounded-lg border border-line bg-white p-3 space-y-2">
             <div className="flex items-center justify-between">
               <div className={lbl}>Ask Devin to review the whole email</div>
               <button className={btnGhost} disabled={busy !== null || issues.some((i) => i.message.startsWith("Add some text"))} onClick={getReview}>{busy === "review" ? "Reading…" : "Review"}</button>
             </div>
             {review && (
-              <div className="space-y-2 text-[13px] text-[#323a46]">
+              <div className="space-y-2 text-[13px] text-ink">
                 <ul className="list-disc pl-5 space-y-1">{review.suggestions.map((s, k) => <li key={k}>{s}</li>)}</ul>
                 {review.subjects.map((s, k) => (
-                  <div key={k} className="rounded-md bg-[#f6f7f8] p-2">
-                    <div className="font-semibold">{s.subject}</div><div className="text-[#6c757d]">{s.previewText}</div>
+                  <div key={k} className="rounded-md bg-canvas p-2">
+                    <div className="font-semibold">{s.subject}</div><div className="text-muted">{s.previewText}</div>
                     <button className={`${btnGhost} mt-1`} onClick={() => { setSubject(s.subject); setPreviewText(s.previewText); setDirty(true); }}>Use these</button>
                   </div>
                 ))}
@@ -474,11 +515,11 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
           </div>
         </div>
         {/* Master control: screen sizes and save, always visible at the bottom of the panel */}
-        <div className="border-t border-[#e7e9eb] bg-[#fafbfc] p-3 space-y-2">
-          <div className="grid grid-cols-4 gap-2">
+        <div className="border-t border-line bg-canvas p-3 space-y-2">
+          <div className="grid grid-cols-5 gap-2">
             {(Object.keys(DEVICES) as Device[]).map((d) => (
               <button key={d} onClick={() => setView(d)} aria-pressed={view === d}
-                className={`flex flex-col items-center gap-1 rounded-lg border py-2 text-[12px] font-semibold ${view === d ? "border-[#1ab394] text-[#1ab394] bg-white" : "border-[#e7e9eb] text-[#6c757d] bg-white hover:border-[#1ab394]/50"}`}>
+                className={`flex flex-col items-center gap-1 rounded-lg border py-2 text-[12px] font-semibold ${view === d ? "border-accent text-accent bg-white" : "border-line text-muted bg-white hover:border-accent/50"}`}>
                 <DeviceIcon device={d} />{DEVICES[d].label}
               </button>
             ))}
@@ -497,21 +538,29 @@ export default function StudioPanel({ openId }: { openId?: string | null }) {
 function Fold({ n, title, open: startOpen, children }: { n: string; title: string; open?: boolean; children: React.ReactNode }) {
   const [open, setOpen] = useState(Boolean(startOpen));
   return (
-    <div className="rounded-xl bg-[#f6f7f8]">
+    <div className="rounded-xl bg-canvas">
       <button className="flex w-full items-center gap-3 px-3 py-2.5 text-left" aria-expanded={open} onClick={() => setOpen(!open)}>
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-[11.5px] font-semibold text-[#6c757d]">{n}</span>
-        <span className="flex-1 text-[13.5px] font-semibold text-[#323a46]">{title}</span>
-        <span className="text-[#9ba6b7]">{open ? "−" : "+"}</span>
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-[11.5px] font-semibold text-muted">{n}</span>
+        <span className="flex-1 text-[13.5px] font-semibold text-ink">{title}</span>
+        <span className="text-subtle">{open ? "−" : "+"}</span>
       </button>
-      {open && <p className="px-3 pb-3 pl-[52px] text-[13px] leading-relaxed text-[#6c757d]">{children}</p>}
+      {open && <p className="px-3 pb-3 pl-[52px] text-[13px] leading-relaxed text-muted">{children}</p>}
     </div>
   );
 }
 
 function Thumb({ design, title }: { design: { blocks: Block[]; brand: Brand }; title: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [w, setW] = useState(220);
+  useEffect(() => {
+    const el = ref.current; if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => setW(el.clientWidth)); ro.observe(el); setW(el.clientWidth);
+    return () => ro.disconnect();
+  }, []);
+  const scale = w / 640;
   return (
-    <div className="h-64 overflow-hidden rounded-lg border border-[#d9dde3] bg-white">
-      <iframe title={`Thumbnail ${title}`} sandbox="" tabIndex={-1} srcDoc={renderHtml(design, { title })} className="pointer-events-none" style={{ width: 600, height: 900, border: 0, transform: "scale(0.366)", transformOrigin: "top left" }} />
+    <div ref={ref} className="h-64 overflow-hidden rounded-lg border border-line bg-white">
+      <iframe title={`Thumbnail ${title}`} sandbox="" tabIndex={-1} scrolling="no" srcDoc={renderHtml(design, { title })} className="pointer-events-none" style={{ width: 640, height: 256 / scale, border: 0, transform: `scale(${scale})`, transformOrigin: "top left" }} />
     </div>
   );
 }
@@ -520,6 +569,7 @@ function DeviceIcon({ device }: { device: Device }) {
   const p = { fill: "none", stroke: "currentColor", strokeWidth: 1.6, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
   return (
     <svg viewBox="0 0 24 24" className="h-5 w-5" {...p}>
+      {device === "email" && <><rect x="3" y="6" width="18" height="12" rx="1.5" /><path d="M3 7l9 6 9-6" /></>}
       {device === "mobile" && <><rect x="8" y="3" width="8" height="18" rx="2" /><path d="M11 18h2" /></>}
       {device === "ipad" && <><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M11 18h2" /></>}
       {device === "laptop" && <><rect x="5" y="5" width="14" height="10" rx="1.5" /><path d="M3 19h18" /></>}
@@ -532,7 +582,7 @@ function AlignPick({ value, onChange }: { value: "left" | "center" | "right"; on
   return (
     <div className="flex gap-1">
       {(["left", "center", "right"] as const).map((a) => (
-        <button key={a} className={`${btnGhost} ${value === a ? "!border-[#1ab394] !text-[#1ab394]" : ""}`} onClick={() => onChange(a)}>{a}</button>
+        <button key={a} className={`${btnGhost} ${value === a ? "!border-accent !text-accent" : ""}`} onClick={() => onChange(a)}>{a}</button>
       ))}
     </div>
   );

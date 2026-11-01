@@ -7,9 +7,9 @@ interface Item { provider: string; kind: string; id: string; thumb: string; titl
 interface ProviderInfo { key: string; label: string; env: string; kinds: string[]; ready: boolean }
 interface Folder { name: string; count: number }
 
-const inputCls = "w-full rounded-md border border-[#e7e9eb] px-3 py-2 text-[14px] text-[#323a46] focus:outline-none focus:border-[#1ab394]";
-const btnPrimary = "h-9 px-4 rounded-md bg-[#1ab394] text-white text-[13px] font-semibold disabled:opacity-50";
-const btnGhost = "h-8 px-3 rounded-md border border-[#e7e9eb] text-[#6c757d] text-[12.5px] hover:border-[#1ab394]/50 disabled:opacity-50";
+const inputCls = "w-full rounded-md border border-line px-3 py-2 text-[14px] text-ink focus:outline-none focus:border-accent";
+const btnPrimary = "h-9 px-4 rounded-md bg-accent text-white text-[13px] font-semibold disabled:opacity-50";
+const btnGhost = "h-8 px-3 rounded-md border border-line text-muted text-[12.5px] hover:border-accent/50 disabled:opacity-50";
 
 // Royalty-free media types, each with its own library folder (fixed on the server) so stock never mixes with real venue photos.
 const KINDS: { key: string; label: string; folder: string; hint: string }[] = [
@@ -92,13 +92,13 @@ export default function StockSearch({ onOpenLibrary }: { onOpenLibrary?: () => v
   return (
     <div className="space-y-4 max-w-5xl">
       <section className="ibox"><div className="ibox-content space-y-3">
-        <h3 className="text-sm font-semibold text-[#323a46]">Where free media goes</h3>
+        <h3 className="text-sm font-semibold text-ink">Where free media goes</h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {KINDS.map((k) => (
-            <div key={k.key} className="rounded-md border border-[#e7e9eb] p-3">
-              <div className="text-[13px] font-semibold text-[#323a46]">📁 {k.folder}</div>
-              <div className="text-[12px] text-[#9ba6b7]">{k.hint}</div>
-              <div className="text-[12.5px] text-[#6c757d] mt-1">{count(k.folder)} item{count(k.folder) === 1 ? "" : "s"}</div>
+            <div key={k.key} className="rounded-md border border-line p-3">
+              <div className="text-[13px] font-semibold text-ink">📁 {k.folder}</div>
+              <div className="text-[12px] text-subtle">{k.hint}</div>
+              <div className="text-[12.5px] text-muted mt-1">{count(k.folder)} item{count(k.folder) === 1 ? "" : "s"}</div>
             </div>
           ))}
         </div>
@@ -106,11 +106,11 @@ export default function StockSearch({ onOpenLibrary }: { onOpenLibrary?: () => v
       </div></section>
 
       <section className="ibox"><div className="ibox-content space-y-3">
-        <h3 className="text-sm font-semibold text-[#323a46]">Find royalty-free media</h3>
+        <h3 className="text-sm font-semibold text-ink">Find royalty-free media</h3>
         <div className="flex gap-2 flex-wrap" role="tablist">
           {kinds.map((k) => (
             <button key={k.key} role="tab" aria-selected={kind === k.key} onClick={() => { setKind(k.key); setItems([]); }}
-              className={`px-3 py-1.5 rounded-md text-[13px] font-semibold border ${kind === k.key ? "bg-[#1ab394] text-white border-[#1ab394]" : "border-[#e7e9eb] text-[#6c757d] hover:border-[#1ab394]/50"}`}>{k.label}</button>
+              className={`px-3 py-1.5 rounded-md text-[13px] font-semibold border ${kind === k.key ? "bg-accent text-white border-accent" : "border-line text-muted hover:border-accent/50"}`}>{k.label}</button>
           ))}
         </div>
         <form onSubmit={(e) => { e.preventDefault(); search(1); }} className="flex gap-2 flex-wrap items-center">
@@ -119,14 +119,14 @@ export default function StockSearch({ onOpenLibrary }: { onOpenLibrary?: () => v
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="e.g. brick building, wedding table, autumn leaves, gold flourish" maxLength={100} className={`${inputCls} flex-1 min-w-[200px]`} aria-label="Search" />
           <button type="submit" className={btnPrimary} disabled={busy !== null || !q.trim()}>{busy === "search" ? "Searching…" : "Search"}</button>
         </form>
-        {current && !current.ready && <p className="text-[12.5px] text-[#b7791f]">{current.label.split(" (")[0]} isn't switched on yet. Add the key <b>{current.env}</b> in Vercel and redeploy.</p>}
+        {current && !current.ready && <p className="text-[12.5px] text-warn">{current.label.split(" (")[0]} isn't switched on yet. Add the key <b>{current.env}</b> in Vercel and redeploy.</p>}
         {error && <p className="text-[13px] text-red-600" role="alert">{error}</p>}
-        {progress && <p className="text-[13px] text-[#6c757d]">{progress}</p>}
-        {notice && !error && <p className="text-[13px] text-[#1ab394]">{notice}</p>}
+        {progress && <p className="text-[13px] text-muted">{progress}</p>}
+        {notice && !error && <p className="text-[13px] text-accent">{notice}</p>}
 
         {pickedList.length > 0 && (
-          <div className="flex items-center gap-2 flex-wrap text-[12.5px] text-[#6c757d]">
-            <span className="font-semibold text-[#323a46]">{pickedList.length} selected</span>
+          <div className="flex items-center gap-2 flex-wrap text-[12.5px] text-muted">
+            <span className="font-semibold text-ink">{pickedList.length} selected</span>
             <button className={btnPrimary} disabled={busy !== null} onClick={addPicked}>{busy === "add" ? "Adding…" : `Add ${pickedList.length} to library`}</button>
             <button className={btnGhost} disabled={busy !== null} onClick={() => setPicked({})}>Clear</button>
             <span>→ goes to “{kindInfo.folder}” (by type)</span>
@@ -138,11 +138,11 @@ export default function StockSearch({ onOpenLibrary }: { onOpenLibrary?: () => v
             {items.map((it) => {
               const on = Boolean(picked[keyOf(it)]);
               return (
-                <div key={keyOf(it)} className={`relative rounded-md border overflow-hidden ${on ? "border-[#1ab394] ring-2 ring-[#1ab394]" : "border-[#e7e9eb]"}`}>
-                  <input type="checkbox" checked={on} onChange={() => toggle(it)} className="absolute top-2 left-2 z-10 h-5 w-5 accent-[#1ab394]" aria-label={`Select ${it.title}`} />
+                <div key={keyOf(it)} className={`relative rounded-md border overflow-hidden ${on ? "border-accent ring-2 ring-accent" : "border-line"}`}>
+                  <input type="checkbox" checked={on} onChange={() => toggle(it)} className="absolute top-2 left-2 z-10 h-5 w-5 accent-accent" aria-label={`Select ${it.title}`} />
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={it.thumb} alt={it.title} loading="lazy" className="w-full aspect-[4/3] object-cover bg-[#f1f2f7]" />
-                  <div className="p-2 text-[11.5px] text-[#9ba6b7] truncate" title={it.title}>
+                  <img src={it.thumb} alt={it.title} loading="lazy" className="w-full aspect-[4/3] object-cover bg-canvas" />
+                  <div className="p-2 text-[11.5px] text-subtle truncate" title={it.title}>
                     {it.credit ? <a href={it.creditUrl} target="_blank" rel="noreferrer" className="underline">{it.credit}</a> : "—"}{kind === "video" ? " · video" : ""}</div>
                 </div>
               );
@@ -150,11 +150,11 @@ export default function StockSearch({ onOpenLibrary }: { onOpenLibrary?: () => v
           </div>
           <div className="flex gap-2">
             <button className={btnGhost} disabled={busy !== null || page <= 1} onClick={() => search(page - 1)}>Previous</button>
-            <span className="text-[12px] text-[#9ba6b7] self-center">Page {page}</span>
+            <span className="text-[12px] text-subtle self-center">Page {page}</span>
             <button className={btnGhost} disabled={busy !== null || !more} onClick={() => search(page + 1)}>More</button>
           </div>
         </>)}
-        <p className="text-[11.5px] text-[#9ba6b7]">Pixabay and Pexels content is free to use commercially and credit isn't required. Selected items are copied into our own storage. Keep stock separate from real photos of the venue: don't use a stock picture to suggest it shows our rooms, or that the people in it endorse us.</p>
+        <p className="text-[11.5px] text-subtle">Pixabay and Pexels content is free to use commercially and credit isn't required. Selected items are copied into our own storage. Keep stock separate from real photos of the venue: don't use a stock picture to suggest it shows our rooms, or that the people in it endorse us.</p>
       </div></section>
     </div>
   );
