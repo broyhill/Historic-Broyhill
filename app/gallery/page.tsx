@@ -1,4 +1,12 @@
+import type { Metadata } from "next";
 import SiteHeader from "../components/SiteHeader";
+
+
+export const metadata: Metadata = {
+  title: "Gallery & 3D Tour — Historic Broyhill",
+  description: "Photos and a 3D tour of Historic Broyhill's event spaces in Clemmons, NC.",
+};
+
 
 function Eyebrow({ children, light = false }: { children: React.ReactNode; light?: boolean }) {
   return (

@@ -1,4 +1,12 @@
+import type { Metadata } from "next";
 import SiteHeader from "../components/SiteHeader";
+
+
+export const metadata: Metadata = {
+  title: "Event Packages — Historic Broyhill",
+  description: "Event packages for The Magnolia Room, The Loft, The Dock and The Boardrooms at Historic Broyhill in Clemmons, NC.",
+};
+
 
 function Eyebrow({ children, light = false }: { children: React.ReactNode; light?: boolean }) {
   return (
@@ -48,7 +56,7 @@ export default function Packages() {
               <li>· Boardroom or lounge setting</li>
               <li>· Multi-day options available</li>
             </ul>
-            <a href="#visit" className="mt-4 inline-block text-sm font-semibold text-[#182c3e] hover:text-[#a8853f]">Request pricing →</a>
+            <a href="/plan-your-event?spaces=the-loft" className="mt-2 inline-flex min-h-[44px] items-center text-sm font-semibold text-[#182c3e] hover:text-[#a8853f]">Request pricing →</a>
           </div>
 
           <div className="rounded-xl border border-[#e4dac6] bg-white/60 p-6">
@@ -62,7 +70,7 @@ export default function Packages() {
               <li>· Stage included</li>
               <li>· Lobby and courtyard available</li>
             </ul>
-            <a href="#visit" className="mt-4 inline-block text-sm font-semibold text-[#182c3e] hover:text-[#a8853f]">Request pricing →</a>
+            <a href="/plan-your-event?spaces=magnolia-room" className="mt-2 inline-flex min-h-[44px] items-center text-sm font-semibold text-[#182c3e] hover:text-[#a8853f]">Request pricing →</a>
           </div>
 
           <div className="rounded-xl border border-[#e4dac6] bg-white/60 p-6">
@@ -76,7 +84,7 @@ export default function Packages() {
               <li>· Covered stage</li>
               <li>· Room for food trucks</li>
             </ul>
-            <a href="#visit" className="mt-4 inline-block text-sm font-semibold text-[#182c3e] hover:text-[#a8853f]">Request pricing →</a>
+            <a href="/plan-your-event?spaces=the-dock" className="mt-2 inline-flex min-h-[44px] items-center text-sm font-semibold text-[#182c3e] hover:text-[#a8853f]">Request pricing →</a>
           </div>
         </div>
       </section>
@@ -102,7 +110,7 @@ export default function Packages() {
                 <li>· TV with presentation connections</li>
                 <li>· Private bathroom access</li>
               </ul>
-              <a href="#visit" className="mt-4 inline-block text-sm font-semibold text-[#f4ecda] hover:text-[#c2a15a]">Request pricing →</a>
+              <a href="/plan-your-event" className="mt-2 inline-flex min-h-[44px] items-center text-sm font-semibold text-[#f4ecda] hover:text-[#c2a15a]">Request pricing →</a>
             </div>
 
             <div className="rounded-xl border border-white/10 bg-white/5 p-6">
@@ -115,7 +123,7 @@ export default function Packages() {
                 <li>· Private bathroom access</li>
                 <li>· Lunch break accommodation</li>
               </ul>
-              <a href="#visit" className="mt-4 inline-block text-sm font-semibold text-[#f4ecda] hover:text-[#c2a15a]">Request pricing →</a>
+              <a href="/plan-your-event" className="mt-2 inline-flex min-h-[44px] items-center text-sm font-semibold text-[#f4ecda] hover:text-[#c2a15a]">Request pricing →</a>
             </div>
           </div>
         </div>
@@ -128,7 +136,7 @@ export default function Packages() {
           <p className="mt-3 text-[16px] text-[#5a6672]">
             Every event is unique. Contact us to create a custom package tailored to your specific needs, budget, and vision.
           </p>
-          <a href="#visit" className="mt-6 inline-block rounded-md bg-[#c2a15a] px-8 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#182c3e] transition hover:bg-[#d2b268]">Request Custom Package</a>
+          <a href="/plan-your-event" className="mt-6 inline-block rounded-md bg-[#c2a15a] px-8 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#182c3e] transition hover:bg-[#d2b268]">Request Custom Package</a>
         </div>
       </section>
     </main>

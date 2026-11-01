@@ -97,7 +97,7 @@ export default function SpaceBrowser({ spaces, date }: { spaces: Space[]; date?:
                     <span>{space.kind}</span>
                     <span>{String(index + 1).padStart(2, "0")}</span>
                   </div>
-                  <h2 className="hb-display mt-2 text-2xl text-[#182c3e]">{space.name}</h2>
+                  <h2 className="hb-display mt-2 text-2xl text-[#182c3e]"><a href={`/event-spaces/${space.id}`} className="inline-flex min-h-[44px] items-center hover:text-[#a8853f]">{space.name}</a></h2>
                   <p className="mt-2 text-[15px] leading-relaxed text-[#5a6672]">{space.story}</p>
 
                   <table className="mt-4 w-full text-[14px]">

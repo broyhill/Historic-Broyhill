@@ -1,4 +1,12 @@
+import type { Metadata } from "next";
 import SiteHeader from "../components/SiteHeader";
+
+
+export const metadata: Metadata = {
+  title: "Event Enhancements & Virtual Office — Historic Broyhill",
+  description: "Standard inclusions, available enhancements and the Virtual Office Program ($150/month, 12-month term) at Historic Broyhill, Clemmons, NC.",
+};
+
 
 function Eyebrow({ children, light = false }: { children: React.ReactNode; light?: boolean }) {
   return (
@@ -118,7 +126,7 @@ export default function Enhancements() {
             <div className="text-center">
               <p className="hb-display text-4xl text-[#a8853f]">$150<span className="text-sm text-[#8c7d5f]">/mo</span></p>
               <p className="mt-2 text-xs uppercase tracking-wider text-[#8c7d5f]">12-month term</p>
-              <a href="#visit" className="mt-6 inline-block rounded-md bg-[#c2a15a] px-8 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#182c3e] transition hover:bg-[#d2b268]">Get Started</a>
+              <a href="/plan-your-event" className="mt-6 inline-block rounded-md bg-[#c2a15a] px-8 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#182c3e] transition hover:bg-[#d2b268]">Get Started</a>
             </div>
           </div>
         </div>
@@ -131,7 +139,7 @@ export default function Enhancements() {
           <p className="mt-3 text-[16px] text-[#5a6672]">
             Contact us to discuss enhancements and create a personalized package for your event.
           </p>
-          <a href="#visit" className="mt-6 inline-block rounded-md bg-[#c2a15a] px-8 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#182c3e] transition hover:bg-[#d2b268]">Request Enhancements</a>
+          <a href="/plan-your-event" className="mt-6 inline-block rounded-md bg-[#c2a15a] px-8 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#182c3e] transition hover:bg-[#d2b268]">Request Enhancements</a>
         </div>
       </section>
     </main>
