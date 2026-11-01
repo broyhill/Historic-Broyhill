@@ -7,7 +7,7 @@ export default function SiteHeader() {
       {/* Top bar */}
       <div className="bg-[#182c3e] border-b border-white/10">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-2">
-          <a href="/" className="text-[11px] text-[#cdd5d9] hover:text-white">
+          <a href="/" className="inline-flex min-h-[44px] items-center text-[11px] text-[#cdd5d9] hover:text-white">
             &lt;&lt; BACK TO HOME
           </a>
           
@@ -16,7 +16,7 @@ export default function SiteHeader() {
             <span className="text-[10px] uppercase tracking-[0.2em] text-[#d4c4a0]">EVENTS &amp; MEETINGS</span>
           </div>
           
-          <a href="#visit" className="rounded bg-[#c2a15a] px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#182c3e] hover:bg-[#d2b268]">
+          <a href="/plan-your-event" className="inline-flex min-h-[44px] items-center rounded bg-[#c2a15a] px-4 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#182c3e] hover:bg-[#d2b268]">
             REQUEST FOR PROPOSAL
           </a>
         </div>
@@ -34,24 +34,30 @@ export default function SiteHeader() {
       {/* Main navigation */}
       <div className="bg-[#182c3e] border-b border-white/10">
         <div className="mx-auto max-w-6xl px-5">
-          <nav className="flex items-center justify-between">
-            <div className="flex items-center gap-8">
-              <a href="#venues" className="text-[13px] font-medium text-[#cdd5d9] hover:text-white">
+          <nav aria-label="Main" className="flex items-center justify-between overflow-x-auto">
+            <div className="flex items-center gap-6 whitespace-nowrap md:gap-8">
+              <a href="/#venues" className="inline-flex min-h-[44px] items-center text-[13px] font-medium text-[#cdd5d9] hover:text-white">
                 MEETINGS &amp; CORPORATE EVENTS
               </a>
-              <a href="/team-building" className="text-[13px] font-medium text-[#cdd5d9] hover:text-white">
+              <a href="/event-spaces" className="inline-flex min-h-[44px] items-center text-[13px] font-medium text-[#cdd5d9] hover:text-white">
+                EVENT SPACES
+              </a>
+              <a href="/availability" className="inline-flex min-h-[44px] items-center text-[13px] font-medium text-[#cdd5d9] hover:text-white">
+                AVAILABILITY
+              </a>
+              <a href="/team-building" className="inline-flex min-h-[44px] items-center text-[13px] font-medium text-[#cdd5d9] hover:text-white">
                 TEAM BUILDING
               </a>
-              <a href="/packages" className="text-[13px] font-medium text-[#cdd5d9] hover:text-white">
+              <a href="/packages" className="inline-flex min-h-[44px] items-center text-[13px] font-medium text-[#cdd5d9] hover:text-white">
                 PACKAGES
               </a>
-              <a href="/enhancements" className="text-[13px] font-medium text-[#cdd5d9] hover:text-white">
+              <a href="/enhancements" className="inline-flex min-h-[44px] items-center text-[13px] font-medium text-[#cdd5d9] hover:text-white">
                 ENHANCEMENTS
               </a>
-              <a href="/accommodations" className="text-[13px] font-medium text-[#cdd5d9] hover:text-white">
+              <a href="/accommodations" className="inline-flex min-h-[44px] items-center text-[13px] font-medium text-[#cdd5d9] hover:text-white">
                 ACCOMMODATIONS
               </a>
-              <a href="/gallery" className="text-[13px] font-medium text-[#cdd5d9] hover:text-white">
+              <a href="/gallery" className="inline-flex min-h-[44px] items-center text-[13px] font-medium text-[#cdd5d9] hover:text-white">
                 GALLERY
               </a>
             </div>

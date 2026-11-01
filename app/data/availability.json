@@ -1,0 +1,25 @@
+{
+  "_about": "SAMPLE availability for the public calendar. Edit this file to update it: under each room id (see spaces.json) list dates as YYYY-MM-DD with a status of open, held or booked. Any date not listed is open. The venue team confirms every date; the calendar never books anything.",
+  "sample": true,
+  "defaultStatus": "open",
+  "rooms": {
+    "magnolia-room": {
+      "2026-11-14": "booked",
+      "2026-11-21": "held",
+      "2026-12-05": "booked",
+      "2026-12-12": "booked",
+      "2026-12-19": "held"
+    },
+    "the-boardrooms": {
+      "2026-11-14": "booked",
+      "2026-11-18": "held"
+    },
+    "the-dock": {
+      "2026-11-21": "held"
+    },
+    "the-loft": {
+      "2026-11-18": "held",
+      "2026-12-03": "booked"
+    }
+  }
+}

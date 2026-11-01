@@ -1,0 +1,71 @@
+{
+  "_about": "Historic Broyhill event spaces. Facts come only from issue #6 (fact sheet), www.broyhill.net and docs/broyhill-content.md. A null value or a [CONFIRM: ...] string means the venue has not published it yet; do not guess. Edit this file to update the Event Spaces page, the Availability room list and the Plan Your Event form.",
+  "spaces": [
+    {
+      "id": "magnolia-room",
+      "name": "The Magnolia Room",
+      "kind": "Signature hall",
+      "indoor": true,
+      "maxGuests": 140,
+      "capacities": [
+        { "setup": "Seated", "guests": "20–120" },
+        { "setup": "Roaming reception", "guests": "up to 140" }
+      ],
+      "setups": ["Seated banquet", "Ceremony", "Reception", "Business meeting"],
+      "features": ["Stage", "Overflow to the lobby, courtyard patio and common areas", "Spacious dance floor"],
+      "sizeSqFt": null,
+      "story": "The former school auditorium, stage and all — our signature hall for ceremonies, receptions, rehearsal dinners and milestone celebrations.",
+      "photo": "/photos/magnolia.jpg",
+      "photoAlt": "A large group seated at round tables in the Magnolia Room, with a speaker at the front"
+    },
+    {
+      "id": "the-boardrooms",
+      "name": "The Boardrooms",
+      "kind": "Meeting rooms",
+      "indoor": true,
+      "maxGuests": null,
+      "capacities": [
+        { "setup": "Boardroom", "guests": "[CONFIRM: capacity]" }
+      ],
+      "setups": ["Boardroom", "Business meeting"],
+      "features": ["Boardroom tables and upholstered chairs", "Whiteboards and Wi-Fi", "By the day or half day · open to tenants and the public"],
+      "sizeSqFt": null,
+      "story": "Conference rooms rented by the day or half day.",
+      "photo": null,
+      "photoAlt": "TODO-PHOTO · The Boardrooms"
+    },
+    {
+      "id": "the-dock",
+      "name": "The Dock",
+      "kind": "Outdoor covered stage",
+      "indoor": false,
+      "maxGuests": null,
+      "capacities": [
+        { "setup": "Outdoor · varies with layout", "guests": "[CONFIRM: capacity]" }
+      ],
+      "setups": ["Live music", "Community gathering", "Outdoor event"],
+      "features": ["Large covered stage", "Flat lot for seating", "Room for food trucks"],
+      "sizeSqFt": null,
+      "story": "Our outdoor patio — a covered stage and a flat lot for seating, made for smaller outdoor events and live music.",
+      "photo": "/photos/the-dock.jpg",
+      "photoAlt": "The Dock's covered outdoor stage, with a live band and guests in lawn chairs"
+    },
+    {
+      "id": "the-loft",
+      "name": "The Loft",
+      "kind": "Private meeting space",
+      "indoor": true,
+      "maxGuests": 20,
+      "capacities": [
+        { "setup": "Boardroom", "guests": "up to 20" },
+        { "setup": "Lounge (couches and chairs)", "guests": "up to 20" }
+      ],
+      "setups": ["Boardroom", "Lounge", "Training seminar", "Business meeting"],
+      "features": ["Private bathroom", "Coffee bar", "Lock-and-key for multi-day meetings"],
+      "sizeSqFt": null,
+      "story": "A private space for corporate meetings, small gatherings and training seminars. Created and launched in 2023.",
+      "photo": "/photos/the-loft.jpg",
+      "photoAlt": "The Loft set boardroom-style for a meeting"
+    }
+  ]
+}
