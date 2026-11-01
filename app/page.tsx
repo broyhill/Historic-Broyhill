@@ -131,6 +131,7 @@ export default function Home() {
             <div className="mt-8 flex flex-wrap gap-3">
               <a href="#visit" className="rounded-md bg-[#c2a15a] px-6 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#182c3e] transition hover:bg-[#d2b268]">Request a tour</a>
               <a href="#venues" className="rounded-md border border-white/25 px-6 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#e9e2d3] transition hover:border-white/55">Explore the venues</a>
+              <a href="/availability" className="rounded-md border border-white/25 px-6 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-[#e9e2d3] transition hover:border-white/55">Check availability</a>
             </div>
           </div>
           <HeroPhoto />

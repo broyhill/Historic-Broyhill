@@ -13,8 +13,24 @@ const INTERESTS = [
   "Something else",
 ];
 
-export default function InquiryForm() {
-  const [form, setForm] = useState({ name: "", email: "", phone: "", company: "", interest: INTERESTS[0], message: "" });
+type Props = {
+  /** Space names chosen on /event-spaces; pre-fills the interest and is sent with the request. */
+  initialSpaces?: string[];
+  /** YYYY-MM-DD chosen on /availability. */
+  initialDate?: string;
+};
+
+export default function InquiryForm({ initialSpaces = [], initialDate = "" }: Props) {
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    company: "",
+    interest: INTERESTS.find((i) => initialSpaces.includes(i)) ?? INTERESTS[0],
+    eventDate: initialDate,
+    message: "",
+  });
+  const [spaces, setSpaces] = useState<string[]>(initialSpaces);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,8 +48,13 @@ export default function InquiryForm() {
           email: form.email,
           phone: form.phone || null,
           company: form.company || "Website Inquiry",
-          notes: `Interest: ${form.interest}. Message: ${form.message || "None provided"}`,
-          tags: ["Website Inquiry", form.interest],
+          notes: [
+            `Interest: ${form.interest}.`,
+            spaces.length ? `Spaces: ${spaces.join(", ")}.` : "",
+            form.eventDate ? `Preferred date: ${form.eventDate}.` : "",
+            `Message: ${form.message || "None provided"}`,
+          ].filter(Boolean).join(" "),
+          tags: ["Website Inquiry", form.interest, ...spaces.filter((s) => s !== form.interest)],
         }),
       });
       if (!res.ok) {
@@ -94,6 +115,29 @@ export default function InquiryForm() {
             {INTERESTS.map((i) => <option key={i}>{i}</option>)}
           </select>
         </div>
+      </div>
+      {spaces.length ? (
+        <div>
+          <p className={label}>Spaces you picked</p>
+          <ul className="flex flex-wrap gap-2" aria-label="Spaces you picked">
+            {spaces.map((s) => (
+              <li key={s}>
+                <button
+                  type="button"
+                  aria-label={`Remove ${s}`}
+                  onClick={() => setSpaces((cur) => cur.filter((x) => x !== s))}
+                  className="min-h-[44px] rounded-full border border-[#182c3e]/25 bg-white/70 px-4 text-sm text-[#182c3e] hover:border-[#182c3e]/50"
+                >
+                  {s} <span aria-hidden="true">×</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      <div>
+        <label htmlFor="iq-date" className={label}>Preferred date</label>
+        <input id="iq-date" type="date" value={form.eventDate} onChange={(e) => setForm({ ...form, eventDate: e.target.value })} className={field} />
       </div>
       <div>
         <label htmlFor="iq-message" className={label}>Tell us about your plans</label>
