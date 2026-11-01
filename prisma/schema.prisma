@@ -121,6 +121,68 @@ model Journey {
   runs         JourneyRun[]
 }
 
+// Venue bookings backbone (the "Event spine"). A VenueEvent is one real gathering:
+// inquiry → tentative → booked → completed, with rooms, date and AI-drafted
+// proposal / run-of-day (BEO) text kept on the row. shareToken powers the public
+// read-only proposal link (/proposal/<token>). Created idempotently on first use
+// by lib/venue-db.ts, which mirrors these shapes in CREATE TABLE IF NOT EXISTS.
+model VenueEvent {
+  id            String   @id @default(uuid())
+  name          String
+  eventType     String?
+  leadId        String?
+  spaces        Json     @default("[]")
+  dateStart     String?
+  dateEnd       String?
+  guests        Int?
+  status        String   @default("INQUIRY") // INQUIRY | TENTATIVE | BOOKED | COMPLETED | CANCELLED
+  notes         String?
+  proposalDraft String?
+  beoDraft      String?
+  shareToken    String   @unique
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([leadId])
+  @@index([status])
+}
+
+// One room's status on one date, edited by the venue team in admin. Overrides the
+// JSON defaults in app/data/availability.json when the public calendar renders.
+model AvailabilityBlock {
+  id        String   @id @default(uuid())
+  spaceId   String
+  date      String // YYYY-MM-DD
+  status    String // open | held | booked
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([spaceId, date])
+  @@index([date])
+}
+
+// Self-serve "express book" request from the public site: a guest asks for one
+// room on one date. Staff approve (creates a tentative VenueEvent + held
+// AvailabilityBlock) or decline. No payment is taken.
+model ExpressBookRequest {
+  id        String   @id @default(uuid())
+  spaceId   String
+  date      String // YYYY-MM-DD
+  guests    Int?
+  name      String
+  email     String
+  phone     String?
+  notes     String?
+  status    String   @default("PENDING") // PENDING | APPROVED | DECLINED
+  leadId    String?
+  eventId   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}
+
 // One lead's place in one journey.
 model JourneyRun {
   id            String      @id @default(uuid())
