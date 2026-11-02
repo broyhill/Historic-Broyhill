@@ -1,0 +1,820 @@
+// E68 Wizard of Oz — agency spine (Campaign Monitor Agency Edition model).
+//
+// One Agency Console governs isolated Candidate Silos. Every candidate-owned row carries
+// candidateId and every /api/admin query is scoped by it (lib/tenant.ts, lib/scope.ts).
+//
+// Boundaries (see README.md):
+//   * This schema has NOT been applied to any database. Applying it needs Ed's
+//     "I AUTHORIZE THIS ACTION" and only ever targets a local/dev database
+//     (scripts/guard-dev-db.mjs refuses anything else). Never Hetzner production.
+//   * It writes nothing to e10.*, e30.*, brain.*, wizard.* or any sacred table. Those
+//     remain the platform of record; lib/channels and lib/dispatch reach them only
+//     through adapters that are inert today.
+//
+// Fields marked "spec" come from "Prompt 1 Track A — Agency Architecture & Candidate Silos".
+// Fields marked "additive" were added to satisfy Ed's 2026-10-15 boundaries or Track B and
+// are listed in README.md for review.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("WIZARD_AGENCY_DATABASE_URL")
+}
+
+// ─── Track A: agency → candidate-silo hierarchy ──────────────────────────────────────────
+
+model Agency {
+  id                 String              @id @default(uuid()) // spec
+  name               String              @default("Broyhill GOP Command") // spec
+  candidates         CandidateSilo[] // spec
+  globalSuppressions GlobalSuppression[] // spec
+  control            AgencyControl? // additive: master kill switch
+  createdAt          DateTime            @default(now()) // spec
+  updatedAt          DateTime            @updatedAt // spec
+}
+
+// additive: the master kill switch Layer 1 (2026-07-28) names as the most important missing
+// control. Engaged by default — dispatch is inert until it is explicitly released.
+model AgencyControl {
+  id                String   @id @default(uuid())
+  agencyId          String   @unique
+  agency            Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  killSwitchEngaged Boolean  @default(true)
+  reason            String   @default("Fail-closed default: dispatch is inert until Ed orders otherwise.")
+  updatedById       String?
+  updatedAt         DateTime @updatedAt
+}
+
+model CandidateSilo {
+  id               String                   @id @default(uuid()) // spec
+  agencyId         String // spec
+  agency           Agency                   @relation(fields: [agencyId], references: [id], onDelete: Cascade) // spec
+  slug             String                   @unique // spec
+  name             String // spec
+  officeSought     String? // spec
+  fromName         String                   @default("BroyhillGOP Concierge") // spec (name corrected)
+  fromEmail        String                   @default("Info@Broyhill.net") // spec
+  replyToEmail     String? // spec
+  // additive: "every send is from a named candidate to an individual human". A silo with no
+  // candidateName (e.g. the default BroyhillGOP silo) can draft but can never dispatch.
+  candidateName    String?
+  // additive: exit-gate key (Ed 2026-10-08) — FEC C######## or NCBOE committee id.
+  committeeId      String?
+  // additive: deterministic link to the platform candidate key (e10.silo / wizard.campaigns).
+  // Exact value only; never inferred.
+  bgopCandidateId  String?
+  // additive: physical address + paid-for-by appended to every email (lib/compliance/footer.ts).
+  physicalAddress  String                   @default("BroyhillGOP • 3540 Clemmons Road, Clemmons, NC 27012")
+  paidForBy        String?
+  users            CandidateUser[] // spec
+  subscribers      Subscriber[] // spec
+  subscriberLists  SubscriberList[] // spec
+  segments         DynamicSegment[] // spec
+  templates        EmailTemplate[] // spec
+  campaigns        AiContentPipeline[] // spec
+  journeys         AutomatedJourney[] // spec
+  suppressions     SiloSuppression[] // spec
+  leads            LeadProfile[] // additive: Track A optional candidateId on LeadProfile
+  businesses       Business[] // additive: Track A optional candidateId on Business
+  activities       SubscriberActivity[] // additive: Track B telemetry
+  dispatches       DispatchRecord[] // additive: Track B dispatch log
+  authorizations   WizardAuthorization[] // additive: exact-version Wizard authorization
+  agentDelegations AgentDelegation[] // additive: delegated AI-agent grants
+  journeyRuns      JourneyRun[] // additive: Track B journey runner state
+  propensities     SubscriberPropensity[] // additive: Nova-style predictive scores
+  proposals        FunnelProposal[] // additive: AI funnel feeder output queue
+  ecosystemSignals EcosystemSignal[] // additive: mesh signal bus (orchestrator input)
+  signalRoutes     SignalRoute[] // additive: mesh routes (signal → scoring recipe)
+  // additive: Campaign Monitor agency rail — this silo's CM client/list/webhook pointers.
+  // Provisioned by lib/cm/provisioner.ts; empty until the silo's rail is created.
+  cmClientId       String?                  @unique
+  cmListId         String?
+  cmWebhookId      String?
+  cmWebhookSecret  String?
+  offers           ProductOffer[] // additive: offer value matrix for LP optimization
+  allocations      OptimizationAllocation[] // additive: LP arbitration ledger
+  cpAnomalyLogs    CpAnomalyLog[] // additive: control-plane anomaly log
+  createdAt        DateTime                 @default(now()) // spec
+  updatedAt        DateTime                 @updatedAt // spec
+}
+
+model CandidateUser {
+  id                   String            @id @default(uuid()) // spec
+  candidateId          String // spec
+  candidate            CandidateSilo     @relation(fields: [candidateId], references: [id], onDelete: Cascade) // spec
+  email                String // spec
+  passwordHash         String // spec
+  role                 UserRole          @default(CAMPAIGN_DRAFTER) // spec
+  // additive: the candidate himself. Only a principal may type the Wizard's exact-version
+  // authorization (Layer 1: "the candidate's device is the authorization device").
+  isCandidatePrincipal Boolean           @default(false)
+  grantedDelegations   AgentDelegation[] // delegations this user granted
+  displayName          String? // additive
+  createdAt            DateTime          @default(now()) // spec
+
+  @@unique([candidateId, email])
+  @@unique([candidateId, id]) // spec
+}
+
+enum UserRole {
+  AGENCY_ADMIN
+  CANDIDATE_MANAGER
+  CAMPAIGN_DRAFTER
+  COMPLIANCE_VIEWER
+}
+
+model SiloSuppression {
+  id          String           @id @default(uuid()) // spec
+  candidateId String // spec
+  candidate   CandidateSilo    @relation(fields: [candidateId], references: [id], onDelete: Cascade) // spec
+  email       String // spec
+  reason      String // spec
+  // additive: channel suppression is not a relationship decision. BULK_ONLY blocks bulk
+  // email only (event invitations and personal candidate contact still allowed);
+  // ALL_EMAIL blocks every email class (hard bounce = undeliverable address).
+  level       SuppressionLevel @default(BULK_ONLY)
+  source      String? // additive: webhook / unsubscribe / admin / import
+  createdAt   DateTime         @default(now()) // spec
+
+  @@unique([candidateId, email])
+  @@unique([candidateId, id]) // spec
+}
+
+model GlobalSuppression {
+  id        String           @id @default(uuid()) // spec
+  agencyId  String // spec
+  agency    Agency           @relation(fields: [agencyId], references: [id], onDelete: Cascade) // spec
+  email     String           @unique // spec
+  reason    String // spec
+  level     SuppressionLevel @default(BULK_ONLY) // additive (see SiloSuppression)
+  source    String? // additive
+  createdAt DateTime         @default(now()) // spec
+}
+
+enum SuppressionLevel {
+  BULK_ONLY
+  ALL_EMAIL
+}
+
+enum ConsentChannel {
+  WIZARD_FORM
+  API_IMPORT
+  MANUAL_OVERRIDE
+  WEBHOOK_SYNC
+}
+
+// ─── Models the spec's CandidateSilo relations require (Track B) ─────────────────────────
+
+model Subscriber {
+  id                  String                   @id @default(uuid())
+  candidateId         String
+  candidate           CandidateSilo            @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  email               String // normalized: trim + lowercase. Exact-match key within a silo.
+  firstName           String?
+  lastName            String?
+  phone               String?
+  // Exit gate (Ed 2026-10-08): RNC_RegID is TEXT, exact, never inferred. Null = HELD for send.
+  rncRegId            String?
+  identityState       IdentityState            @default(HELD_MISSING_EVIDENCE)
+  venueInterest       String?
+  vipScore            Int                      @default(0)
+  attributes          Json?
+  consentSource       String?
+  // Nova taxonomy (Iterable itblDS mirror): the AI feeder's per-subscriber verdict.
+  affinityLabel       BrandAffinityLabel       @default(UNSCORED) // mirrors itblDS.brandAffinityLabel
+  affinityScoredAt    DateTime?
+  // Nova Decisioning fields: per-user optimal send hour (6h-24h window), frequency and
+  // channel preference learned from SubscriberActivity — always silo-scoped.
+  sendTimeOptimalHour Int? // 0-23 local hour of highest open/click propensity
+  frequencyCapPerWeek Int? // Nova Frequency decisioning: max sends per rolling 7d
+  channelPreference   String? // Nova Channel decisioning: EMAIL | SMS | … (string, channels grow)
+  lists               SubscriberListMember[]
+  activities          SubscriberActivity[]
+  propensities        SubscriberPropensity[]
+  proposals           FunnelProposal[]
+  allocations         OptimizationAllocation[]
+  // additive: consent provenance — our system of record. CM state follows these fields,
+  // never the reverse. originEventId pins the flag to the exact activity that changed it.
+  systemOptIn         Boolean                  @default(true)
+  optInUpdatedAt      DateTime                 @default(now())
+  consentChannel      ConsentChannel           @default(WIZARD_FORM)
+  consentActorId      String?
+  originEventId       String?
+  originEvent         SubscriberActivity?      @relation("ConsentOrigin", fields: [originEventId], references: [id], onDelete: SetNull)
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
+
+  @@unique([candidateId, email])
+  @@unique([candidateId, id])
+  @@index([candidateId])
+}
+
+// Deterministic identity only. No fuzzy, no cluster, no lookalike states exist by design.
+enum IdentityState {
+  HELD_MISSING_EVIDENCE // no exact RNC_RegID supplied: visible, never dropped, never sent
+  RNC_REGID_EXACT // RNC_RegID supplied by an authoritative source, stored verbatim
+}
+
+// Mirrors Iterable's itblDS.brandAffinityLabel values verbatim.
+enum BrandAffinityLabel {
+  LOYAL
+  POSITIVE
+  NEUTRAL
+  NEGATIVE
+  UNSCORED
+}
+
+model SubscriberList {
+  id          String                 @id @default(uuid())
+  candidateId String
+  candidate   CandidateSilo          @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  name        String
+  members     SubscriberListMember[]
+  campaigns   AiContentPipeline[]
+  createdAt   DateTime               @default(now())
+
+  @@unique([candidateId, name])
+}
+
+model SubscriberListMember {
+  listId       String
+  list         SubscriberList @relation(fields: [listId], references: [id], onDelete: Cascade)
+  subscriberId String
+  subscriber   Subscriber     @relation(fields: [subscriberId], references: [id], onDelete: Cascade)
+  addedAt      DateTime       @default(now())
+
+  @@id([listId, subscriberId])
+}
+
+model DynamicSegment {
+  id          String              @id @default(uuid())
+  candidateId String
+  candidate   CandidateSilo       @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  name        String
+  rules       Json // lib/segments.ts SegmentRules: attribute filters only, evaluated exactly
+  campaigns   AiContentPipeline[]
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  @@unique([candidateId, name])
+}
+
+model EmailTemplate {
+  id          String              @id @default(uuid())
+  candidateId String
+  candidate   CandidateSilo       @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  name        String
+  blocks      Json // lib/templates/blocks.ts EmailBlock[]; locked blocks are agency-owned
+  version     Int                 @default(1)
+  createdById String?
+  updatedById String?
+  campaigns   AiContentPipeline[]
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  @@index([candidateId])
+}
+
+// Campaign / draft record. Name and base fields preserved from the existing model the spec
+// extends (README §Provenance); channel-generic so hooked channels (SMS, mail, RVM…) stage here.
+model AiContentPipeline {
+  id                    String                     @id @default(uuid())
+  candidateId           String? // spec: optional candidateId
+  candidate             CandidateSilo?             @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  businessId            String?
+  business              Business?                  @relation(fields: [businessId], references: [id], onDelete: SetNull)
+  channel               Channel                    @default(EMAIL)
+  messageClass          MessageClass               @default(BULK)
+  title                 String?
+  suggestedDraft        String                     @default("")
+  templateId            String?
+  template              EmailTemplate?             @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  audienceListId        String?
+  audienceList          SubscriberList?            @relation(fields: [audienceListId], references: [id], onDelete: SetNull)
+  audienceSegmentId     String?
+  audienceSegment       DynamicSegment?            @relation(fields: [audienceSegmentId], references: [id], onDelete: SetNull)
+  recipientSubscriberId String? // single-recipient drafts (journey welcome, personal touch)
+  originAgentKey        String? // set when an AI agent originated this campaign; requires a live AgentDelegation covering the action
+  status                CampaignStatus             @default(DRAFT)
+  createdById           String?
+  submittedById         String?
+  submittedAt           DateTime?
+  reviewedById          String? // AGENCY_ADMIN or CANDIDATE_MANAGER who set PUBLISHED
+  reviewedAt            DateTime?
+  publishedAt           DateTime?
+  scheduledFor          DateTime?
+  sourceJourneyRunId    String?
+  metrics               Json?
+  variants              MessageVariant[]
+  dispatches            DispatchRecord[]
+  // additive: CM rail + stage/fire lifecycle — the draft pointer created at approve time
+  // (stageCampaign), sent at fire time. journeyStepId binds the campaign to the step the
+  // optimizer scored it under.
+  cmCampaignId          String?                    @unique
+  journeyStepId         String?
+  journeyStep           AutomatedJourneyStep?      @relation(fields: [journeyStepId], references: [id], onDelete: SetNull)
+  stagedAt              DateTime?
+  sentAt                DateTime?
+  predictedOpens        Int                        @default(0)
+  predictedClicks       Int                        @default(0)
+  predictedRevenue      Float                      @default(0.0)
+  actualOpens           Int                        @default(0)
+  actualClicks          Int                        @default(0)
+  actualBounces         Int                        @default(0)
+  actualRevenue         Float                      @default(0.0)
+  statsLastSyncAt       DateTime?
+  varianceSnapshots     CampaignVarianceSnapshot[]
+  createdAt             DateTime                   @default(now())
+  updatedAt             DateTime                   @updatedAt
+
+  @@index([candidateId, status])
+}
+
+enum CampaignStatus {
+  DRAFT
+  PENDING_REVIEW
+  PUBLISHED // agency-authorized (spec): set only by AGENCY_ADMIN or CANDIDATE_MANAGER
+  DISMISSED
+}
+
+// Sent messages are immutable. A variant is frozen the moment it is authorized or
+// dispatched; any later edit creates a child variant (parentVariantId) with a new hash.
+model MessageVariant {
+  id              String                @id @default(uuid())
+  campaignId      String
+  campaign        AiContentPipeline     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  parentVariantId String?
+  parent          MessageVariant?       @relation("VariantLineage", fields: [parentVariantId], references: [id], onDelete: Restrict)
+  children        MessageVariant[]      @relation("VariantLineage")
+  version         Int
+  subject         String
+  preheader       String?
+  blocks          Json // composition snapshot; per-recipient rendering happens at dispatch
+  html            String // reviewer preview render (sample merge context)
+  text            String // reviewer preview render, plain text
+  contentHash     String // sha256 over subject + preheader + blocks (lib/variants.ts) = composition hash
+  templateVersion Int?
+  createdById     String?
+  frozenAt        DateTime?
+  frozenReason    String?
+  authorizations  WizardAuthorization[]
+  dispatches      DispatchRecord[]
+  createdAt       DateTime              @default(now())
+
+  @@unique([campaignId, version])
+}
+
+// Exact-version Wizard authorization (E68 Step 9): typed phrase, bound to one content hash.
+// Append-only. Any edit produces a new variant whose hash no authorization covers.
+model WizardAuthorization {
+  id             String         @id @default(uuid())
+  candidateId    String
+  candidate      CandidateSilo  @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  variantId      String
+  variant        MessageVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  contentHash    String
+  phrase         String
+  authorizedById String
+  device         String?
+  createdAt      DateTime       @default(now())
+
+  @@index([variantId])
+}
+
+// Append-only dispatch log: one row per recipient per variant. Carries the full gate report.
+model DispatchRecord {
+  id                String            @id @default(uuid())
+  candidateId       String
+  candidate         CandidateSilo     @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  campaignId        String
+  campaign          AiContentPipeline @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  variantId         String
+  variant           MessageVariant    @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  subscriberId      String?
+  recipientEmail    String
+  mode              DispatchMode
+  gateReport        Json
+  idempotencyKey    String            @unique
+  renderedHash      String? // sha256 of the exact per-recipient HTML that was (or would be) sent
+  providerMessageId String?
+  createdAt         DateTime          @default(now())
+
+  @@index([candidateId, campaignId])
+  @@index([providerMessageId])
+}
+
+enum DispatchMode {
+  DRY_RUN // every gate evaluated, nothing sent (dev default)
+  HELD // recipient held: missing exact identity evidence or no named candidate
+  SUPPRESSED // recipient suppressed in silo or global scope for this message class
+  BLOCKED // a campaign-level gate failed (approval, authorization, E20, E10, kill switch…)
+  LIVE // provider accepted; only possible when every gate passed under Ed's order
+}
+
+model SubscriberActivity {
+  id                String         @id @default(uuid())
+  candidateId       String?
+  candidate         CandidateSilo? @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  subscriberId      String?
+  subscriber        Subscriber?    @relation(fields: [subscriberId], references: [id], onDelete: SetNull)
+  consentChanged    Subscriber[]   @relation("ConsentOrigin")
+  email             String
+  type              ActivityType
+  providerEventId   String?        @unique // webhook idempotency (svix-id)
+  providerMessageId String?
+  payload           Json?
+  occurredAt        DateTime       @default(now())
+  createdAt         DateTime       @default(now())
+
+  @@index([candidateId, type])
+}
+
+enum ActivityType {
+  CAPTURED
+  DELIVERED
+  OPENED
+  CLICKED
+  BOUNCED
+  COMPLAINED
+  UNSUBSCRIBED
+}
+
+model AutomatedJourney {
+  id          String                 @id @default(uuid())
+  candidateId String
+  candidate   CandidateSilo          @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  name        String
+  definition  Json // lib/journeys/types.ts JourneyDefinition
+  active      Boolean                @default(false)
+  runs        JourneyRun[]
+  // additive: journey steps promoted to a first-class table (decisions are records, not
+  // config). definition stays as the authored doc; steps carry the governed runtime state.
+  steps       AutomatedJourneyStep[]
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+
+  @@unique([candidateId, name])
+}
+
+// additive: first-class journey step — the unit the learning loop calibrates and the LP
+// optimizer arbitrates. revenueDiscountCoefficient multiplies expected revenue for every
+// allocation naming this step (StepCoefficientLog audits every shift).
+model AutomatedJourneyStep {
+  id                          String                   @id @default(uuid())
+  journeyId                   String
+  journey                     AutomatedJourney         @relation(fields: [journeyId], references: [id], onDelete: Cascade)
+  stepOrder                   Int
+  name                        String
+  revenueDiscountCoefficient  Float                    @default(1.0)
+  coefficientLastCalibratedAt DateTime?
+  allocations                 OptimizationAllocation[]
+  coefficientLogs             StepCoefficientLog[]
+  pipelines                   AiContentPipeline[]
+
+  @@unique([journeyId, stepOrder])
+}
+
+// E41 owns journeys and persistence and never fires: a run only stages drafts for review.
+model JourneyRun {
+  id           String           @id @default(uuid())
+  journeyId    String
+  journey      AutomatedJourney @relation(fields: [journeyId], references: [id], onDelete: Cascade)
+  candidateId  String
+  candidate    CandidateSilo    @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  subscriberId String
+  state        JourneyRunState  @default(ACTIVE)
+  stepIndex    Int              @default(0)
+  nextEvalAt   DateTime?
+  log          Json             @default("[]")
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@unique([journeyId, subscriberId])
+}
+
+enum JourneyRunState {
+  ACTIVE
+  WAITING
+  COMPLETED
+  EXITED
+}
+
+// ─── Revenue optimizer + control plane (CM agency engine port, 2026-10-30) ──────────────
+
+// Offer value matrix: what a conversion is worth per offer, adjustable per microsegment.
+model ProductOffer {
+  id            String                   @id @default(uuid())
+  candidateId   String
+  candidate     CandidateSilo            @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  sku           String
+  name          String
+  baseValue     Float // baseline conversion value (AOV anchor)
+  isActive      Boolean                  @default(true)
+  segmentValues OfferSegmentValue[]
+  allocations   OptimizationAllocation[]
+
+  @@unique([candidateId, sku])
+}
+
+model OfferSegmentValue {
+  id              String       @id @default(uuid())
+  offerId         String
+  offer           ProductOffer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  microsegmentKey String // affinityLabel / segment key from lib/feeder + lib/segments
+  adjustedValue   Float
+
+  @@unique([offerId, microsegmentKey])
+}
+
+// Append-only actual-vs-predicted ledger — the ML loop's training rows. One row per
+// sync pass per campaign; nothing overwrites, the delta curve is the history.
+model CampaignVarianceSnapshot {
+  id               String            @id @default(uuid())
+  pipelineId       String
+  pipeline         AiContentPipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  actualOpens      Int
+  predictedOpens   Int
+  varianceOpens    Int
+  actualClicks     Int
+  predictedClicks  Int
+  varianceClicks   Int
+  actualRevenue    Float
+  predictedRevenue Float
+  varianceRevenue  Float
+  bounceRate       Float
+  capturedAt       DateTime          @default(now())
+
+  @@index([pipelineId, capturedAt])
+}
+
+// LP arbitration ledger: every candidate action the optimizer scored, marked with its
+// propensity triplet, expected revenue, and whether it won the allocation pass.
+model OptimizationAllocation {
+  id              String               @id @default(uuid())
+  candidateId     String
+  candidate       CandidateSilo        @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  subscriberId    String
+  subscriber      Subscriber           @relation(fields: [subscriberId], references: [id], onDelete: Cascade)
+  offerId         String
+  offer           ProductOffer         @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  stepId          String
+  step            AutomatedJourneyStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  propensityOpen  Float
+  propensityClick Float
+  propensityBuy   Float
+  expectedRevenue Float // P(buy) × adjustedValue × step.revenueDiscountCoefficient
+  arbitrationWin  Boolean              @default(false)
+  proposalLink    String? // FunnelProposal.id when the win is filed for approval
+  optimizedAt     DateTime             @default(now())
+
+  @@index([candidateId, subscriberId, arbitrationWin])
+}
+
+// Audit trail for every learning-loop coefficient shift on a journey step.
+model StepCoefficientLog {
+  id              String               @id @default(uuid())
+  stepId          String
+  step            AutomatedJourneyStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  oldCoef         Float
+  newCoef         Float
+  rollingVariance Float // the summed varianceRevenue that triggered the shift
+  calibratedAt    DateTime             @default(now())
+
+  @@index([stepId, calibratedAt])
+}
+
+enum EscalationState {
+  MONITORING
+  HEALING_ACTIVE
+  CIRCUIT_BROKEN
+  HUMAN_INTERVENTION_REQUIRED
+}
+
+enum FaultSignature {
+  RATE_LIMIT_429
+  API_KEY_REVOKED_401
+  LIST_DELETED_404
+  MALFORMED_PAYLOAD_400
+  IP_THROTTLED_503
+}
+
+enum HeuristicType {
+  EXPONENTIAL_BACKOFF_SHAPE
+  API_CREDENTIAL_COOL_DOWN
+  OUTBOX_PAYLOAD_SANITIZATION
+  SILO_RE_PROVISION_RECOVER
+}
+
+enum HealingStatus {
+  EXECUTED
+  VERIFIED_STABLE
+  ROLLBACK_TRIGGERED
+  CRITICAL_FAILURE
+}
+
+// Control-plane anomaly log: fault signature + consecutive counter + escalation ladder.
+// Auto-heal what can heal, circuit-break what can't, escalate identity faults to a human.
+model CpAnomalyLog {
+  id                String              @id @default(uuid())
+  candidateId       String
+  candidate         CandidateSilo       @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  targetDispatchId  String              @unique // DispatchRecord.id that faulted
+  failureSignature  FaultSignature
+  consecutiveFaults Int                 @default(1)
+  blastRadiusScore  Float               @default(0.0)
+  escalationState   EscalationState     @default(MONITORING)
+  healingManifests  CpHealingManifest[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+}
+
+// Append-only receipt for each healing heuristic applied to an anomaly — the auditor's
+// pre/post state proof for every automated remediation.
+model CpHealingManifest {
+  id                 String        @id @default(uuid())
+  candidateId        String
+  anomalyContextId   String
+  anomaly            CpAnomalyLog  @relation(fields: [anomalyContextId], references: [id], onDelete: Cascade)
+  appliedHeuristic   HeuristicType
+  preExecutionState  String
+  postExecutionState String
+  healingStatus      HealingStatus @default(EXECUTED)
+  resolvedAt         DateTime      @default(now())
+}
+
+// ─── Existing models the spec extends with an optional candidateId ───────────────────────
+
+model LeadProfile {
+  id            String         @id @default(uuid())
+  candidateId   String? // spec: optional candidateId
+  candidate     CandidateSilo? @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  businessId    String?
+  business      Business?      @relation(fields: [businessId], references: [id], onDelete: SetNull)
+  subscriberId  String?
+  email         String
+  name          String?
+  company       String?
+  phone         String?
+  leadScore     Int            @default(0)
+  leadStatus    String         @default("PROSPECT")
+  primaryTrack  String?
+  captureMethod CaptureMethod  @default(WEB_FORM)
+  venueInterest String?
+  rncRegId      String?
+  notes         String?
+  customFields  Json?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@unique([candidateId, email])
+  @@unique([candidateId, id])
+  @@index([candidateId])
+}
+
+model Business {
+  id           String              @id @default(uuid())
+  candidateId  String? // spec: optional candidateId
+  candidate    CandidateSilo?      @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  businessName String
+  industry     String?
+  leads        LeadProfile[]
+  campaigns    AiContentPipeline[]
+  createdAt    DateTime            @default(now())
+}
+
+// Union of both architecture docs (conflict surfaced, not resolved — README §Conflicts C1).
+enum CaptureMethod {
+  NFC_TAP
+  QR_PLACARD // Prompt 1 Track B
+  QR_SIGNAGE // Campaign Monitor architecture doc
+  WEB_FORM // Prompt 1 Track B
+  MANUAL // Campaign Monitor architecture doc
+}
+
+// Channels the agency layer governs or hooks. Email (E30) is the only one built end to end.
+enum Channel {
+  EMAIL // E30 Email Gun · W01 — GOVERNED
+  SMS // E31 SMS Gun · W02 — HOOKED
+  RVM // E17 RVM · W04 — HOOKED
+  DIRECT_MAIL // E33 Direct Mail · W05 — HOOKED
+  SOCIAL // E19 Social Media · W06 — HOOKED
+  PHONE_BANK // E32 Phone Bank · W15 — HOOKED
+  CONVERSATION // E35 Conversation Fabric — HOOKED (inbound replies)
+}
+
+enum MessageClass {
+  BULK // list/segment broadcast — the only class BULK_ONLY suppression blocks
+  EVENT_INVITATION // never blocked by bulk suppression (Seven Gods, God 6)
+  PERSONAL // personal candidate contact — never blocked by bulk suppression
+  TRANSACTIONAL // RSVP confirmations, receipts
+}
+
+// Nova predictive-goal score — the per-subscriber half of itblDS.<GoalUserFieldName>
+// (e.g. HighValueConversionPropensity, ChurnRiskPropensity). One row per goal per
+// subscriber per silo; score is 0.00-1.00; slice mirrors Iterable's segmentation
+// buckets (top_10_percent, top_20_percent, bottom_10_percent, or a range label).
+model SubscriberPropensity {
+  id           String        @id @default(uuid())
+  candidateId  String
+  candidate    CandidateSilo @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  subscriberId String
+  subscriber   Subscriber    @relation(fields: [subscriberId], references: [id], onDelete: Cascade)
+  goal         String // goal key, e.g. 'HighValueConversionPropensity', 'ChurnRiskPropensity'
+  score        Float // 0.00-1.00 propensity
+  slice        String? // 'top_10_percent' | 'top_20_percent' | 'bottom_10_percent' | range label
+  modelKey     String        @default("nova-propensity")
+  scoredAt     DateTime      @default(now())
+
+  @@unique([candidateId, subscriberId, goal])
+  @@index([candidateId, goal])
+}
+
+// The AI funnel feeder's output: one proposed action per subscriber, carrying its
+// why-vector (Braze doctrine: explainable, never a black box). Lands in the silo's
+// approval path — a proposal is never self-executing.
+model FunnelProposal {
+  id             String         @id @default(uuid())
+  candidateId    String
+  candidate      CandidateSilo  @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  subscriberId   String?
+  subscriber     Subscriber?    @relation(fields: [subscriberId], references: [id], onDelete: SetNull)
+  action         FunnelAction
+  reason         String
+  tone           String? // AI tone layer: direct_ask | warm_ask | nurture | apology_winback // human-readable why-vector: scores and signals behind the proposal
+  propensityId   String?
+  journeyId      String?
+  originAgentKey String         @default("funnel-feeder")
+  status         ProposalStatus @default(PENDING_APPROVAL)
+  reviewedById   String?
+  reviewedAt     DateTime?
+  createdAt      DateTime       @default(now())
+
+  @@index([candidateId, status])
+}
+
+enum FunnelAction {
+  HIGH_INTENT_CONVERSION // loyal/positive affinity → conversion journey
+  NURTURE // neutral/unscored → nurture journey
+  REENGAGEMENT_SUPPRESSION // negative affinity → re-engagement attempt then suppress
+  SUPPRESS // hard suppression proposal
+}
+
+enum ProposalStatus {
+  PENDING_APPROVAL
+  ACCEPTED
+  DISMISSED
+}
+
+// Delegated agent role (D365-style): an AI agent may act on behalf of a silo only while a
+// live delegation grants it the privilege for the action. Cumulative privileges, never
+// ownership; the agent is a third party speaking for two principals (the tenant and the
+// recipient). Granted by a human user, scoped to one silo, expirable, revocable.
+model AgentDelegation {
+  id          String        @id @default(uuid())
+  candidateId String
+  candidate   CandidateSilo @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  agentKey    String // e.g. 'wizard-ai', 'funnel-feeder'
+  privileges  String // comma-separated privileges: draft,enroll,notify,dispatch
+  grantedById String
+  // composite FK on (candidateId, grantedById): the grantor must be a user of THIS silo
+  grantedBy   CandidateUser @relation(fields: [candidateId, grantedById], references: [candidateId, id], onDelete: Cascade)
+  expiresAt   DateTime?
+  revokedAt   DateTime?
+  createdAt   DateTime      @default(now())
+
+  @@unique([candidateId, agentKey])
+  @@index([grantedById])
+}
+
+// The mesh (Dataiku Flow/Scenario pattern): ecosystems publish typed signals; enabled
+// routes feed them into scoring recipes; recipes write propensities + proposals.
+// Silo-scoped throughout — a signal or route can never name another silo.
+model EcosystemSignal {
+  id           String        @id @default(uuid())
+  candidateId  String
+  candidate    CandidateSilo @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  ecosystemKey String // 'e42-news', 'e59-heat', 'e60-lp', 'nova-feeder', 'dispatch'
+  type         String // 'HEAT_SPIKE', 'ACTIVITY_RECORDED', 'LP_RESOLVED', 'MODEL_SCORED'
+  payload      Json
+  occurredAt   DateTime      @default(now())
+  consumedAt   DateTime?
+
+  @@index([candidateId, ecosystemKey, type])
+  @@index([candidateId, consumedAt])
+}
+
+model SignalRoute {
+  id           String        @id @default(uuid())
+  candidateId  String
+  candidate    CandidateSilo @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  ecosystemKey String // matches EcosystemSignal.ecosystemKey
+  signalType   String // matches EcosystemSignal.type
+  recipeKey    String // 'nova-evaluate', 'score-rescore', 'proposal-only'
+  goal         String? // which SubscriberPropensity goal the recipe feeds (if any)
+  enabled      Boolean       @default(true)
+
+  @@unique([candidateId, ecosystemKey, signalType, recipeKey])
+}
