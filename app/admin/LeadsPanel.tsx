@@ -163,6 +163,37 @@ export default function LeadsPanel() {
     }
   };
 
+  // Social-ID match pass: server searches the web per lead, fills linkedinId +
+  // facebook/instagram/twitter in customFields, flags verified:false.
+  const [socialBusy, setSocialBusy] = useState(false);
+  const [socialNote, setSocialNote] = useState<string | null>(null);
+  const runSocialMatch = async () => {
+    setSocialBusy(true);
+    setSocialNote(null);
+    let matched = 0;
+    let checked = 0;
+    try {
+      for (let i = 0; i < 60; i++) {
+        const res = await fetch("/api/admin/leads/match-social", {
+          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ limit: 10 }),
+        });
+        if (res.status === 401) { window.location.assign("/admin/login"); return; }
+        const data = await res.json();
+        if (!res.ok) { setSocialNote(data.error || "Social match failed."); break; }
+        checked += data.checked || 0;
+        matched += data.matched || 0;
+        setSocialNote(`Checked ${checked} · ${matched} matched · ${data.remaining} left…`);
+        if ((data.remaining ?? 0) === 0) { setSocialNote(`Done — checked ${checked} leads, matched ${matched} to social IDs.`); break; }
+        await new Promise((r) => setTimeout(r, 400));
+      }
+      setReloadKey((k) => k + 1);
+    } catch (err) {
+      setSocialNote(err instanceof Error ? err.message : "Social match failed.");
+    } finally {
+      setSocialBusy(false);
+    }
+  };
+
   const runEnrichment = async () => {
     setEnrichPhase("running");
     setEnrichUpdated(0);
@@ -349,6 +380,15 @@ export default function LeadsPanel() {
         >
           Enrich from email
         </button>
+        <button
+          onClick={runSocialMatch}
+          disabled={socialBusy}
+          title={socialNote || "Match every lead to a personal social media ID, LinkedIn first"}
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-line bg-white text-ink rounded-md text-xs font-semibold hover:bg-canvas transition whitespace-nowrap disabled:opacity-60"
+        >
+          {socialBusy ? "Matching…" : "Match social IDs"}
+        </button>
+        {socialNote && <span className="text-[11px] text-muted self-center">{socialNote}</span>}
         <button
           onClick={runFindPeople}
           disabled={findBusy}
