@@ -37,26 +37,29 @@ talks to another spoke directly, and nothing stands alone.
    `vendor/e60-dataiku/` — ECO_CANONICAL/E60 code + specs + tests, the Dataiku
    platform-selection ruling, and the class-analytics requirements doc.
 
-5. **CFO (E72)** — *the money organ.* Budgets, spend caps, the cost ledger,
-   and campaign-investment ROI — the spoke that says what a decision costs and
-   whether it paid off. Vendored at `vendor/e72-cfo/` — ECO_CANONICAL/E72 spec
-   + SQL + the campaign-investment engine (orchestrator, automation, control
-   panel) and architecture docs.
+5. **CFO (E72)** — *the money steward.* Holds the budget, the spend caps,
+   and the purse strings — but **controls nobody**: the cost accountant and
+   the revenue maker are peers, not reports. Vendored at `vendor/e72-cfo/` —
+   ECO_CANONICAL/E72 spec + SQL + the campaign-investment engine (orchestrator,
+   automation, control panel) and architecture docs.
 
-6. **Auditor (C/B/V)** — *cost/benefit/variance, standalone.* After anything
-   fires, the Auditor reconciles projected vs actual — what we predicted an
-   action would cost and return against what it really did — and feeds the
-   variance back so the next decision is smarter. Vendored at
+6. **Cost Accountant / Auditor (C/B/V)** — *cost/benefit/variance, standalone.*
+   After anything fires, the Auditor reconciles projected vs actual — what we
+   predicted an action would cost and return against what it really did — and
+   feeds the variance back so the next decision is smarter. Vendored at
    `vendor/cbv-auditor/`: the E60/CBV engine (variance snapshotter, anomaly
    detector, attribution resolver, Bayesian + Welford stats, throttle
    controller), `ax41_reconcile.py`, the reconciliation skill, and the E87
-   observe-seam SQL. Standalone by design — it audits every other spoke,
-   including the CFO.
+   observe-seam SQL. Standalone by design — **it is not the CFO's department**;
+   it audits every other spoke, including the CFO.
 
-7. **Engage / Iterable** — *sends.* The engagement engine: journeys,
-   templates, suppression, propensity sync. Vendored at `vendor/bgop-engage/`
-   + `vendor/iterable/` (clone map, E30 bridge, Nova teardown, peer design
-   draft). Dormant until a channel provider is bound.
+7. **Engage / Iterable — the Revenue Maker.** *Sends and earns.* The
+   engagement engine: journeys, templates, suppression, propensity sync — the
+   spoke whose sends produce the revenue the Auditor reconciles. Vendored at
+   `vendor/bgop-engage/` + `vendor/iterable/` (clone map, E30 bridge, Nova
+   teardown, peer design draft). Peer of the CFO, not its report — the CFO
+   funds it; it reports revenue back to the hub. Dormant until a channel
+   provider is bound.
 
 8. **The hub itself** — *remembers.* Leads, profiles, scores, timelines,
    photos, campaigns: `app/`, `lib/`, the root Prisma schema. This is the
