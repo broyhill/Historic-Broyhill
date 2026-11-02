@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { linkedinHref } from "@/lib/linkedin";
+import { tierFromScore } from "@/lib/lead-score";
 import { parseCsv, mapRowsToLeads, type MappedLead } from "@/lib/csv";
 import LeadProfile from "./LeadProfile";
 
@@ -28,6 +29,13 @@ interface Lead {
 }
 
 type SortKey = "firstName" | "lastName" | "name" | "company" | "leadScore" | "primaryTrack" | "createdAt";
+
+const TIER_CHIP: Record<string, string> = {
+  Hot: "bg-red-100 text-red-800",
+  Warm: "bg-amber-100 text-amber-800",
+  Cool: "bg-info/15 text-info",
+  Cold: "bg-line text-muted",
+};
 
 export default function LeadsPanel() {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -509,7 +517,11 @@ export default function LeadsPanel() {
                     </div>
                   </td>
                   <td className={`${td} text-muted`}>{l.primaryTrack}</td>
-                  <td className={`${td} text-right ${l.leadScore >= 80 ? "text-accent font-bold" : "text-ink"}`}>{l.leadScore}</td>
+                  <td className={`${td} text-right`}>
+                    <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-semibold tracking-wide ${TIER_CHIP[tierFromScore(l.leadScore)]}`}>
+                      {l.leadScore} · {tierFromScore(l.leadScore)}
+                    </span>
+                  </td>
                   <td className={td}>
                     <span className="inline-block px-2 py-0.5 rounded text-[10px] font-medium tracking-wider bg-line text-muted">{l.leadStatus}</span>
                   </td>

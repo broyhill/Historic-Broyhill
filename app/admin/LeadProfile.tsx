@@ -10,7 +10,18 @@ import { ReactNode, useCallback, useEffect, useState } from "react";
 // response (sent, RSVP, contract, unopened, call-back, etc.).
 
 interface TimelineRow { at: string; kind: "activity" | "journey" | "send"; label: string; detail: string; }
-interface ProfileData { lead: any; timeline: TimelineRow[]; }
+interface LeadScoreData {
+  total: number; tier: "Hot" | "Warm" | "Cool" | "Cold"; fit: number; engagement: number;
+  breakdown: { fit: { label: string; pts: number }[]; engagement: { label: string; pts: number }[] };
+}
+interface ProfileData { lead: any; timeline: TimelineRow[]; score?: LeadScoreData; }
+
+const TIER_CHIP: Record<string, string> = {
+  Hot: "bg-red-100 text-red-800",
+  Warm: "bg-amber-100 text-amber-800",
+  Cool: "bg-info/15 text-info",
+  Cold: "bg-line text-muted",
+};
 
 const KIND_CHIP: Record<string, string> = {
   send: "bg-navy text-white",
@@ -141,7 +152,11 @@ export default function LeadProfile({ leadId, onClose }: { leadId: string; onClo
             <div className="flex gap-2 mt-1.5 flex-wrap">
               {l?.leadStatus && <span className="inline-block px-2 py-0.5 rounded text-[10px] font-medium tracking-wider bg-line text-muted">{l.leadStatus}</span>}
               {l?.primaryTrack && <span className="inline-block px-2 py-0.5 rounded text-[10px] font-medium tracking-wider bg-accent/15 text-accent">{l.primaryTrack}</span>}
-              {l != null && <span className="inline-block px-2 py-0.5 rounded text-[10px] font-medium tracking-wider bg-navy/10 text-navy">Score {l.leadScore}</span>}
+              {data?.score && (
+                <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-semibold tracking-wider ${TIER_CHIP[data.score.tier]}`}>
+                  {data.score.total} · {data.score.tier}
+                </span>
+              )}
             </div>
           </div>
           <button onClick={onClose} className="text-muted hover:text-ink text-xl leading-none px-2" aria-label="Close profile">✕</button>
@@ -163,6 +178,25 @@ export default function LeadProfile({ leadId, onClose }: { leadId: string; onClo
                   {l.estimatedValue != null && <li className="text-subtle">Est. value ${l.estimatedValue.toLocaleString()}</li>}
                 </ul>
               </div></section>
+
+              {data.score && (
+                <section className="ibox"><div className="ibox-content">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <h4 className="text-[12px] font-semibold text-muted uppercase tracking-wide">Rating</h4>
+                    <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-semibold ${TIER_CHIP[data.score.tier]}`}>{data.score.total} · {data.score.tier}</span>
+                  </div>
+                  <p className="text-[12px] text-subtle mb-2">Fit {data.score.fit}/50 · Engagement {data.score.engagement}/50</p>
+                  <ul className="text-[12px] space-y-0.5">
+                    {[...data.score.breakdown.fit, ...data.score.breakdown.engagement].slice(0, 12).map((b, i) => (
+                      <li key={i} className="flex justify-between">
+                        <span className="text-muted">{b.label}</span>
+                        <span className={b.pts >= 0 ? "text-success" : "text-red-600"}>{b.pts > 0 ? "+" : ""}{b.pts}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="text-[11px] text-subtle mt-2">Fit rewards a complete, enriched record; engagement rewards recent responses and decays after 90 days silent.</p>
+                </div></section>
+              )}
 
               <EditableModule title="Microsegment" empty="No microsegment assigned yet." listKey="microsegment"
                 value={cf.microsegment} isList saving={saving} onSave={saveField}

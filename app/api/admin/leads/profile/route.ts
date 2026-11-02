@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
+import { computeLeadScore } from "@/lib/lead-score";
 import { prisma } from "@/lib/prisma";
 
 // One lead's profile page: contact fields, enrichment extras carried in
@@ -69,7 +70,9 @@ export async function GET(request: Request) {
       .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
       .slice(0, 200);
 
-    return NextResponse.json({ success: true, lead, timeline });
+    const score = computeLeadScore(lead, timeline.map((t) => ({ label: t.label, detail: t.detail, at: t.at })));
+
+    return NextResponse.json({ success: true, lead, timeline, score });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
