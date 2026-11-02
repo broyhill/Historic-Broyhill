@@ -3,6 +3,7 @@ import { ensureJourneyTables } from "@/lib/journeys-db";
 import { stepsSchema, type JourneyStep } from "@/lib/journeys";
 import { CAMPAIGN_TEMPLATES, TEXT_TEMPLATES } from "@/lib/campaign-templates";
 import type { Resend } from "resend";
+import { tripwireHtml } from "@/lib/tripwires";
 
 // The journeys runner. Moves every RUNNING JourneyRun forward through its steps:
 //   wait  → schedules nextRunAt
@@ -63,7 +64,11 @@ async function deliver(opts: {
 
   if (liveDelivery && resend) {
     const { data, error } = await resend.emails.send(
-      { from: process.env.EMAIL_FROM || "Historic Broyhill <onboarding@resend.dev>", to: recipientEmail, subject, text: body },
+      {
+        from: process.env.EMAIL_FROM || "Historic Broyhill <onboarding@resend.dev>",
+        to: recipientEmail, subject, text: body,
+        html: tripwireHtml(body, leadId, staged.id),
+      },
       { idempotencyKey: `journey-${staged.id}` },
     );
     if (error || !data) throw new Error(error?.message || "Resend returned no message ID");

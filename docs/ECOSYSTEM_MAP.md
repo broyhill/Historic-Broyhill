@@ -29,7 +29,11 @@ talks to another spoke directly, and nothing stands alone.
    channel. Vendored at `vendor/e91-ifttt/`: the XSELLNET rule engines
    (e20/e26/e40 trigger engines), ECO_CANONICAL/E91 spec, and the canonical
    rulings. In BroyhillGOP doctrine this is E91 — the empty shelf that gets
-   stocked here first.
+   stocked here first. Its **sensors are live in the app**: trip wires
+   (`lib/tripwires.ts`, `public/tripwire.js`, `/api/t/*`) embedded in landing
+   pages, emails, texts, and social touchpoints — every open, click, visit,
+   RSVP, reply, or engagement lands as a `LeadActivity` on the lead's
+   timeline and score, and becomes an event the nerves can act on.
 
 4. **Dataiku ML (E60)** — *the math muscle, wired as a network.* Not one
    solver — a mesh of different math models, one applied per ecosystem: LP
@@ -58,6 +62,11 @@ talks to another spoke directly, and nothing stands alone.
    center or a car dealership, and it would let headlines rewrite a ladder
    that should be permanent structure. The right feed here is **lead-level
    social monitoring**: each microsegment connects to the social-media
+   links of the leads in it and of their companies and employers, and the
+   hub watches those — plus a scan of each microsegment's topics and
+   affinities across social media and *local* outlets (venue news, town
+   happenings — not the 350-outlet political wire). A person lighting up
+   or a segment's topic heating locally is the signal, not a newsroom.
    links of the leads in it and of their companies and employers, and the
    hub watches those — a person lighting up is the signal, not a newsroom.
    `vendor/e59-microsegment/` — ECO_CANONICAL/E59 (intelligence engine,
