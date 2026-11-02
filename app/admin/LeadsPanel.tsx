@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { linkedinHref } from "@/lib/linkedin";
 import { parseCsv, mapRowsToLeads, type MappedLead } from "@/lib/csv";
+import LeadProfile from "./LeadProfile";
 
 interface Lead {
   id: string;
@@ -30,6 +31,7 @@ type SortKey = "firstName" | "lastName" | "name" | "company" | "leadScore" | "pr
 
 export default function LeadsPanel() {
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [profileId, setProfileId] = useState<string | null>(null);
   const [tracks, setTracks] = useState<string[]>([]);
   const [statuses, setStatuses] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -483,7 +485,7 @@ export default function LeadsPanel() {
             </thead>
             <tbody className="divide-y divide-line">
               {sorted.map((l) => (
-                <tr key={l.id} className="hover:bg-canvas">
+                <tr key={l.id} className="hover:bg-canvas cursor-pointer" onClick={() => setProfileId(l.id)}>
                   <td className={`${td} text-ink font-semibold`} title={l.name || undefined}>
                     {[l.salutation, l.firstName].filter(Boolean).join(" ") || (l.name ? l.name.split(" ")[0] : "—")}
                   </td>
@@ -497,7 +499,7 @@ export default function LeadsPanel() {
                       )}
                     </div>
                   </td>
-                  <td className={td}>
+                  <td className={td} onClick={(e) => e.stopPropagation()}>
                     <div className="flex flex-col gap-0.5">
                       <a href={`mailto:${l.email}`} className="text-ink hover:text-accent">{l.email}</a>
                       {l.phone && <a href={`tel:${l.phone}`} className="text-subtle hover:text-accent">{l.phone}</a>}
@@ -568,6 +570,8 @@ export default function LeadsPanel() {
           </div>
         </div>
       )}
+
+      {profileId && <LeadProfile leadId={profileId} onClose={() => setProfileId(null)} />}
     </div>
   );
 }
