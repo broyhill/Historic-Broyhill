@@ -27,7 +27,7 @@ const ENGAGEMENT: [RegExp, string, number][] = [
   [/bounce|unsub|opt.?out|spam/i, "Bounced / unsubscribed", -20],
 ];
 
-export function computeLeadScore(lead: any, events: { label: string; detail?: string; at?: string }[]): LeadScore {
+export function computeLeadScore(lead: any, events: { label: string; detail?: unknown; at?: string | Date }[]): LeadScore {
   const breakdown: ScoreBreakdown = { fit: [], engagement: [] };
   let fit = 0;
   for (const [label, test, pts] of FIT) {
