@@ -1,0 +1,38 @@
+{
+  "name": "@adobe/firefly-apis",
+  "version": "2.0.1",
+  "author": "Adobe",
+  "license": "Copyright (c) 2024 Adobe Inc",
+  "description": "Adobe Firefly Services library for consuming Firefly Service APIs.",
+  "keywords": [
+    "adobe",
+    "firefly services",
+    "services",
+    "firefly",
+    "apis",
+    "sdk"
+  ],
+  "repository": {
+    "url": "https://github.com/Firefly-Services/firefly-services-sdk-js"
+  },
+  "homepage": "https://github.com/Firefly-Services/firefly-services-sdk-js/blob/main/packages/firefly/README.md",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "dependencies": {
+    "@adobe/firefly-services-sdk-core": "2.0.0",
+    "@adobe/firefly-services-common-apis": "2.0.0"
+  },
+  "devDependencies": {
+    "rimraf": "3.0.2",
+    "typescript": "5.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "clean": "rimraf dist",
+    "ibuild": "tsc",
+    "build": "rushx clean && rushx ibuild",
+    "build:release": "rushx build"
+  }
+}
