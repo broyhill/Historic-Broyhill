@@ -2,6 +2,9 @@
 // panel talks to THIS — never to a vendor. Providers are swappable adapters:
 //
 //   "adobe-firefly"  Adobe Firefly v4 (lib/firefly.ts) — ADOBE_FIREFLY_CLIENT_ID/SECRET
+//   "google"         Google Imagen via Gemini API (lib/google-image.ts) —
+//                    IMAGE_GEN_GOOGLE_KEY, optional IMAGE_GEN_GOOGLE_MODEL.
+//                    Synchronous: returns base64 bytes, no polling.
 //   "engine"         Our own generation engine (e.g. the XSELLNET render lane or a
 //                    self-hosted model) — IMAGE_GEN_ENGINE_URL, optional
 //                    IMAGE_GEN_ENGINE_TOKEN. The engine answers the same async
@@ -10,20 +13,23 @@
 //                    { statusUrl, jobId } polled until { status: "succeeded",
 //                    result: { outputs: [{url|image.url, seed}] } }.
 //
-// Selection: IMAGE_GEN_PROVIDER = "engine" | "adobe-firefly" pins one;
-// unset ("auto") prefers our engine and falls back to Adobe.
+// Selection: IMAGE_GEN_PROVIDER = "engine" | "google" | "adobe-firefly" pins one;
+// unset ("auto") prefers our engine, then Google, then Adobe.
 
 import { pollAsyncJob, type AsyncJobOutcome } from "@/lib/async-job";
 import { fireflyEnabled, generateWithFirefly } from "@/lib/firefly";
+import { googleEnabled, generateWithGoogle } from "@/lib/google-image";
 
 export const ASPECT_RATIOS = ["1:1", "4:3", "3:4", "16:9", "9:16"] as const;
 export type AspectRatio = (typeof ASPECT_RATIOS)[number];
 
-export type ImageProvider = "engine" | "adobe-firefly";
+export type ImageProvider = "engine" | "google" | "adobe-firefly";
 
 export interface GeneratedImage {
   seed: number;
   url: string;
+  data?: string;
+  contentType?: string;
 }
 
 export interface GenerateResult {
@@ -33,13 +39,14 @@ export interface GenerateResult {
 }
 
 export const IMAGE_GEN_NOT_CONFIGURED =
-  "Image generation is not configured (set IMAGE_GEN_ENGINE_URL for the HB engine, or ADOBE_FIREFLY_CLIENT_ID + ADOBE_FIREFLY_CLIENT_SECRET for the Adobe provider).";
+  "Image generation is not configured (set IMAGE_GEN_ENGINE_URL for the HB engine, IMAGE_GEN_GOOGLE_KEY for Google Imagen, or ADOBE_FIREFLY_CLIENT_ID + ADOBE_FIREFLY_CLIENT_SECRET for the Adobe provider).";
 
 export const engineEnabled = () => Boolean(process.env.IMAGE_GEN_ENGINE_URL);
 
 export function configuredProviders(): ImageProvider[] {
   const out: ImageProvider[] = [];
   if (engineEnabled()) out.push("engine");
+  if (googleEnabled()) out.push("google");
   if (fireflyEnabled()) out.push("adobe-firefly");
   return out;
 }
@@ -104,7 +111,9 @@ export async function generateImages(opts: {
   const outcome =
     provider === "engine"
       ? await generateWithEngine({ prompt: opts.prompt, aspectRatio, numVariations })
-      : await generateWithFirefly({ prompt: opts.prompt, aspectRatio, numVariations });
+      : provider === "google"
+        ? await generateWithGoogle({ prompt: opts.prompt, aspectRatio, numVariations })
+        : await generateWithFirefly({ prompt: opts.prompt, aspectRatio, numVariations });
 
   return { jobId: outcome.jobId, provider, images: outcome.images };
 }

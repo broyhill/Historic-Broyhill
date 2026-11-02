@@ -5,6 +5,9 @@
 export interface AsyncJobImage {
   seed: number;
   url: string;
+  // Synchronous providers (e.g. Google Imagen) return bytes instead of a URL.
+  data?: string;
+  contentType?: string;
 }
 
 export interface AsyncJobOutcome {

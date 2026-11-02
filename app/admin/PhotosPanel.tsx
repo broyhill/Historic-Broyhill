@@ -224,7 +224,7 @@ export default function PhotosPanel() {
             setCurrent(r.folder);
             return `Generated ${r.photos.length} image${r.photos.length === 1 ? "" : "s"} into "${r.folder}" via ${r.providerLabel || r.provider}.`;
           })}>{busy === "generate" ? "Generating…" : "Generate into library"}</button>
-          <p className="text-[11.5px] text-subtle">Saves into the "Firefly" folder. Uses the HB engine when IMAGE_GEN_ENGINE_URL is set, otherwise the Adobe provider. Brand kit details are included automatically.</p>
+          <p className="text-[11.5px] text-subtle">Saves into the "Firefly" folder. Provider order: HB engine → Google Imagen → Adobe. Brand kit details are included automatically.</p>
         </div></section>
       </aside>
 

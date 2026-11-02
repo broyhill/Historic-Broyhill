@@ -15,6 +15,7 @@ export const maxDuration = 60;
 
 const PROVIDER_LABELS: Record<ImageProvider, string> = {
   engine: "HB engine",
+  google: "Google Imagen",
   "adobe-firefly": "Adobe Firefly",
 };
 
@@ -60,15 +61,22 @@ export async function POST(request: Request) {
       );
     }
 
-    // Download each CDN URL and persist it to the photo library; provider links expire.
+    // Persist each image to the photo library; provider CDN links expire.
+    // Synchronous providers (Google) hand back base64 bytes instead of a URL.
     const saved = await Promise.all(
       images.map(async (img, i) => {
-        const res = await fetch(img.url);
-        if (!res.ok) return null;
-        const contentType = res.headers.get("content-type") || "image/jpeg";
+        let contentType = img.contentType || "image/jpeg";
+        let data: ArrayBuffer | Buffer;
+        if (img.data) {
+          data = Buffer.from(img.data, "base64");
+        } else {
+          const res = await fetch(img.url);
+          if (!res.ok) return null;
+          contentType = res.headers.get("content-type") || contentType;
+          data = await res.arrayBuffer();
+        }
         const ext = contentType.split("/")[1]?.split(";")[0]?.toLowerCase() === "png" ? "png" : "jpg";
-        const data = await res.arrayBuffer();
-        const blob = await put(photoPath(folder, `generated-${jobId}-${i}.${ext}`), data, {
+        const blob = await put(photoPath(folder, `generated-${jobId || Date.now()}-${i}.${ext}`), data, {
           access: "public",
           addRandomSuffix: true,
           contentType,
