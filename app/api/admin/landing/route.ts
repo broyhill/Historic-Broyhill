@@ -22,6 +22,11 @@ async function loadCatalog(): Promise<Template[]> {
   return catalog;
 }
 
+// The catalog's `source` is the base44.com marketing listing; the actual
+// template renders at https://<slug>.base44.app — that is what "Source" links
+// and the compose gist should use.
+const previewUrl = (slug: string) => `https://${slug}.base44.app/?hide_badge=true`;
+
 // Best-effort: pull the live template's title/headings so the model composes
 // against the real structure, not just a slug. Times out quietly — catalog-only
 // composition still works.
@@ -54,7 +59,7 @@ export async function GET(request: Request) {
     const templates = await loadCatalog();
     const audience = u.searchParams.get("audience");
     if (audience) {
-      const list = templates.filter((t) => t.audience === audience);
+      const list = templates.filter((t) => t.audience === audience).map((t) => ({ ...t, preview: previewUrl(t.slug) }));
       return NextResponse.json({ success: true, templates: list });
     }
     const counts = new Map<string, number>();
@@ -84,7 +89,7 @@ export async function POST(request: Request) {
     const tpl = templates.find((t) => t.slug === slug);
     if (!tpl) return NextResponse.json({ error: "Template not in the catalog." }, { status: 404 });
 
-    const [brand, gist] = await Promise.all([brandContext(), sourceGist(tpl.source)]);
+    const [brand, gist] = await Promise.all([brandContext(), sourceGist(previewUrl(tpl.slug))]);
     const notes = String(body?.notes ?? "").slice(0, 500);
     const mediaUrl = /^https?:\/\//.test(String(body?.mediaUrl ?? "")) ? String(body.mediaUrl) : "";
 

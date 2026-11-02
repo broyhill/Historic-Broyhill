@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 type Audience = { key: string; count: number };
-type Template = { slug: string; title: string; source: string; categories: string[]; audience: string };
+type Template = { slug: string; title: string; source: string; preview?: string; categories: string[]; audience: string };
 type Draft = { id: string; status: string; createdAt: string; metrics: any };
 
 export default function LandingPanel() {
@@ -91,7 +91,7 @@ export default function LandingPanel() {
                 <div className="text-[13px] font-semibold text-ink leading-snug">{t.title}</div>
                 <div className="text-[11px] text-muted mt-1">{t.categories.slice(0, 3).join(" · ")}</div>
                 <div className="mt-auto pt-3 flex gap-2">
-                  <a href={t.source} target="_blank" rel="noreferrer" className="text-[12px] text-muted underline">Source</a>
+                  <a href={t.preview ?? t.source} target="_blank" rel="noreferrer" className="text-[12px] text-muted underline">Live preview</a>
                   <button onClick={() => compose(t.slug)} disabled={busy === t.slug}
                     className="ml-auto rounded-md bg-gold px-3 py-1.5 text-[12px] font-semibold text-navy-deep disabled:opacity-50">
                     {busy === t.slug ? "Composing…" : "Compose"}
