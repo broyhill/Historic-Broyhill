@@ -1,11 +1,13 @@
 # Historic Broyhill — Ecosystem Map (human view)
 
-One organism, four organs. Everything vendored or merged in this repo plays
-exactly one of these roles — nothing stands alone.
+Hub-and-spoke, one organism. **The app is the hub** — one shared memory
+(leads, profiles, scores, timelines, campaigns). Each ecosystem is a **spoke**
+bolted onto it: it reads the hub's memory and writes back to it. No spoke
+talks to another spoke directly, and nothing stands alone.
 
 ## The loop, in plain English
 
-> **Brain decides → Wizard asks Ed → Engage sends → the app remembers.**
+> **Brain decides → Wizard asks Ed → Engage sends → the hub remembers.**
 
 1. **Brain (E20)** — *decides.* The intelligence daemon: watches events
    (a lead opens, RSVPs, goes quiet, a date approaches), matches them against
@@ -26,15 +28,16 @@ exactly one of these roles — nothing stands alone.
    + `vendor/iterable/` (clone map, E30 bridge, Nova teardown, peer design
    draft). Dormant until a channel provider is bound.
 
-4. **The app itself** — *remembers.* Leads, profiles, scores, timelines,
+4. **The hub itself** — *remembers.* Leads, profiles, scores, timelines,
    photos, campaigns: `app/`, `lib/`, the root Prisma schema. This is the
-   shared memory the other organs read and write.
+   shared memory every spoke reads and writes — the reason a new spoke
+   plugs in without rewiring the others.
 
 ## Anti-fragmentation rules
 
-- A new capability enters the repo under **one organ only** — never a fifth
-  folder. If it doesn't clearly belong to decide / ask / send / remember,
-  it isn't ready to add.
+- A new capability is **one spoke** — it bolts onto the hub and belongs to
+  exactly one of decide / ask / send / remember. If it doesn't fit one of
+  those, it isn't ready to add.
 - `vendor/` is **reference material** (vendor teardowns + BroyhillGOP donor-side
   code being ported). `lib/` + `app/` is **live code**. Nothing runs from
   `vendor/`.
