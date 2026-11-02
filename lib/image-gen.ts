@@ -5,6 +5,9 @@
 //   "google"         Google Imagen via Gemini API (lib/google-image.ts) —
 //                    IMAGE_GEN_GOOGLE_KEY, optional IMAGE_GEN_GOOGLE_MODEL.
 //                    Synchronous: returns base64 bytes, no polling.
+//   "openai"         OpenAI Images API (lib/openai-image.ts) — uses the
+//                    OPENAI_API_KEY already on the project; gpt-image-1-mini
+//                    (~$0.005/image). Synchronous b64_json, no polling.
 //   "replicate"      Replicate prediction API (lib/replicate.ts) —
 //                    IMAGE_GEN_REPLICATE_TOKEN, optional IMAGE_GEN_REPLICATE_MODEL
 //                    (default black-forest-labs/flux-schnell, ~$0.003/image).
@@ -17,19 +20,19 @@
 //                    { statusUrl, jobId } polled until { status: "succeeded",
 //                    result: { outputs: [{url|image.url, seed}] } }.
 //
-// Selection: IMAGE_GEN_PROVIDER = "engine" | "google" | "replicate" |
-// "adobe-firefly" pins one; unset ("auto") prefers our engine, then Google,
-// then Replicate, then Adobe.
+// Selection: IMAGE_GEN_PROVIDER pins one provider; unset ("auto") prefers
+// our engine, then OpenAI, Google, Replicate, then Adobe.
 
 import { pollAsyncJob, type AsyncJobOutcome } from "@/lib/async-job";
 import { fireflyEnabled, generateWithFirefly } from "@/lib/firefly";
 import { googleEnabled, generateWithGoogle } from "@/lib/google-image";
 import { replicateEnabled, generateWithReplicate } from "@/lib/replicate";
+import { openaiEnabled, generateWithOpenAI } from "@/lib/openai-image";
 
 export const ASPECT_RATIOS = ["1:1", "4:3", "3:4", "16:9", "9:16"] as const;
 export type AspectRatio = (typeof ASPECT_RATIOS)[number];
 
-export type ImageProvider = "engine" | "google" | "replicate" | "adobe-firefly";
+export type ImageProvider = "engine" | "openai" | "google" | "replicate" | "adobe-firefly";
 
 export interface GeneratedImage {
   seed: number;
@@ -45,13 +48,14 @@ export interface GenerateResult {
 }
 
 export const IMAGE_GEN_NOT_CONFIGURED =
-  "Image generation is not configured (set IMAGE_GEN_ENGINE_URL for the HB engine, IMAGE_GEN_GOOGLE_KEY for Google Imagen, IMAGE_GEN_REPLICATE_TOKEN for Replicate, or ADOBE_FIREFLY_CLIENT_ID + ADOBE_FIREFLY_CLIENT_SECRET for the Adobe provider).";
+  "Image generation is not configured (set IMAGE_GEN_ENGINE_URL for the HB engine, OPENAI_API_KEY for OpenAI, IMAGE_GEN_GOOGLE_KEY for Google Imagen, IMAGE_GEN_REPLICATE_TOKEN for Replicate, or ADOBE_FIREFLY_CLIENT_ID + ADOBE_FIREFLY_CLIENT_SECRET for the Adobe provider).";
 
 export const engineEnabled = () => Boolean(process.env.IMAGE_GEN_ENGINE_URL);
 
 export function configuredProviders(): ImageProvider[] {
   const out: ImageProvider[] = [];
   if (engineEnabled()) out.push("engine");
+  if (openaiEnabled()) out.push("openai");
   if (googleEnabled()) out.push("google");
   if (replicateEnabled()) out.push("replicate");
   if (fireflyEnabled()) out.push("adobe-firefly");
@@ -124,11 +128,13 @@ export async function generateImages(opts: {
       const outcome =
         provider === "engine"
           ? await generateWithEngine({ prompt: opts.prompt, aspectRatio, numVariations })
-          : provider === "google"
-            ? await generateWithGoogle({ prompt: opts.prompt, aspectRatio, numVariations })
-            : provider === "replicate"
-              ? await generateWithReplicate({ prompt: opts.prompt, aspectRatio, numVariations })
-              : await generateWithFirefly({ prompt: opts.prompt, aspectRatio, numVariations });
+          : provider === "openai"
+            ? await generateWithOpenAI({ prompt: opts.prompt, aspectRatio, numVariations })
+            : provider === "google"
+              ? await generateWithGoogle({ prompt: opts.prompt, aspectRatio, numVariations })
+              : provider === "replicate"
+                ? await generateWithReplicate({ prompt: opts.prompt, aspectRatio, numVariations })
+                : await generateWithFirefly({ prompt: opts.prompt, aspectRatio, numVariations });
       return { jobId: outcome.jobId, provider, images: outcome.images };
     } catch (error) {
       console.error(`image-gen provider ${provider} failed, trying next`, error);
