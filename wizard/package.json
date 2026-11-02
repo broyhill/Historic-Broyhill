@@ -1,0 +1,36 @@
+{
+  "name": "bgop-e68-wizard-agency",
+  "version": "0.1.0",
+  "private": true,
+  "description": "E68 Wizard of Oz agency spine: one Agency Console governing isolated Candidate Silos (Campaign Monitor Agency Edition model). Dispatch is INERT by default.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "typecheck": "next typegen && tsc --noEmit",
+    "prisma:validate": "prisma validate",
+    "prisma:generate": "prisma generate",
+    "prisma:sql": "prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script",
+    "db:push:dev": "node scripts/guard-dev-db.mjs && prisma db push",
+    "seed:dev": "node scripts/guard-dev-db.mjs && node --import tsx prisma/seed.ts",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "proof:compile": "node --import tsx scripts/proof-compile-samples.ts",
+    "proof:suppression": "node --import tsx scripts/proof-suppression.ts",
+    "proof:dry-run": "node --import tsx scripts/proof-dry-run-send.ts",
+    "verify:routes:dev": "node scripts/guard-dev-db.mjs && node --import tsx scripts/verify-routes-dev.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "5.22.0",
+    "next": "15.5.28",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "resend": "6.33.0"
+  },
+  "devDependencies": {
+    "@types/node": "20.19.43",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "prisma": "5.22.0",
+    "tsx": "4.19.2",
+    "typescript": "5.9.3"
+  }
+}

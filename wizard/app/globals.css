@@ -1,0 +1,47 @@
+:root {
+  --bg: #f4f2ec;
+  --surface: #ffffff;
+  --fg: #1b1d23;
+  --muted: #5d6068;
+  --line: #ddd8cc;
+  --gold: #d4af37;
+  --ember: #a81f27;
+  --ok: #2f6b63;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #101217;
+    --surface: #191c23;
+    --fg: #e8e6df;
+    --muted: #9298a3;
+    --line: #2b303a;
+    --ember: #e36670;
+    --ok: #5bb3a6;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+main { max-width: 1120px; margin: 0 auto; padding: 24px 16px 64px; }
+h1 { font-family: Georgia, serif; font-weight: 600; margin: 0 0 4px; }
+h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 28px 0 10px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+.grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+.stat b { display: block; font-size: 24px; font-family: Georgia, serif; }
+.stat span { color: var(--muted); font-size: 13px; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.tag { display: inline-block; font: 12px ui-monospace, Menlo, monospace; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); }
+.tag.governed { border-color: var(--ok); color: var(--ok); }
+.tag.hooked { border-color: var(--gold); color: var(--gold); }
+.tag.danger { border-color: var(--ember); color: var(--ember); }
+.bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+button, select, input, textarea { font: inherit; }
+button { background: var(--gold); color: #1b1d23; border: 0; border-radius: 6px; padding: 8px 14px; cursor: pointer; font-weight: 600; }
+button.secondary { background: transparent; color: var(--fg); border: 1px solid var(--line); }
+input, select, textarea { background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; width: 100%; }
+label { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+.error { color: var(--ember); }
+.scroll { overflow-x: auto; }

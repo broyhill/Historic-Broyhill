@@ -178,7 +178,17 @@ export default function AdminConsole() {
         </div>
 
         <nav className="flex-1 px-3 py-3 overflow-y-auto" aria-label="Console sections">
-          <div className="space-y-0.5">{NAV_PRIMARY.map((n) => navButton(n.key, n.label))}</div>
+          <div className="space-y-0.5">
+            {NAV_PRIMARY.slice(0, 1).map((n) => navButton(n.key, n.label))}
+            <a
+              href="/admin/wizard"
+              className="ins-navitem w-full flex items-center gap-3 px-3 min-h-[44px] rounded-md text-[14px] mt-1 mb-1"
+            >
+              <span className="h-7 w-7 rounded-full bg-accent-bright text-navy-deep flex items-center justify-center text-[11px] font-bold tracking-tight shrink-0" aria-hidden="true">OZ</span>
+              <span className="flex-1 text-left font-semibold tracking-wide">WIZARD OF OZ</span>
+            </a>
+            {NAV_PRIMARY.slice(1).map((n) => navButton(n.key, n.label))}
+          </div>
           <details
             key={NAV_SECONDARY.some((n) => n.key === section) ? "open" : "closed"}
             open={NAV_SECONDARY.some((n) => n.key === section)}
