@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { STOCK_FOLDERS } from "@/lib/photos";
 
-interface Item { provider: string; kind: string; id: string; thumb: string; title: string; credit: string; creditUrl: string; pageUrl: string }
+interface Item { provider: string; kind: string; id: string; thumb: string; title: string; credit: string; creditUrl: string; pageUrl: string; stream?: string }
 interface ProviderInfo { key: string; label: string; env: string; kinds: string[]; ready: boolean }
 interface Folder { name: string; count: number }
 
@@ -16,6 +16,7 @@ const KINDS: { key: string; label: string; folder: string; hint: string }[] = [
   { key: "photo", label: "Photos", folder: STOCK_FOLDERS.photo, hint: "Backgrounds, textures, scenery, people" },
   { key: "video", label: "Videos", folder: STOCK_FOLDERS.video, hint: "Short clips and loops (MP4, up to 1080p)" },
   { key: "graphic", label: "Graphics & motifs", folder: STOCK_FOLDERS.graphic, hint: "Illustrations, patterns, icons, ornaments" },
+  { key: "music", label: "Music", folder: STOCK_FOLDERS.music, hint: "Royalty-free tracks (Jamendo — CC licences, keep the credit line)" },
 ];
 
 async function call(url: string, init?: RequestInit) {
@@ -142,6 +143,7 @@ export default function StockSearch({ onOpenLibrary }: { onOpenLibrary?: () => v
                   <input type="checkbox" checked={on} onChange={() => toggle(it)} className="absolute top-2 left-2 z-10 h-5 w-5 accent-accent" aria-label={`Select ${it.title}`} />
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={it.thumb} alt={it.title} loading="lazy" className="w-full aspect-[4/3] object-cover bg-canvas" />
+                  {it.stream && <audio controls preload="none" src={it.stream} className="w-full h-8" aria-label={`Preview ${it.title}`} />}
                   <div className="p-2 text-[11.5px] text-subtle truncate" title={it.title}>
                     {it.credit ? <a href={it.creditUrl} target="_blank" rel="noreferrer" className="underline">{it.credit}</a> : "—"}{kind === "video" ? " · video" : ""}</div>
                 </div>
@@ -154,7 +156,7 @@ export default function StockSearch({ onOpenLibrary }: { onOpenLibrary?: () => v
             <button className={btnGhost} disabled={busy !== null || !more} onClick={() => search(page + 1)}>More</button>
           </div>
         </>)}
-        <p className="text-[11.5px] text-subtle">Pixabay and Pexels content is free to use commercially and credit isn't required. Selected items are copied into our own storage. Keep stock separate from real photos of the venue: don't use a stock picture to suggest it shows our rooms, or that the people in it endorse us.</p>
+        <p className="text-[11.5px] text-subtle">Pixabay and Pexels content is free to use commercially and credit isn't required. Jamendo tracks carry a Creative Commons licence — keep the linked credit line with the track. Selected items are copied into our own storage. Keep stock separate from real photos of the venue: don't use a stock picture to suggest it shows our rooms, or that the people in it endorse us.</p>
       </div></section>
     </div>
   );

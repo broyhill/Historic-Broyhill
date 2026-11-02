@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { list, put } from "@vercel/blob";
-import { MAX_PHOTO_BYTES, MAX_VIDEO_BYTES, KEEP_FILE, STOCK_FOLDERS, cleanFileName, cleanFolder, photoPath } from "@/lib/photos";
+import { MAX_PHOTO_BYTES, MAX_VIDEO_BYTES, MAX_AUDIO_BYTES, KEEP_FILE, STOCK_FOLDERS, cleanFileName, cleanFolder, photoPath } from "@/lib/photos";
 import { MAX_PAGE, PROVIDERS, allowedFileUrl, providerKey, resolveFile, searchStock, type Provider, type StockKind } from "@/lib/stock";
 
 export const maxDuration = 60;
 
 const bad = (error: string, status = 400) => NextResponse.json({ error, ...(status === 503 ? { notConfigured: true } : {}) }, { status });
 const isProvider = (v: unknown): v is Provider => PROVIDERS.some((p) => p.key === v);
-const isKind = (v: unknown): v is StockKind => v === "photo" || v === "video" || v === "graphic";
+const isKind = (v: unknown): v is StockKind => v === "photo" || v === "video" || v === "graphic" || v === "music";
 
 // Which stock services have a key set (so the page can say what to add). Auth via /api/admin middleware.
 // GET ?provider=&kind=&q=&page=  -> search results (thumbnails and credits only)
@@ -34,7 +34,7 @@ export async function GET(request: Request) {
 }
 
 // POST { provider, kind, id }: copies one item into the photo library. The folder is fixed by type
-// (Stock Photos, Stock Videos or Stock Graphics) so stock can never land among real venue photos; a
+// (Stock Photos, Stock Videos, Stock Graphics or Stock Music) so stock can never land among real venue photos; a
 // different folder in the body is refused. The file URL is looked up here from the id, never taken from the browser.
 class TooLarge extends Error {}
 // Counts bytes as they stream through and fails the upload once the cap is passed, so a download with no
@@ -78,7 +78,7 @@ export async function POST(request: Request) {
 
     const res = await fetch(file.url);
     if (!res.ok || !res.body) return bad("Could not download that item. Try another.", 502);
-    const cap = kind === "video" ? MAX_VIDEO_BYTES : MAX_PHOTO_BYTES;
+    const cap = kind === "video" ? MAX_VIDEO_BYTES : kind === "music" ? MAX_AUDIO_BYTES : MAX_PHOTO_BYTES;
     const size = Number(res.headers.get("content-length") || 0);
     if (size > cap) { await res.body.cancel().catch(() => {}); return bad("That file is larger than the library allows.", 413); }
 
