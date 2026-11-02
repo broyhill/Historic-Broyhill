@@ -434,7 +434,7 @@ function Thumb({ design, title }: { design: Design; title: string }) {
 // Landing-page library: the 1,342-template catalog grouped by audience subdirectory,
 // each template tagged with its catalog categories. Attaching a photo hands it to the
 // composer as the hero image; Publish makes a composed draft live at /p/<id>.
-type LandingTpl = { slug: string; title: string; source: string; categories: string[]; audience: string };
+type LandingTpl = { slug: string; title: string; source: string; preview?: string; categories: string[]; audience: string };
 type LandingDraft = { id: string; status: string; createdAt: string; metrics: any };
 
 function LandingLibrary() {
@@ -524,7 +524,7 @@ function LandingLibrary() {
                   </div>
                 )}
                 <div className="flex items-center gap-3 pt-1">
-                  <a href={t.source} target="_blank" rel="noreferrer" className="text-[12px] text-muted underline">Source</a>
+                  <a href={t.preview ?? t.source} target="_blank" rel="noreferrer" className="text-[12px] text-muted underline">Live preview</a>
                   <button type="button" className="text-[12px] text-muted underline" onClick={() => openPicker(t.slug)}>{media[t.slug] ? "Change media" : "Add media"}</button>
                   <button type="button" className={btnGhost} disabled={busy === t.slug} onClick={() => compose(t.slug)}>
                     {busy === t.slug ? "Composing…" : "Compose"}
