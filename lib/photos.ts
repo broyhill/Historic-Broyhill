@@ -19,7 +19,7 @@ export const MAX_PHOTO_BYTES = 40 * 1024 * 1024;
 export const IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 export const SUGGESTED_FOLDERS = ["General", "General-Videos", "Music", "Sound Effects","Building & grounds", "Magnolia Room", "The Boardrooms", "The Dock", "The Loft", "Events", "Videos", "Logos", "Templates"];
 // Royalty-free stock only ever lands in these folders, so it never mixes with real venue photos.
-export const STOCK_FOLDERS = { photo: "Stock Photos", video: "Stock Videos", graphic: "Stock Graphics" } as const;
+export const STOCK_FOLDERS = { photo: "Stock Photos", video: "Stock Videos", graphic: "Stock Graphics", music: "Stock Music" } as const;
 
 export const extOf = (file: string) => (file.includes(".") ? file.split(".").pop()!.toLowerCase() : "");
 export const isVideoName = (file: string) => (VIDEO_EXT as readonly string[]).includes(extOf(file));

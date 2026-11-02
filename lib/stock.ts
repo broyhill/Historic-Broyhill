@@ -4,12 +4,12 @@
 // Searching returns thumbnails only. Importing looks the item up again by id on the server and copies the file
 // into our own photo library, so the browser never supplies a download URL.
 
-export type Provider = "pexels" | "pixabay";
-export type StockKind = "photo" | "video" | "graphic";
+export type Provider = "pexels" | "pixabay" | "jamendo";
+export type StockKind = "photo" | "video" | "graphic" | "music";
 
 export interface StockItem {
   provider: Provider; kind: StockKind; id: string;
-  thumb: string; title: string; credit: string; creditUrl: string; pageUrl: string;
+  thumb: string; title: string; credit: string; creditUrl: string; pageUrl: string; stream?: string;
 }
 export interface StockFile { url: string; ext: string; contentType: string; title: string }
 export interface StockPage { items: StockItem[]; page: number; more: boolean }
@@ -23,12 +23,15 @@ export const PROVIDERS: { key: Provider; label: string; env: string; kinds: Stoc
   { key: "pixabay", label: "Pixabay", env: "PIXABAY_API_KEY", kinds: ["photo", "video", "graphic"] },
   // Pexels paused new API keys (Oct 2026). It only works if a key already exists, so it stays optional.
   { key: "pexels", label: "Pexels (only with an existing key)", env: "PEXELS_API_KEY", kinds: ["photo", "video"] },
+  // Jamendo: Creative-Commons catalog (~500k tracks), free client_id, 35k requests/month.
+  // Downloads are mp3; attribution terms ride along on each track's licence link.
+  { key: "jamendo", label: "Jamendo", env: "JAMENDO_CLIENT_ID", kinds: ["music"] },
 ];
 
 export const providerKey = (p: Provider) => process.env[PROVIDERS.find((x) => x.key === p)!.env] || "";
 
 // Downloads may only come from these hosts (what the two services serve files from).
-const FILE_HOSTS = ["pexels.com", "pixabay.com", "vimeo.com", "vimeocdn.com"];
+const FILE_HOSTS = ["pexels.com", "pixabay.com", "vimeo.com", "vimeocdn.com", "jamendo.com"];
 export function allowedFileUrl(u: string): boolean {
   try {
     const url = new URL(u);
@@ -68,6 +71,17 @@ export async function searchStock(provider: Provider, kind: StockKind, q: string
     const items = (d.photos || []).map((p: any) => ({ provider, kind, id: String(p.id), thumb: s(p.src?.medium), title: s(p.alt) || "Photo", credit: s(p.photographer), creditUrl: s(p.photographer_url), pageUrl: s(p.url) }));
     return pageOf(items, page, n(d.total_results));
   }
+  // Jamendo — Creative Commons music catalog. stream is the low-bitrate preview; the
+  // real mp3 is only fetched server-side on import (resolveFile), never from the browser.
+  if (provider === "jamendo") {
+    const offset = (page - 1) * PER_PAGE;
+    const d = await getJson(`https://api.jamendo.com/v3.0/tracks/?client_id=${key}&format=json&limit=${PER_PAGE}&offset=${offset}&search=${query}&include=musicinfo&audioformat=mp32&boost=popularity_total`);
+    const items = ((d.results as any[]) || []).map((t: any) => ({
+      provider, kind, id: String(t.id), thumb: s(t.album_image), title: `${s(t.name)} — ${s(t.artist_name)}`,
+      credit: s(t.artist_name), creditUrl: s(t.license_ccurl) || s(t.shareurl), pageUrl: s(t.shareurl), stream: s(t.audio),
+    }));
+    return pageOf(items, page, n(d.headers?.results_total));
+  }
   // Pixabay
   if (kind === "video") {
     const d = await getJson(`https://pixabay.com/api/videos/?key=${key}&q=${query}&per_page=${PER_PAGE}&page=${page}&safesearch=true`);
@@ -91,6 +105,14 @@ function bestMp4(variants: { url: string; height: number }[]): string | null {
 export async function resolveFile(provider: Provider, kind: StockKind, id: string): Promise<StockFile | null> {
   if (!/^\d{1,12}$/.test(id)) return null;
   const key = providerKey(provider);
+  if (provider === "jamendo") {
+    const d = await getJson(`https://api.jamendo.com/v3.0/tracks/?client_id=${key}&format=json&id=${id}&include=licenses`);
+    const t = (d.results as any[])?.[0];
+    // Artists can opt a track out of downloads; respect the flag and skip rather than take the stream URL.
+    if (!t || t.audiodownload_allowed === false) return null;
+    const url = s(t.audiodownload);
+    return url ? { url, ext: "mp3", contentType: "audio/mpeg", title: `${s(t.artist_name)} ${s(t.name)}` } : null;
+  }
   if (provider === "pexels") {
     const h = { Authorization: key };
     if (kind === "video") {
