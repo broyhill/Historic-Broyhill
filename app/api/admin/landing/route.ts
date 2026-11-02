@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { readFile } from "fs/promises";
 import path from "path";
 import { prisma } from "@/lib/prisma";
@@ -87,6 +88,7 @@ export async function POST(request: Request) {
 
     const [brand, gist] = await Promise.all([brandContext(), sourceGist(tpl.source)]);
     const notes = String(body?.notes ?? "").slice(0, 500);
+    const mediaUrl = /^https?:\/\//.test(String(body?.mediaUrl ?? "")) ? String(body.mediaUrl) : "";
 
     const system = `You are the landing-page composer for an event venue. Output ONE complete standalone HTML page — no markdown fence, no commentary.
 
@@ -95,6 +97,7 @@ Hard rules:
 - Brand tokens: navy #13233b headings/navigation, cream #f6f1e6 background sections, gold #c9a227 accents/CTAs; serif display headings, clean sans body.
 - Sections: hero with one clear headline + CTA, 3-4 content sections matching the venue's services, a social-proof strip, and a lead-capture form near the bottom.
 - The lead form: <form data-tw="contract" action="/api/t/event" method="post"> with name/email/phone/date fields and a submit button labeled for the ask.
+- If a hero image URL is given, use it as the hero background image (with a navy overlay for legibility); otherwise use a flat navy/gold hero, never a stock-photo URL.
 - CTA buttons carry data-tw="rsvp". Include <script src="/tripwire.js" defer></script> before </body>.
 - Mobile-first, no lorem ipsum, real copy for the venue described below. No invented prices; placeholders as [CONFIRM: ...] only where a venue fact is truly unknown.`;
 
@@ -106,7 +109,7 @@ Template to mirror (structure reference only — write for THIS business):
 - audience: ${tpl.audience}
 - source: ${tpl.source}
 ${gist ? `Its live structure:\n${gist}` : ""}
-${notes ? `\nExtra direction: ${notes}` : ""}
+${mediaUrl ? `\nHero image to use: ${mediaUrl}` : ""}${notes ? `\nExtra direction: ${notes}` : ""}
 
 Compose the venue landing page now — full HTML document.`;
 
@@ -139,7 +142,7 @@ Compose the venue landing page now — full HTML document.`;
         channel: "LANDING_PAGE",
         suggestedDraft: html,
         status: "PENDING_REVIEW",
-        metrics: { templateSlug: tpl.slug, templateTitle: tpl.title, audience: tpl.audience, source: tpl.source, notes: notes || null },
+        metrics: { templateSlug: tpl.slug, templateTitle: tpl.title, audience: tpl.audience, source: tpl.source, notes: notes || null, mediaUrl: mediaUrl || null },
       },
     });
 
@@ -147,5 +150,35 @@ Compose the venue landing page now — full HTML document.`;
   } catch (e: any) {
     console.error("landing compose failed", e);
     return NextResponse.json({ error: aiErrorMessage(e) }, { status: 500 });
+  }
+}
+
+// Draft lifecycle: publish/unpublish to /p/<id>, attach media, rename. Auth via /api/admin middleware.
+export async function PATCH(request: Request) {
+  let body: any;
+  try { body = await request.json(); } catch { body = null; }
+  const id = String(body?.id ?? "");
+  const action = String(body?.action ?? "");
+  if (!id) return NextResponse.json({ error: "Missing draft id." }, { status: 400 });
+  try {
+    const draft = await prisma.aiContentPipeline.findFirst({ where: { id, channel: "LANDING_PAGE" }, select: { id: true, status: true, metrics: true } });
+    if (!draft) return NextResponse.json({ error: "Draft not found." }, { status: 404 });
+    const metrics = { ...(typeof draft.metrics === "object" && draft.metrics ? (draft.metrics as Record<string, unknown>) : {}) };
+    if (action === "publish" || action === "unpublish") {
+      const status = action === "publish" ? "APPROVED" : "PENDING_REVIEW";
+      if (action === "publish") metrics.publishedAt = new Date().toISOString(); else delete metrics.publishedAt;
+      await prisma.aiContentPipeline.update({ where: { id }, data: { status, metrics: metrics as Prisma.InputJsonValue } });
+      return NextResponse.json({ success: true, id, status, url: action === "publish" ? `/p/${id}` : null });
+    }
+    if (action === "media") {
+      const mediaUrl = /^https?:\/\//.test(String(body?.mediaUrl ?? "")) ? String(body.mediaUrl) : null;
+      metrics.mediaUrl = mediaUrl;
+      await prisma.aiContentPipeline.update({ where: { id }, data: { metrics: metrics as Prisma.InputJsonValue } });
+      return NextResponse.json({ success: true, id, mediaUrl });
+    }
+    return NextResponse.json({ error: "Unknown action." }, { status: 400 });
+  } catch (e: any) {
+    console.error("landing draft update failed", e);
+    return NextResponse.json({ error: "Could not update the draft." }, { status: 500 });
   }
 }
