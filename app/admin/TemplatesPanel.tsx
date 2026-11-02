@@ -9,7 +9,7 @@ import { renderHtml, type Design } from "@/lib/studio";
 import { starterDesigns } from "@/lib/studio-starters";
 import { useBrand } from "@/lib/use-brand";
 
-type Channel = "email" | "sms" | "mms";
+type Channel = "email" | "sms" | "mms" | "landing";
 interface Saved { id: string; name: string; subject: string; previewText: string; body: string; mediaUrl: string; category: string; kind: string; studio?: boolean }
 interface Draft { id?: string; name: string; subject: string; previewText: string; body: string; mediaUrl: string; category: string; kind: string; studio?: boolean }
 
@@ -18,6 +18,7 @@ const TABS: { key: Channel; label: string; hint: string }[] = [
   { key: "email", label: "Email", hint: "Subject, preview text and body" },
   { key: "sms", label: "SMS", hint: "Text message, no picture" },
   { key: "mms", label: "MMS", hint: "Text message with a picture" },
+  { key: "landing", label: "Landing pages", hint: "Pages by audience" },
 ];
 
 async function api(url: string, init?: RequestInit) {
@@ -147,6 +148,8 @@ export default function TemplatesPanel({ onOpenStudio, onOpenStarter, prefill }:
           </button>
         ))}
       </div>
+      {channel === "landing" && <LandingLibrary />}
+      {channel !== "landing" && (<>
       {channel !== "email" && (
         <p className="text-[12.5px] text-muted">Text messaging is not switched on yet. These templates are ready for when it is. Marketing texts must say who they're from and how to opt out.</p>
       )}
@@ -385,6 +388,7 @@ export default function TemplatesPanel({ onOpenStudio, onOpenStarter, prefill }:
           </div>
         </div>
       </section>
+      </>)}
     </div>
 
     {/* Right preview panel */}
@@ -423,6 +427,140 @@ function Thumb({ design, title }: { design: Design; title: string }) {
   return (
     <div ref={ref} className="h-56 overflow-hidden bg-canvas border-b border-line">
       <iframe title={`Preview of ${title}`} sandbox="" tabIndex={-1} scrolling="no" srcDoc={renderHtml(design, { title })} className="pointer-events-none" style={{ width: 640, height: 224 / scale, border: 0, transform: `scale(${scale})`, transformOrigin: "top left" }} />
+    </div>
+  );
+}
+
+// Landing-page library: the 1,342-template catalog grouped by audience subdirectory,
+// each template tagged with its catalog categories. Attaching a photo hands it to the
+// composer as the hero image; Publish makes a composed draft live at /p/<id>.
+type LandingTpl = { slug: string; title: string; source: string; categories: string[]; audience: string };
+type LandingDraft = { id: string; status: string; createdAt: string; metrics: any };
+
+function LandingLibrary() {
+  const [audiences, setAudiences] = useState<{ key: string; count: number }[]>([]);
+  const [dir, setDir] = useState("");
+  const [templates, setTemplates] = useState<LandingTpl[]>([]);
+  const [drafts, setDrafts] = useState<LandingDraft[]>([]);
+  const [media, setMedia] = useState<Record<string, string>>({});
+  const [picker, setPicker] = useState<string | null>(null);
+  const [photos, setPhotos] = useState<{ url: string; name: string }[]>([]);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  const label = (s: string) => s.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+  useEffect(() => {
+    api("/api/admin/landing").then((d) => setAudiences(d.audiences ?? [])).catch((e) => setErr(e.message));
+    api("/api/admin/landing?drafts=1").then((d) => setDrafts(d.drafts ?? [])).catch(() => {});
+  }, []);
+
+  const openDir = async (key: string) => {
+    setDir(key); setTemplates([]); setErr(null);
+    try {
+      const d = await api(`/api/admin/landing?audience=${encodeURIComponent(key)}`);
+      setTemplates(d.templates ?? []);
+    } catch (e: any) { setErr(e.message); }
+  };
+
+  const openPicker = (slug: string) => {
+    setPicker((p) => (p === slug ? null : slug));
+    if (!photos.length) api("/api/admin/photos").then((d) => setPhotos((d.photos || []).filter((x: { name: string }) => /\.(jpe?g|png|gif|webp)$/i.test(x.name)))).catch(() => {});
+  };
+
+  const compose = async (slug: string) => {
+    setBusy(slug); setErr(null);
+    try {
+      const d = await api("/api/admin/landing", { method: "POST", body: JSON.stringify({ slug, mediaUrl: media[slug] || undefined }) });
+      setDrafts((ds) => [{ id: d.id, status: "PENDING_REVIEW", createdAt: new Date().toISOString(), metrics: { templateSlug: slug } }, ...ds]);
+    } catch (e: any) { setErr(e.message); }
+    setBusy(null);
+  };
+
+  const publish = async (d: LandingDraft, action: "publish" | "unpublish") => {
+    setBusy(d.id); setErr(null);
+    try {
+      const r = await api("/api/admin/landing", { method: "PATCH", body: JSON.stringify({ id: d.id, action }) });
+      setDrafts((ds) => ds.map((x) => (x.id === d.id ? { ...x, status: r.status, metrics: { ...(x.metrics || {}), publishedAt: r.url ? new Date().toISOString() : undefined } } : x)));
+    } catch (e: any) { setErr(e.message); }
+    setBusy(null);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-1.5 flex-wrap" role="group" aria-label="Template folders">
+        {audiences.map((a) => (
+          <button key={a.key} onClick={() => openDir(a.key)} aria-pressed={dir === a.key}
+            className={`px-3 py-1.5 rounded-full text-[12px] border ${dir === a.key ? "bg-ink text-white border-ink" : "border-line text-muted hover:border-accent/50"}`}>
+            {label(a.key)} <span className={dir === a.key ? "text-white/70" : "text-subtle"}>{a.count}</span>
+          </button>
+        ))}
+      </div>
+
+      {err && <p className="text-[13px] text-red-600" role="alert">{err}</p>}
+
+      {dir && (
+        <section className="ibox">
+          <div className="ibox-title"><h3 className="text-sm font-semibold text-ink">{label(dir)} templates</h3>
+            <span className="text-[12px] text-subtle">{templates.length} · tags on each card · Source = live preview</span></div>
+          <div className="ibox-content grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {templates.length === 0 && <p className="col-span-full text-[13px] text-subtle">Loading…</p>}
+            {templates.map((t) => (
+              <div key={t.slug} className="rounded-md border border-line p-3 space-y-2">
+                <div className="text-[13.5px] font-semibold text-ink leading-snug">{t.title}</div>
+                <div className="flex gap-1 flex-wrap">
+                  {t.categories.map((c) => (
+                    <span key={c} className="px-1.5 py-0.5 rounded bg-canvas text-[10.5px] uppercase tracking-wider text-subtle">{c}</span>
+                  ))}
+                </div>
+                {media[t.slug] && <img src={media[t.slug]} alt="" className="w-full h-16 object-cover rounded-md border border-line" />}
+                {picker === t.slug && (
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {photos.length === 0 && <p className="col-span-4 text-[12px] text-subtle">No photos in the library yet.</p>}
+                    {photos.map((p) => (
+                      <button key={p.url} type="button" onClick={() => { setMedia((m) => ({ ...m, [t.slug]: p.url })); setPicker(null); }}
+                        className="rounded overflow-hidden border border-line hover:border-accent"><img src={p.url} alt={p.name} className="w-full aspect-square object-cover" loading="lazy" /></button>
+                    ))}
+                  </div>
+                )}
+                <div className="flex items-center gap-3 pt-1">
+                  <a href={t.source} target="_blank" rel="noreferrer" className="text-[12px] text-muted underline">Source</a>
+                  <button type="button" className="text-[12px] text-muted underline" onClick={() => openPicker(t.slug)}>{media[t.slug] ? "Change media" : "Add media"}</button>
+                  <button type="button" className={btnGhost} disabled={busy === t.slug} onClick={() => compose(t.slug)}>
+                    {busy === t.slug ? "Composing…" : "Compose"}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="ibox">
+        <div className="ibox-title"><h3 className="text-sm font-semibold text-ink">Composed pages</h3>
+          <span className="text-[12px] text-subtle">Publish puts the page live at /p/&lt;id&gt;</span></div>
+        <div className="ibox-content space-y-2">
+          {drafts.length === 0 && <p className="text-[13px] text-subtle">No composed pages yet — pick a folder above and hit Compose.</p>}
+          {drafts.map((d) => {
+            const live = d.status === "APPROVED";
+            const title = d.metrics?.templateTitle || d.metrics?.templateSlug || "Landing page";
+            return (
+              <div key={d.id} className="rounded-md border border-line px-3 py-2 flex items-center gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="text-[13.5px] text-ink truncate">{title}</div>
+                  <div className="text-[11px] uppercase tracking-wider text-subtle">
+                    {label(d.metrics?.audience || "")} · {live ? "Live" : "Draft"} · {new Date(d.createdAt).toLocaleDateString()}
+                  </div>
+                </div>
+                {live && <a href={`/p/${d.id}`} target="_blank" rel="noreferrer" className="text-[12px] text-accent underline">Open page</a>}
+                <button type="button" className={live ? btnGhost : btnPrimary} disabled={busy === d.id} onClick={() => publish(d, live ? "unpublish" : "publish")}>
+                  {busy === d.id ? "…" : live ? "Unpublish" : "Publish"}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 }
