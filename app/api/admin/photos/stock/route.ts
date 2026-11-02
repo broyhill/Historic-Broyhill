@@ -77,6 +77,8 @@ export async function POST(request: Request) {
     if (existing) return NextResponse.json({ success: true, already: true, url: existing.url });
 
     const res = await fetch(file.url);
+    // A redirect may land on a host the allowlist never approved — check where fetch actually ended.
+    if (res.url && !allowedFileUrl(res.url)) { await res.body?.cancel().catch(() => {}); return bad("That download redirects outside the approved hosts.", 502); }
     if (!res.ok || !res.body) return bad("Could not download that item. Try another.", 502);
     const cap = kind === "video" ? MAX_VIDEO_BYTES : kind === "music" ? MAX_AUDIO_BYTES : MAX_PHOTO_BYTES;
     const size = Number(res.headers.get("content-length") || 0);
@@ -89,6 +91,12 @@ export async function POST(request: Request) {
     // Make sure the folder exists (a folder is just a .keep marker or a photo in it).
     await put(photoPath(folder, KEEP_FILE), "", { access: "public", allowOverwrite: true, addRandomSuffix: false, contentType: "text/plain" });
     const blob = await put(photoPath(folder, name), capped(res.body, cap), { access: "public", addRandomSuffix: false, contentType: file.contentType });
+    // Music keeps its licence as a <name>.license.txt sibling so the credit survives the round trip into the
+    // library and back out to video/landing use.
+    if (kind === "music") {
+      const licenseText = [`Track: ${file.track || file.title}`, `Artist: ${file.artist || ""}`, `Licence: ${file.licenseUrl || ""}`, "Source: Jamendo (https://www.jamendo.com)"].join("\n");
+      await put(photoPath(folder, `${name}.license.txt`), licenseText, { access: "public", allowOverwrite: true, addRandomSuffix: false, contentType: "text/plain" });
+    }
     return NextResponse.json({ success: true, url: blob.url, folder, name });
   } catch (error: any) {
     if (error instanceof TooLarge) return bad("That file is larger than the library allows.", 413);

@@ -11,7 +11,7 @@ export interface StockItem {
   provider: Provider; kind: StockKind; id: string;
   thumb: string; title: string; credit: string; creditUrl: string; pageUrl: string; stream?: string;
 }
-export interface StockFile { url: string; ext: string; contentType: string; title: string }
+export interface StockFile { url: string; ext: string; contentType: string; title: string; licenseUrl?: string; artist?: string; track?: string }
 export interface StockPage { items: StockItem[]; page: number; more: boolean }
 
 export const PER_PAGE = 24;
@@ -54,6 +54,9 @@ function checkJamendo(d: any) {
   if (h && h.status !== "success") throw new Error(s(h.error_message) || "Jamendo returned an error — check JAMENDO_CLIENT_ID in Vercel.");
 }
 
+// A "-nc" Creative Commons clause bars commercial use; those tracks never reach the picker.
+const isNC = (licenseUrl: string) => licenseUrl.includes("-nc");
+
 const s = (v: unknown) => (typeof v === "string" ? v : "");
 const n = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
 
@@ -83,7 +86,9 @@ export async function searchStock(provider: Provider, kind: StockKind, q: string
   if (provider === "jamendo") {
     const offset = (page - 1) * PER_PAGE;
     const d = await getJson(`https://api.jamendo.com/v3.0/tracks/?client_id=${key}&format=json&limit=${PER_PAGE}&offset=${offset}&search=${query}&include=musicinfo&audioformat=mp32&boost=popularity_total`);
-    const items = ((d.results as any[]) || []).map((t: any) => ({
+    checkJamendo(d);
+    // NC-licensed tracks are dropped here — they can't go in commercial marketing anyway.
+    const items = ((d.results as any[]) || []).filter((t: any) => !isNC(s(t.license_ccurl))).map((t: any) => ({
       provider, kind, id: String(t.id), thumb: s(t.album_image), title: `${s(t.name)} — ${s(t.artist_name)}`,
       credit: s(t.artist_name), creditUrl: s(t.license_ccurl) || s(t.shareurl), pageUrl: s(t.shareurl), stream: s(t.audio),
     }));
@@ -114,11 +119,15 @@ export async function resolveFile(provider: Provider, kind: StockKind, id: strin
   const key = providerKey(provider);
   if (provider === "jamendo") {
     const d = await getJson(`https://api.jamendo.com/v3.0/tracks/?client_id=${key}&format=json&id=${id}&include=licenses`);
+    checkJamendo(d);
     const t = (d.results as any[])?.[0];
     // Artists can opt a track out of downloads; respect the flag and skip rather than take the stream URL.
     if (!t || t.audiodownload_allowed === false) return null;
+    const licenseUrl = s(t.license_ccurl);
+    // Hard gate on import too — a non-commercial licence can't be forced in by bypassing search.
+    if (licenseUrl && isNC(licenseUrl)) return null;
     const url = s(t.audiodownload);
-    return url ? { url, ext: "mp3", contentType: "audio/mpeg", title: `${s(t.artist_name)} ${s(t.name)}` } : null;
+    return url ? { url, ext: "mp3", contentType: "audio/mpeg", title: `${s(t.artist_name)} ${s(t.name)}`, licenseUrl, artist: s(t.artist_name), track: s(t.name) } : null;
   }
   if (provider === "pexels") {
     const h = { Authorization: key };

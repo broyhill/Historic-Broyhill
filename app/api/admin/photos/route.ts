@@ -34,7 +34,7 @@ export async function GET() {
       const p = parsePath(b.pathname);
       if (!p) continue;
       if (!counts.has(p.folder)) counts.set(p.folder, 0);
-      if (p.name === KEEP_FILE) continue;
+      if (p.name === KEEP_FILE || p.name.endsWith(".license.txt")) continue;
       counts.set(p.folder, (counts.get(p.folder) || 0) + 1);
       photos.push({ url: b.url, folder: p.folder, name: p.name, size: b.size, uploadedAt: new Date(b.uploadedAt).toISOString() });
     }
