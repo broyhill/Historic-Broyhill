@@ -139,6 +139,15 @@ ${EMAIL_SIGNATURE}`;
       }
     });
 
+    // Enroll the lead in every ACTIVE inquiry journey (idempotent; a RUNNING
+    // run is not restarted). A journey failure must never break capture.
+    try {
+      const { enrollLead } = await import('@/lib/journey-runner');
+      await enrollLead(lead.id, 'INQUIRY_RECEIVED');
+    } catch (journeyErr: any) {
+      console.warn('Journey enrollment bypassed:', journeyErr.message);
+    }
+
     // Stage Campaign in AiContentPipeline for Human-in-the-Loop review
     const campaign = await prisma.aiContentPipeline.create({
       data: {
