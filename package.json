@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate && prisma generate --schema=wizard/prisma/schema.prisma"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.135.0",

@@ -17,6 +17,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../../node_modules/@generated/wizard-prisma"
 }
 
 datasource db {
@@ -34,6 +35,7 @@ model Agency {
   control            AgencyControl? // additive: master kill switch
   createdAt          DateTime            @default(now()) // spec
   updatedAt          DateTime            @updatedAt // spec
+  @@map("wz_Agency")
 }
 
 // additive: the master kill switch Layer 1 (2026-07-28) names as the most important missing
@@ -46,6 +48,7 @@ model AgencyControl {
   reason            String   @default("Fail-closed default: dispatch is inert until Ed orders otherwise.")
   updatedById       String?
   updatedAt         DateTime @updatedAt
+  @@map("wz_AgencyControl")
 }
 
 model CandidateSilo {
@@ -99,6 +102,7 @@ model CandidateSilo {
   cpAnomalyLogs    CpAnomalyLog[] // additive: control-plane anomaly log
   createdAt        DateTime                 @default(now()) // spec
   updatedAt        DateTime                 @updatedAt // spec
+  @@map("wz_CandidateSilo")
 }
 
 model CandidateUser {
@@ -117,6 +121,7 @@ model CandidateUser {
 
   @@unique([candidateId, email])
   @@unique([candidateId, id]) // spec
+  @@map("wz_CandidateUser")
 }
 
 enum UserRole {
@@ -141,6 +146,7 @@ model SiloSuppression {
 
   @@unique([candidateId, email])
   @@unique([candidateId, id]) // spec
+  @@map("wz_SiloSuppression")
 }
 
 model GlobalSuppression {
@@ -152,6 +158,7 @@ model GlobalSuppression {
   level     SuppressionLevel @default(BULK_ONLY) // additive (see SiloSuppression)
   source    String? // additive
   createdAt DateTime         @default(now()) // spec
+  @@map("wz_GlobalSuppression")
 }
 
 enum SuppressionLevel {
@@ -210,6 +217,7 @@ model Subscriber {
   @@unique([candidateId, email])
   @@unique([candidateId, id])
   @@index([candidateId])
+  @@map("wz_Subscriber")
 }
 
 // Deterministic identity only. No fuzzy, no cluster, no lookalike states exist by design.
@@ -237,6 +245,7 @@ model SubscriberList {
   createdAt   DateTime               @default(now())
 
   @@unique([candidateId, name])
+  @@map("wz_SubscriberList")
 }
 
 model SubscriberListMember {
@@ -247,6 +256,7 @@ model SubscriberListMember {
   addedAt      DateTime       @default(now())
 
   @@id([listId, subscriberId])
+  @@map("wz_SubscriberListMember")
 }
 
 model DynamicSegment {
@@ -260,6 +270,7 @@ model DynamicSegment {
   updatedAt   DateTime            @updatedAt
 
   @@unique([candidateId, name])
+  @@map("wz_DynamicSegment")
 }
 
 model EmailTemplate {
@@ -276,6 +287,7 @@ model EmailTemplate {
   updatedAt   DateTime            @updatedAt
 
   @@index([candidateId])
+  @@map("wz_EmailTemplate")
 }
 
 // Campaign / draft record. Name and base fields preserved from the existing model the spec
@@ -331,6 +343,7 @@ model AiContentPipeline {
   updatedAt             DateTime                   @updatedAt
 
   @@index([candidateId, status])
+  @@map("wz_AiContentPipeline")
 }
 
 enum CampaignStatus {
@@ -365,6 +378,7 @@ model MessageVariant {
   createdAt       DateTime              @default(now())
 
   @@unique([campaignId, version])
+  @@map("wz_MessageVariant")
 }
 
 // Exact-version Wizard authorization (E68 Step 9): typed phrase, bound to one content hash.
@@ -382,6 +396,7 @@ model WizardAuthorization {
   createdAt      DateTime       @default(now())
 
   @@index([variantId])
+  @@map("wz_WizardAuthorization")
 }
 
 // Append-only dispatch log: one row per recipient per variant. Carries the full gate report.
@@ -404,6 +419,7 @@ model DispatchRecord {
 
   @@index([candidateId, campaignId])
   @@index([providerMessageId])
+  @@map("wz_DispatchRecord")
 }
 
 enum DispatchMode {
@@ -430,6 +446,7 @@ model SubscriberActivity {
   createdAt         DateTime       @default(now())
 
   @@index([candidateId, type])
+  @@map("wz_SubscriberActivity")
 }
 
 enum ActivityType {
@@ -457,6 +474,7 @@ model AutomatedJourney {
   updatedAt   DateTime               @updatedAt
 
   @@unique([candidateId, name])
+  @@map("wz_AutomatedJourney")
 }
 
 // additive: first-class journey step — the unit the learning loop calibrates and the LP
@@ -475,6 +493,7 @@ model AutomatedJourneyStep {
   pipelines                   AiContentPipeline[]
 
   @@unique([journeyId, stepOrder])
+  @@map("wz_AutomatedJourneyStep")
 }
 
 // E41 owns journeys and persistence and never fires: a run only stages drafts for review.
@@ -493,6 +512,7 @@ model JourneyRun {
   updatedAt    DateTime         @updatedAt
 
   @@unique([journeyId, subscriberId])
+  @@map("wz_JourneyRun")
 }
 
 enum JourneyRunState {
@@ -517,6 +537,7 @@ model ProductOffer {
   allocations   OptimizationAllocation[]
 
   @@unique([candidateId, sku])
+  @@map("wz_ProductOffer")
 }
 
 model OfferSegmentValue {
@@ -527,6 +548,7 @@ model OfferSegmentValue {
   adjustedValue   Float
 
   @@unique([offerId, microsegmentKey])
+  @@map("wz_OfferSegmentValue")
 }
 
 // Append-only actual-vs-predicted ledger — the ML loop's training rows. One row per
@@ -548,6 +570,7 @@ model CampaignVarianceSnapshot {
   capturedAt       DateTime          @default(now())
 
   @@index([pipelineId, capturedAt])
+  @@map("wz_CampaignVarianceSnapshot")
 }
 
 // LP arbitration ledger: every candidate action the optimizer scored, marked with its
@@ -571,6 +594,7 @@ model OptimizationAllocation {
   optimizedAt     DateTime             @default(now())
 
   @@index([candidateId, subscriberId, arbitrationWin])
+  @@map("wz_OptimizationAllocation")
 }
 
 // Audit trail for every learning-loop coefficient shift on a journey step.
@@ -584,6 +608,7 @@ model StepCoefficientLog {
   calibratedAt    DateTime             @default(now())
 
   @@index([stepId, calibratedAt])
+  @@map("wz_StepCoefficientLog")
 }
 
 enum EscalationState {
@@ -629,6 +654,7 @@ model CpAnomalyLog {
   healingManifests  CpHealingManifest[]
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
+  @@map("wz_CpAnomalyLog")
 }
 
 // Append-only receipt for each healing heuristic applied to an anomaly — the auditor's
@@ -643,6 +669,7 @@ model CpHealingManifest {
   postExecutionState String
   healingStatus      HealingStatus @default(EXECUTED)
   resolvedAt         DateTime      @default(now())
+  @@map("wz_CpHealingManifest")
 }
 
 // ─── Existing models the spec extends with an optional candidateId ───────────────────────
@@ -672,6 +699,7 @@ model LeadProfile {
   @@unique([candidateId, email])
   @@unique([candidateId, id])
   @@index([candidateId])
+  @@map("wz_LeadProfile")
 }
 
 model Business {
@@ -683,6 +711,7 @@ model Business {
   leads        LeadProfile[]
   campaigns    AiContentPipeline[]
   createdAt    DateTime            @default(now())
+  @@map("wz_Business")
 }
 
 // Union of both architecture docs (conflict surfaced, not resolved — README §Conflicts C1).
@@ -730,6 +759,7 @@ model SubscriberPropensity {
 
   @@unique([candidateId, subscriberId, goal])
   @@index([candidateId, goal])
+  @@map("wz_SubscriberPropensity")
 }
 
 // The AI funnel feeder's output: one proposed action per subscriber, carrying its
@@ -753,6 +783,7 @@ model FunnelProposal {
   createdAt      DateTime       @default(now())
 
   @@index([candidateId, status])
+  @@map("wz_FunnelProposal")
 }
 
 enum FunnelAction {
@@ -787,6 +818,7 @@ model AgentDelegation {
 
   @@unique([candidateId, agentKey])
   @@index([grantedById])
+  @@map("wz_AgentDelegation")
 }
 
 // The mesh (Dataiku Flow/Scenario pattern): ecosystems publish typed signals; enabled
@@ -804,6 +836,7 @@ model EcosystemSignal {
 
   @@index([candidateId, ecosystemKey, type])
   @@index([candidateId, consumedAt])
+  @@map("wz_EcosystemSignal")
 }
 
 model SignalRoute {
@@ -817,4 +850,5 @@ model SignalRoute {
   enabled      Boolean       @default(true)
 
   @@unique([candidateId, ecosystemKey, signalType, recipeKey])
+  @@map("wz_SignalRoute")
 }
