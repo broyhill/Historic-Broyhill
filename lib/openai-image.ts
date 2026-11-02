@@ -18,6 +18,46 @@ const OPENAI_SIZES: Record<string, string> = {
   "9:16": "1024x1536",
 };
 
+// Edit path — the OpenAI edits endpoint rewrites a source image from a prompt
+// (fill empty chairs, add a speaker, change the scene). No polling.
+export async function editWithOpenAI(opts: {
+  prompt: string;
+  image: { data: ArrayBuffer; name: string; contentType: string };
+  aspectRatio: string;
+  numVariations: number;
+}): Promise<AsyncJobOutcome> {
+  const model = process.env.IMAGE_GEN_OPENAI_MODEL || "gpt-image-1-mini";
+  const form = new FormData();
+  form.append("model", model);
+  form.append("prompt", opts.prompt);
+  form.append("n", String(opts.numVariations));
+  form.append("size", OPENAI_SIZES[opts.aspectRatio] ?? "auto");
+  form.append(
+    "image",
+    new Blob([opts.image.data], { type: opts.image.contentType }),
+    opts.image.name,
+  );
+
+  const res = await fetch(`${OPENAI_HOST}/v1/images/edits`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
+    body: form,
+  });
+  if (!res.ok) throw new Error(`OpenAI rejected the edit (${res.status}).`);
+
+  const body = await res.json();
+  const items = body.data ?? [];
+  return {
+    jobId: body.created ? String(body.created) : "",
+    images: items.map((it: any, i: number) => ({
+      seed: i,
+      url: it.url ?? "",
+      data: it.b64_json,
+      contentType: "image/png",
+    })),
+  };
+}
+
 export async function generateWithOpenAI(opts: {
   prompt: string;
   aspectRatio: string;

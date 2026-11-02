@@ -3,8 +3,10 @@ import { put } from "@vercel/blob";
 import {
   ASPECT_RATIOS,
   IMAGE_GEN_NOT_CONFIGURED,
+  editImage,
   generateImages,
   resolveProvider,
+  resolveSourceImage,
   type ImageProvider,
 } from "@/lib/image-gen";
 import { brandContext } from "@/lib/brand-context";
@@ -30,11 +32,6 @@ const PROVIDER_LABELS: Record<ImageProvider, string> = {
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
-    const provider = resolveProvider(typeof body.provider === "string" ? body.provider : undefined);
-    if (!provider) {
-      return NextResponse.json({ error: IMAGE_GEN_NOT_CONFIGURED }, { status: 503 });
-    }
-
     const prompt = typeof body.prompt === "string" ? body.prompt.trim() : "";
     if (!prompt || prompt.length > 1000) {
       return NextResponse.json({ error: "Give a prompt (up to 1,000 characters)." }, { status: 400 });
@@ -50,12 +47,31 @@ export async function POST(request: Request) {
     const brand = await brandContext();
     const fullPrompt = brand ? `${prompt}. ${brand}` : prompt;
 
-    const { jobId, images } = await generateImages({
-      prompt: fullPrompt,
-      aspectRatio,
-      numVariations,
-      provider,
+    // Edit mode: a source photo (library blob URL or uploaded base64) is
+    // rewritten from the prompt — e.g. fill the empty chairs, add a speaker.
+    const source = await resolveSourceImage({
+      url: typeof body.sourcePhotoUrl === "string" ? body.sourcePhotoUrl : undefined,
+      data: typeof body.sourcePhotoData === "string" ? body.sourcePhotoData : undefined,
+      contentType: typeof body.sourcePhotoType === "string" ? body.sourcePhotoType : undefined,
+      name: typeof body.sourcePhotoName === "string" ? body.sourcePhotoName.slice(0, 120) : undefined,
     });
+
+    let provider: ImageProvider;
+    let jobId: string;
+    let images: { seed: number; url: string; data?: string; contentType?: string }[];
+    if (source) {
+      const out = await editImage({ prompt: fullPrompt, source, aspectRatio, numVariations });
+      provider = out.provider;
+      jobId = out.jobId;
+      images = out.images;
+    } else {
+      provider =
+        resolveProvider(typeof body.provider === "string" ? body.provider : undefined) ??
+        (() => { throw new Error(IMAGE_GEN_NOT_CONFIGURED); })();
+      const out = await generateImages({ prompt: fullPrompt, aspectRatio, numVariations, provider });
+      jobId = out.jobId;
+      images = out.images;
+    }
     if (!images.length) {
       return NextResponse.json(
         { error: `${PROVIDER_LABELS[provider]} finished but returned no images.` },

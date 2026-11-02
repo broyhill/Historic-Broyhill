@@ -27,7 +27,7 @@ import { pollAsyncJob, type AsyncJobOutcome } from "@/lib/async-job";
 import { fireflyEnabled, generateWithFirefly } from "@/lib/firefly";
 import { googleEnabled, generateWithGoogle } from "@/lib/google-image";
 import { replicateEnabled, generateWithReplicate } from "@/lib/replicate";
-import { openaiEnabled, generateWithOpenAI } from "@/lib/openai-image";
+import { openaiEnabled, generateWithOpenAI, editWithOpenAI } from "@/lib/openai-image";
 
 export const ASPECT_RATIOS = ["1:1", "4:3", "3:4", "16:9", "9:16"] as const;
 export type AspectRatio = (typeof ASPECT_RATIOS)[number];
@@ -142,4 +142,60 @@ export async function generateImages(opts: {
     }
   }
   throw lastError;
+}
+
+// Edit path — rewrite an existing photo from a prompt (fill empty chairs, add
+// a speaker). Only the OpenAI adapter supports edits today; the source image
+// arrives as bytes either fetched from a blob URL or sent as base64.
+export interface SourceImage {
+  data: ArrayBuffer;
+  name: string;
+  contentType: string;
+}
+
+export async function resolveSourceImage(opts: {
+  url?: string;
+  data?: string; // base64
+  contentType?: string;
+  name?: string;
+}): Promise<SourceImage | null> {
+  if (opts.url) {
+    if (!/^https:\/\//i.test(opts.url)) throw new Error("Source photo must be an https URL.");
+    const res = await fetch(opts.url);
+    if (!res.ok) throw new Error("Could not read the source photo.");
+    const contentType = res.headers.get("content-type")?.split(";")[0] || "image/png";
+    if (!contentType.startsWith("image/")) throw new Error("Source photo is not an image.");
+    const data = await res.arrayBuffer();
+    if (data.byteLength > 25 * 1024 * 1024) throw new Error("Source photo is too large (max 25 MB).");
+    return { data, name: opts.name || "source.png", contentType };
+  }
+  if (opts.data) {
+    const buf = Buffer.from(opts.data, "base64");
+    return {
+      data: buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength),
+      name: opts.name || "source.png",
+      contentType: opts.contentType || "image/png",
+    };
+  }
+  return null;
+}
+
+export async function editImage(opts: {
+  prompt: string;
+  source: SourceImage;
+  aspectRatio?: string;
+  numVariations?: number;
+}): Promise<GenerateResult> {
+  if (!openaiEnabled()) throw new Error("Photo editing needs OPENAI_API_KEY (the only edit-capable provider today).");
+  const aspectRatio = (ASPECT_RATIOS as readonly string[]).includes(opts.aspectRatio ?? "")
+    ? (opts.aspectRatio as AspectRatio)
+    : "1:1";
+  const numVariations = Math.min(Math.max(opts.numVariations ?? 1, 1), 4);
+  const outcome = await editWithOpenAI({
+    prompt: opts.prompt,
+    image: opts.source,
+    aspectRatio,
+    numVariations,
+  });
+  return { jobId: outcome.jobId, provider: "openai", images: outcome.images };
 }
