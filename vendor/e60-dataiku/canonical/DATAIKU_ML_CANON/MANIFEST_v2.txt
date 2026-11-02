@@ -1,0 +1,129 @@
+# =====================================================================
+# BGOP Reference Artifact Bundle — MANIFEST v2
+# =====================================================================
+# Generated:            2026-07-19 04:04 EDT
+# Authority:            Ed Broyhill
+# Companion packet:     NEXUS_CORRECTION_PACKET_2026-07-19.md
+# Sacred canary check:  cluster_id 372171 = 147 txns / $332,631.30
+#
+# FORMAT:
+#   <sha256>  <bytes>  <ver>  <path>    [<status>]
+#
+# All PRESERVED lines below are pre-computed and MUST match byte-for-byte
+# after Nexus completes the revision. Any drift on a PRESERVED line means
+# an original was silently modified — that is a packet acceptance failure.
+#
+# All <TO BE FILLED BY NEXUS> lines are new artifacts Nexus produces.
+# Nexus computes the sha256 with `sha256sum <file>` and writes it inline.
+# =====================================================================
+
+# --- 1. NEW ARTIFACTS (this packet's deliverables) ---
+# Nexus fills in the sha256 and bytes after producing each file.
+
+  <TO BE FILLED BY NEXUS: sha256>       <bytes>    v5    04_bentoml_mlflow_feast_reference_architecture_v5.md    [NEW]
+  <TO BE FILLED BY NEXUS: sha256>       <bytes>    v2    05_ui_settings_forms_stats_reference_v2.md              [NEW]
+  <TO BE FILLED BY NEXUS: sha256>       <bytes>    v2    stats_algorithm_index_v2.html                           [NEW]
+  <TO BE FILLED BY NEXUS: sha256>       <bytes>    v2    CHANGE_LEDGER_v2.md                                     [NEW — required per packet §15]
+  <TO BE FILLED BY NEXUS: sha256>       <bytes>    v2    MANIFEST_v2.txt                                         [NEW — this file, self-hash after final write]
+
+# --- 2. PRESERVED ORIGINALS (v1/v4 — sha256 pre-computed 2026-07-19 04:04 EDT) ---
+# These must remain byte-identical. Any deviation = acceptance failure.
+
+  fac9648db100a392c9b5568d34be7cdb14be76097021c58c73089b21648ba6d3         48454   v4    04_bentoml_mlflow_feast_reference_architecture.md    [PRESERVED]
+  ef6b197d4527937f191322fb195279ed0d669ca18e07396351a3b54faccb1ae3        102425   v1    05_ui_settings_forms_stats_reference.md              [PRESERVED]
+  90f6d0aaf7c390488977a03cf721ae2dbf8a95f357ab0684e8e5cf536a955762         69807   v1    stats_algorithm_index.html                            [PRESERVED]
+
+# --- 3. DIAGRAM BUNDLE (v1 originals — sha256 pre-computed) ---
+# For diagrams_v2/: if a diagram is unchanged, copy the file byte-for-byte;
+# its sha256 in diagrams_v2/ MUST match its sha256 in diagrams/ (this file).
+# If a diagram is regenerated, add a new row under §4 below and record in
+# CHANGE_LEDGER_v2.md.
+
+  e2e635fe435ef8457bd85e381db14c1c6633c2586859ff99cdae8c3343c9befe        607945   v1    diagrams/truth_source_flow.png                        [PRESERVED (unchanged)]
+  e86fed57f5acd7d217876fd5c256ab4c1edea485b107af08106b76ee93ba18a9        324397   v1    diagrams/bentoml_request_path.png                     [PRESERVED (unchanged)]
+  8c6181ff719443765840ace8946648d5cdc075825d842f2c0a4b020c604f2550        351626   v1    diagrams/cutover_phases.png                           [PRESERVED (unchanged)]
+  a7bddb3f21881525b2e1130a5ecbcde26c3d36e5aee9135d040eb5666aeb7aea        377705   v1    diagrams/wireframe_step3_prospector.png               [PRESERVED (unchanged)]
+  67cfa79f7f92c806f3dfdac10c0a9bc194b1ffb1f401065f38654b9d47fd60b9        395857   v1    diagrams/wireframe_step7_lp.png                       [PRESERVED (unchanged)]
+
+# --- 4. DIAGRAMS v2 BUNDLE (Nexus copies from §3, or regenerates) ---
+# Copy pattern: if diagrams/foo.png sha256 in §3 equals diagrams_v2/foo.png
+# sha256 here, the file is byte-identical (correct). If regenerated, note
+# in CHANGE_LEDGER_v2.md with reason.
+
+  <TO BE FILLED BY NEXUS>                <bytes>    v2    diagrams_v2/truth_source_flow.png                     [COPY of v1]
+  <TO BE FILLED BY NEXUS>                <bytes>    v2    diagrams_v2/bentoml_request_path.png                  [COPY of v1]
+  <TO BE FILLED BY NEXUS>                <bytes>    v2    diagrams_v2/cutover_phases.png                        [COPY of v1]
+  <TO BE FILLED BY NEXUS>                <bytes>    v2    diagrams_v2/wireframe_step3_prospector.png            [COPY of v1]
+  <TO BE FILLED BY NEXUS>                <bytes>    v2    diagrams_v2/wireframe_step7_lp.png                    [COPY of v1]
+
+# --- 5. LINEAGE-ONLY (Dataiku trilogy — not revised in this packet) ---
+# Recorded for provenance completeness. If any of these hashes changes,
+# a silent edit occurred outside this packet's scope.
+
+  1c9c41e6cf30ca8f654e9ddf28da8a376d58cda9cd7b4b8fb9422e561acceb24         20285   v1    01_dataiku_technical_audit.md                         [LINEAGE ONLY]
+  753402936738714cc0f13c9067a5fa1cad0a97e2e4e2362759894c5cc55ad16b         14341   v1    02_dataiku_vs_custom_mlops_dashboard.md                [LINEAGE ONLY]
+  cf2e5d3edd97c06e257bf4dc96cff30fbeb951130ec2673c4245b74c7ab29119         18230   v1    03_dataiku_api_node_performance_tuning.md              [LINEAGE ONLY]
+
+# --- 6. PACKET AUTHORITY ---
+# The correction packet itself. Its sha256 is what Ed references when
+# authorizing Nexus to proceed.
+
+  6b054fcc28fad3cdea1fa1dca196274f0eec4c1e9fe290e9f49400672a8bbfcf         25040   v1    NEXUS_CORRECTION_PACKET_2026-07-19.md                 [PACKET AUTHORITY]
+
+# =====================================================================
+# VERIFICATION PROCEDURE (Nexus must run and record results here)
+# =====================================================================
+#
+# STEP 1 — Verify all PRESERVED lines match before starting:
+#
+#     sha256sum \
+#       04_bentoml_mlflow_feast_reference_architecture.md \
+#       05_ui_settings_forms_stats_reference.md \
+#       stats_algorithm_index.html \
+#       diagrams/truth_source_flow.png \
+#       diagrams/bentoml_request_path.png \
+#       diagrams/cutover_phases.png \
+#       diagrams/wireframe_step3_prospector.png \
+#       diagrams/wireframe_step7_lp.png \
+#       01_dataiku_technical_audit.md \
+#       02_dataiku_vs_custom_mlops_dashboard.md \
+#       03_dataiku_api_node_performance_tuning.md \
+#       NEXUS_CORRECTION_PACKET_2026-07-19.md
+#
+#     Every line must match §2, §3, §5, §6 above. If any drifts → HALT.
+#
+# STEP 2 — Produce new artifacts per NEXUS_CORRECTION_PACKET §16 checklist.
+#
+# STEP 3 — Fill in the <TO BE FILLED BY NEXUS> slots above with the new
+#          artifacts' sha256 and byte counts.
+#
+# STEP 4 — Re-verify all PRESERVED lines still match (nothing silently
+#          changed during the revision).
+#
+# STEP 5 — Compute this manifest's own sha256 AFTER filling every slot
+#          (except its own self-hash line), then record it below.
+#
+# STEP 6 — Sacred canary check: query core.donor_profile where
+#          cluster_id = 372171. Must return 147 transactions totaling
+#          $332,631.30. Record the query result timestamp below.
+#
+# =====================================================================
+# VERIFICATION RESULTS (Nexus fills after completion)
+# =====================================================================
+#
+# Preflight sha256 check (STEP 1):    <PASS | FAIL — list drifted files>
+# Postflight sha256 check (STEP 4):   <PASS | FAIL — list drifted files>
+# Sacred canary (STEP 6):             <cluster 372171 = _____ txns / $_____ , checked at YYYY-MM-DD HH:MM UTC>
+# Self-hash of MANIFEST_v2.txt (excl. this line):  <sha256>
+#
+# =====================================================================
+# ACCEPTANCE
+# =====================================================================
+# Packet accepted only when:
+#   - Every PRESERVED sha256 matches (both pre- and post-flight)
+#   - Every NEW slot is filled with a real sha256 (no <TO BE FILLED>
+#     tokens remain)
+#   - Sacred canary passes
+#   - CHANGE_LEDGER_v2.md exists and its sha256 appears in §1
+#   - Zero DB writes, zero SQL execution, zero deployment performed
+# =====================================================================

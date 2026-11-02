@@ -7,7 +7,7 @@ talks to another spoke directly, and nothing stands alone.
 
 ## The loop, in plain English
 
-> **Brain decides → Wizard asks Ed → Engage sends — and IFTTT nerves keep feeding the Brain events → the hub remembers.**
+> **Brain decides → Wizard asks Ed → Engage sends — and IFTTT nerves feed events; Dataiku computes the Brain's answers → the hub remembers.**
 
 1. **Brain (E20)** — *decides.* The intelligence daemon: watches events
    (a lead opens, RSVPs, goes quiet, a date approaches), matches them against
@@ -31,12 +31,18 @@ talks to another spoke directly, and nothing stands alone.
    rulings. In BroyhillGOP doctrine this is E91 — the empty shelf that gets
    stocked here first.
 
-4. **Engage / Iterable** — *sends.* The engagement engine: journeys,
+4. **Dataiku ML (E60)** — *the math muscle.* The optimization engine the
+   Brain computes with: LP solves (who to ask, how much, which channel,
+   fatigue), propensity models, funnel intelligence, cost ledger. Vendored at
+   `vendor/e60-dataiku/` — ECO_CANONICAL/E60 code + specs + tests, the Dataiku
+   platform-selection ruling, and the class-analytics requirements doc.
+
+5. **Engage / Iterable** — *sends.* The engagement engine: journeys,
    templates, suppression, propensity sync. Vendored at `vendor/bgop-engage/`
    + `vendor/iterable/` (clone map, E30 bridge, Nova teardown, peer design
    draft). Dormant until a channel provider is bound.
 
-5. **The hub itself** — *remembers.* Leads, profiles, scores, timelines,
+6. **The hub itself** — *remembers.* Leads, profiles, scores, timelines,
    photos, campaigns: `app/`, `lib/`, the root Prisma schema. This is the
    shared memory every spoke reads and writes — the reason a new spoke
    plugs in without rewiring the others.
