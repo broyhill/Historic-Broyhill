@@ -52,10 +52,15 @@ talks to another spoke directly, and nothing stands alone.
    builder.* The engine that slices one big audience into living
    microsegments — hierarchy, intensity log, taxonomy extension — crowned by
    the **Living Pyramid crosswalk** (applied live 2026-08-03): the ladder
-   that walks a person from stranger up to true believer, and maps every
-   other spoke's signals onto its rungs. Vendored at `vendor/e59-microsegment/`
-   — ECO_CANONICAL/E59 (intelligence engine, agent mesh, rule engine,
-   hierarchy/intensity SQL, control panel) + pyramid/crosswalk docs.
+   that walks a person from stranger up to true believer. **Cut off from
+   news intelligence:** the pyramid is permanent structure — news heat
+   (E42/E63) is a consumer that *lights* its rungs, never a feed into them;
+   a segment exists because people are what they are, not because something
+   is hot this week — wiring the crosswalk to the news cycle would let
+   today's headlines rewrite the ladder itself. Vendored at
+   `vendor/e59-microsegment/` — ECO_CANONICAL/E59 (intelligence engine,
+   agent mesh, rule engine, hierarchy/intensity SQL, control panel) +
+   pyramid/crosswalk docs.
 
 5. **CFO (E72)** — *the money steward.* Holds the budget, the spend caps,
    and the purse strings — but **controls nobody**: the cost accountant and
