@@ -204,7 +204,7 @@ export default function PhotosPanel() {
         </div></section>
 
         <section className="ibox"><div className="ibox-content space-y-2">
-          <div className="text-[12px] font-semibold text-muted">Generate with AI (Adobe Firefly)</div>
+          <div className="text-[12px] font-semibold text-muted">Generate with AI</div>
           <textarea value={genPrompt} onChange={(e) => setGenPrompt(e.target.value)} placeholder="Describe the image, e.g. wedding table setting in a historic brick hall, warm candlelight" maxLength={1000} rows={3} className={inputCls} aria-label="Image description" />
           <div className="flex gap-2">
             <select value={genRatio} onChange={(e) => setGenRatio(e.target.value)} className={inputCls} aria-label="Aspect ratio">
@@ -222,9 +222,9 @@ export default function PhotosPanel() {
             const r = await call("/api/admin/firefly", json("POST", { prompt: genPrompt.trim(), aspectRatio: genRatio, numVariations: genCount }));
             setGenPrompt("");
             setCurrent(r.folder);
-            return `Generated ${r.photos.length} image${r.photos.length === 1 ? "" : "s"} into "${r.folder}".`;
+            return `Generated ${r.photos.length} image${r.photos.length === 1 ? "" : "s"} into "${r.folder}" via ${r.providerLabel || r.provider}.`;
           })}>{busy === "generate" ? "Generating…" : "Generate into library"}</button>
-          <p className="text-[11.5px] text-subtle">Saves into the "Firefly" folder. Needs the Adobe API key in Vercel env to run.</p>
+          <p className="text-[11.5px] text-subtle">Saves into the "Firefly" folder. Uses the HB engine when IMAGE_GEN_ENGINE_URL is set, otherwise the Adobe provider. Brand kit details are included automatically.</p>
         </div></section>
       </aside>
 
