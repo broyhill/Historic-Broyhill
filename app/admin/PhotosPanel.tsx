@@ -45,6 +45,9 @@ export default function PhotosPanel() {
   const [genPrompt, setGenPrompt] = useState("");
   const [genRatio, setGenRatio] = useState("1:1");
   const [genCount, setGenCount] = useState(1);
+  // Optional source photo for AI edit mode: a library blob URL or an uploaded File.
+  const [genSource, setGenSource] = useState<{ name: string; url?: string; file?: File } | null>(null);
+  const genSourceRef = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
     try {
@@ -218,13 +221,34 @@ export default function PhotosPanel() {
               {[1, 2, 3, 4].map((n) => <option key={n} value={n}>{n}</option>)}
             </select>
           </div>
+          <input ref={genSourceRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" aria-label="Choose a photo to edit"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) setGenSource({ name: f.name, file: f }); e.target.value = ""; }} />
+          {genSource ? (
+            <div className="flex items-center gap-2 text-[12px] text-muted">
+              <span className="truncate flex-1" title={genSource.name}>Editing: {genSource.name}</span>
+              <button className={btnGhost} onClick={() => setGenSource(null)}>Remove</button>
+            </div>
+          ) : (
+            <button className={btnGhost} disabled={busy !== null} onClick={() => genSourceRef.current?.click()}>Start from a photo (optional)</button>
+          )}
           <button className={btnPrimary} disabled={busy !== null || !genPrompt.trim()} onClick={() => run("generate", async () => {
-            const r = await call("/api/admin/firefly", json("POST", { prompt: genPrompt.trim(), aspectRatio: genRatio, numVariations: genCount }));
+            const body: Record<string, unknown> = { prompt: genPrompt.trim(), aspectRatio: genRatio, numVariations: genCount };
+            if (genSource?.file) {
+              const dataUrl = await new Promise<string>((res, rej) => { const fr = new FileReader(); fr.onload = () => res(String(fr.result)); fr.onerror = () => rej(new Error("Could not read that photo.")); fr.readAsDataURL(genSource.file!); });
+              body.sourcePhotoData = dataUrl.split(",")[1] ?? "";
+              body.sourcePhotoType = genSource.file.type || "image/png";
+              body.sourcePhotoName = genSource.file.name;
+            } else if (genSource?.url) {
+              body.sourcePhotoUrl = genSource.url;
+              body.sourcePhotoName = genSource.name;
+            }
+            const r = await call("/api/admin/firefly", json("POST", body));
             setGenPrompt("");
+            setGenSource(null);
             setCurrent(r.folder);
-            return `Generated ${r.photos.length} image${r.photos.length === 1 ? "" : "s"} into "${r.folder}" via ${r.providerLabel || r.provider}.`;
-          })}>{busy === "generate" ? "Generating…" : "Generate into library"}</button>
-          <p className="text-[11.5px] text-subtle">Saves into the "Firefly" folder. Provider order: HB engine → OpenAI → Google Imagen → Replicate → Adobe — a failed provider falls through to the next. Brand kit details are included automatically.</p>
+            return `${genSource ? "Edited" : "Generated"} ${r.photos.length} image${r.photos.length === 1 ? "" : "s"} into "${r.folder}" via ${r.providerLabel || r.provider}.`;
+          })}>{busy === "generate" ? (genSource ? "Editing…" : "Generating…") : genSource ? "Edit photo into library" : "Generate into library"}</button>
+          <p className="text-[11.5px] text-subtle">Saves into the "Firefly" folder. Provider order: HB engine → OpenAI → Google Imagen → Replicate → Adobe — a failed provider falls through to the next. Brand kit details are included automatically. Pick a photo below and hit "AI edit", or upload one, to rewrite it from your prompt (fill chairs, add a speaker).</p>
         </div></section>
       </aside>
 
@@ -297,6 +321,9 @@ export default function PhotosPanel() {
                   <div className="text-[11.5px] text-subtle">{current === ALL ? `${p.folder} · ` : ""}{kb(p.size)}{p.size > 1024 * 1024 ? (isAudioName(p.name) ? " · audio" : isVideoName(p.name) ? " · video" : " · large for texts") : ""}</div>
                   <div className="flex gap-1.5 flex-wrap">
                     <button className={btnGhost} onClick={() => copyLink(p.url)}>Copy link</button>
+                    {!isAudioName(p.name) && !isVideoName(p.name) && (
+                      <button className={btnGhost} onClick={() => setGenSource({ name: p.name, url: p.url })}>AI edit</button>
+                    )}
                     <button className={btnGhost} onClick={() => setEditing({ url: p.url, name: p.name.replace(/\.[^.]+$/, ""), folder: p.folder })}>Edit</button>
                     <button className={btnGhost} disabled={busy !== null} onClick={() => { if (window.confirm(`Delete "${p.name}"? This can't be undone.`)) run("delete", async () => { await call("/api/admin/photos", json("DELETE", { url: p.url })); return "Photo deleted."; }); }}>Delete</button>
                   </div>
