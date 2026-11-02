@@ -1,0 +1,936 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>BGOP Math / Stats / Algorithm Index</title>
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]']] },
+    svg: { fontCache: 'global' }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+<style>
+  :root {
+    --bg:        #0f1720;
+    --panel:    #1a2432;
+    --panel2:   #22304a;
+    --border:   #2c3d55;
+    --text:     #eaeef5;
+    --muted:    #9aa5b8;
+    --accent:   #e39a4c;
+    --accent2:  #2e93b0;
+    --canary:   #e8b04a;
+    --auth:     #b879d8;
+    --pg:       #b32d2d;
+    --ok:       #7c9f5f;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
+               font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+               "Helvetica Neue", Arial, sans-serif; font-size: 14px; }
+  header { padding: 22px 28px 16px; border-bottom: 1px solid var(--border);
+           background: linear-gradient(180deg, #131c2b, var(--bg)); }
+  header h1 { margin: 0 0 4px; font-size: 22px; font-weight: 700; }
+  header p  { margin: 0; color: var(--muted); font-size: 13px; }
+  main { padding: 20px 28px 60px; max-width: 1400px; margin: 0 auto; }
+  .controls { position: sticky; top: 0; z-index: 20; padding: 14px 0;
+              background: var(--bg); border-bottom: 1px solid var(--border);
+              display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  #q { flex: 1 1 320px; min-width: 220px; padding: 10px 12px;
+       background: var(--panel); color: var(--text);
+       border: 1px solid var(--border); border-radius: 6px; font-size: 14px; }
+  #q:focus { outline: none; border-color: var(--accent); }
+  .filter-group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .filter-group span.lbl { color: var(--muted); font-size: 12px;
+                           text-transform: uppercase; letter-spacing: 0.5px;
+                           margin-right: 4px; }
+  button.chip { background: var(--panel); color: var(--text);
+                border: 1px solid var(--border); border-radius: 999px;
+                padding: 6px 12px; cursor: pointer; font-size: 12px;
+                font-family: inherit; transition: all 0.15s; }
+  button.chip:hover { border-color: var(--accent); color: var(--accent); }
+  button.chip.active { background: var(--accent); color: #1a140a;
+                       border-color: var(--accent); font-weight: 600; }
+  button.chip.active[data-group=engine] { background: var(--accent2); color: #0e1e24; border-color: var(--accent2); }
+  .count-line { color: var(--muted); font-size: 12px; margin: 12px 0 4px; }
+  .category-hdr { color: var(--accent); font-size: 15px; text-transform: uppercase;
+                  letter-spacing: 1px; margin: 28px 0 10px; padding-bottom: 6px;
+                  border-bottom: 1px solid var(--border); font-weight: 700; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; vertical-align: top; padding: 10px 12px;
+           border-bottom: 1px solid var(--border); font-size: 13px; }
+  th { color: var(--muted); text-transform: uppercase; font-size: 11px;
+       letter-spacing: 0.5px; font-weight: 600; background: #131c2b; }
+  tr.row { cursor: pointer; }
+  tr.row:hover td { background: var(--panel); }
+  tr.hidden { display: none; }
+  tr.detail td { background: var(--panel2); padding: 12px 24px 16px;
+                 border-bottom: 1px solid var(--border); }
+  tr.detail-row.collapsed { display: none; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px;
+           font-size: 11px; font-weight: 600; margin-right: 4px; margin-bottom: 2px; }
+  .badge.engine  { background: rgba(46,147,176,0.20); color: #67c2dc; }
+  .badge.task    { background: rgba(227,154,76,0.20); color: #f0b880; }
+  .badge.canary  { background: rgba(232,176,74,0.20); color: var(--canary); }
+  .badge.auth    { background: rgba(184,121,216,0.20); color: var(--auth); }
+  .badge.ok      { background: rgba(124,159,95,0.20); color: #9ec482; }
+  .badge.doctrine { background: rgba(232,176,74,0.12); color: var(--canary);
+                    border: 1px solid rgba(232,176,74,0.35);
+                    font-family: "SF Mono", Menlo, Consolas, monospace;
+                    font-size: 10.5px; font-weight: 500; }
+  .formula { background: #0a1119; border-left: 3px solid var(--accent2);
+             padding: 8px 12px; margin: 6px 0; border-radius: 4px;
+             font-size: 13px; color: #d5dae4; }
+  .kv { display: grid; grid-template-columns: 180px 1fr; gap: 4px 14px;
+        margin: 4px 0 8px; }
+  .kv dt { color: var(--muted); font-size: 12px; }
+  .kv dd { margin: 0; font-size: 13px; }
+  code { background: #0a1119; padding: 1px 6px; border-radius: 3px;
+         font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 12px; color: #d5dae4; }
+  .hp-list { margin: 4px 0; padding-left: 20px; }
+  .hp-list li { margin: 2px 0; font-size: 12.5px; }
+  .empty { color: var(--muted); text-align: center; padding: 40px;
+           font-style: italic; }
+  footer { padding: 24px 28px; color: var(--muted); font-size: 12px;
+           border-top: 1px solid var(--border); text-align: center; }
+  footer a { color: var(--accent2); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+  .expand-toggle { color: var(--accent); font-size: 11px; margin-right: 8px;
+                   display: inline-block; width: 12px; transition: transform 0.15s; }
+  tr.row.expanded .expand-toggle { transform: rotate(90deg); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>BGOP Math / Stats / Algorithm Index</h1>
+  <p>Searchable catalogue of every algorithm, statistical test, and math/stats function referenced across
+     Dataiku DSS and the BentoML + MLflow + Feast stack.
+     Click any row to expand parameters and formulas. Every entry is cross-referenced to the BGOP doctrine skill(s) that govern it. Companion to
+     <code>05_ui_settings_forms_stats_reference.md</code>.</p>
+</header>
+
+<main>
+
+<div class="controls">
+  <input id="q" type="text" placeholder="Search algorithm, library, formula, purpose…" autofocus />
+  <div class="filter-group" data-group="category">
+    <span class="lbl">Category</span>
+    <button class="chip active" data-cat="all">all</button>
+    <button class="chip" data-cat="regression">regression</button>
+    <button class="chip" data-cat="classification">classification</button>
+    <button class="chip" data-cat="clustering">clustering</button>
+    <button class="chip" data-cat="dim-reduction">dim-reduction</button>
+    <button class="chip" data-cat="stats-test">stats-test</button>
+    <button class="chip" data-cat="descriptive">descriptive</button>
+    <button class="chip" data-cat="bivariate">bivariate</button>
+    <button class="chip" data-cat="preprocessing">preprocessing</button>
+    <button class="chip" data-cat="curve-fit">curve-fit</button>
+    <button class="chip" data-cat="distribution">distribution</button>
+    <button class="chip" data-cat="time-series">time-series</button>
+    <button class="chip" data-cat="drift">drift</button>
+    <button class="chip" data-cat="diagnostic">diagnostic</button>
+    <button class="chip" data-cat="orchestration">orchestration</button>
+    <button class="chip" data-cat="bgop-moat">bgop-moat</button>
+  </div>
+  <div class="filter-group" data-group="engine">
+    <span class="lbl">Engine</span>
+    <button class="chip active" data-eng="all">all</button>
+    <button class="chip" data-eng="sklearn">scikit-learn</button>
+    <button class="chip" data-eng="xgboost">XGBoost</button>
+    <button class="chip" data-eng="lightgbm">LightGBM</button>
+    <button class="chip" data-eng="catboost">CatBoost</button>
+    <button class="chip" data-eng="mllib">MLLib</button>
+    <button class="chip" data-eng="keras">Keras/TF</button>
+    <button class="chip" data-eng="mlflow-import">MLflow-import</button>
+    <button class="chip" data-eng="oss">OSS (BGOP)</button>
+    <button class="chip" data-eng="dataiku-native">Dataiku-native</button>
+    <button class="chip" data-eng="bgop-moat">BGOP Moat</button>
+  </div>
+</div>
+
+<div class="count-line" id="count-line"></div>
+
+<div id="results"></div>
+
+</main>
+
+<footer>
+  Sources: <a href="https://doc.dataiku.com/dss/latest/machine-learning/algorithms/index.html">Dataiku algorithms</a>
+  · <a href="https://doc.dataiku.com/dss/latest/statistics/tests.html">Statistical tests</a>
+  · <a href="https://doc.dataiku.com/dss/latest/mlops/mlflow-models/limitations.html">MLflow import</a>
+  · <a href="https://docs.feast.dev/">Feast</a>
+  · <a href="https://docs.bentoml.com/">BentoML</a>
+</footer>
+
+<script>
+// ============================================================================
+// Algorithm catalogue — every entry from Section 5 of the reference doc.
+// ============================================================================
+const DATA = [
+  // ---------- REGRESSION ----------
+  { name: "Ordinary Least Squares", doctrine: ["donor-contribution-forecasting"], cat: "regression", eng: ["sklearn"],
+    lib: "sklearn.linear_model.LinearRegression",
+    purpose: "Baseline linear regression; assumes homoscedastic errors",
+    params: ["fit_intercept"],
+    formula: "\\( \\hat{y} = X\\beta \\text{ with } \\hat{\\beta} = (X^TX)^{-1}X^Ty \\)" },
+  { name: "Ridge Regression", doctrine: ["donor-contribution-forecasting"], cat: "regression", eng: ["sklearn"],
+    lib: "sklearn.linear_model.Ridge", purpose: "Linear regression with L2 penalty; handles multicollinearity",
+    params: ["alpha (L2 strength)"],
+    formula: "\\( \\hat{\\beta} = \\arg\\min_\\beta \\|y - X\\beta\\|^2 + \\alpha \\|\\beta\\|_2^2 \\)" },
+  { name: "Lasso Regression", doctrine: ["donor-contribution-forecasting", "bespoke-variable-investment-framework"], cat: "regression", eng: ["sklearn"],
+    lib: "sklearn.linear_model.Lasso", purpose: "Linear regression with L1 penalty; induces sparsity/feature selection",
+    params: ["alpha"], formula: "\\( \\hat{\\beta} = \\arg\\min_\\beta \\|y - X\\beta\\|^2 + \\alpha \\|\\beta\\|_1 \\)" },
+  { name: "Elastic Net", doctrine: ["donor-contribution-forecasting"], cat: "regression", eng: ["sklearn"],
+    lib: "sklearn.linear_model.ElasticNet", purpose: "L1 + L2 hybrid",
+    params: ["alpha", "l1_ratio"],
+    formula: "\\( \\hat{\\beta} = \\arg\\min_\\beta \\|y - X\\beta\\|^2 + \\alpha[\\rho\\|\\beta\\|_1 + (1-\\rho)\\|\\beta\\|_2^2] \\)" },
+  { name: "Decision Tree Regressor", doctrine: ["donor-contribution-forecasting"], cat: "regression", eng: ["sklearn"],
+    lib: "sklearn.tree.DecisionTreeRegressor", purpose: "White-box tree regression",
+    params: ["max_depth", "min_samples_split", "min_samples_leaf", "criterion"] },
+  { name: "Random Forest Regressor", doctrine: ["donor-contribution-forecasting"], cat: "regression", eng: ["sklearn"],
+    lib: "sklearn.ensemble.RandomForestRegressor", purpose: "Bagged trees; robust baseline",
+    params: ["n_estimators", "max_depth", "min_samples_leaf", "max_features"] },
+  { name: "Extra Trees Regressor", doctrine: ["donor-contribution-forecasting"], cat: "regression", eng: ["sklearn"],
+    lib: "sklearn.ensemble.ExtraTreesRegressor", purpose: "Randomized splits, faster than RF",
+    params: ["n_estimators", "max_depth", "max_features"] },
+  { name: "Gradient Boosted Regressor", doctrine: ["donor-contribution-forecasting"], cat: "regression", eng: ["sklearn"],
+    lib: "sklearn.ensemble.GradientBoostingRegressor", purpose: "Sequential trees",
+    params: ["n_estimators", "learning_rate", "max_depth", "subsample", "loss"] },
+  { name: "XGBoost Regressor", doctrine: ["donor-contribution-forecasting", "broyhillgop-data-analyst"], cat: "regression", eng: ["xgboost"],
+    lib: "xgboost.XGBRegressor", purpose: "Gradient-boosted trees, industry-default tabular regressor",
+    params: ["n_estimators", "max_depth", "learning_rate", "min_child_weight",
+             "subsample", "colsample_bytree", "reg_alpha", "reg_lambda",
+             "tree_method", "objective"],
+    notes: "Default in DSS 13 = XGBoost 1.5; DSS 14 supports 2.1 + GPU. Java scoring supported." },
+  { name: "LightGBM Regressor", doctrine: ["donor-contribution-forecasting"], cat: "regression", eng: ["lightgbm"],
+    lib: "lightgbm.LGBMRegressor", purpose: "Leaf-wise gradient boosting; very fast",
+    params: ["num_leaves", "learning_rate", "n_estimators", "min_data_in_leaf",
+             "feature_fraction", "bagging_fraction", "lambda_l1", "lambda_l2"],
+    notes: "Plugin in DSS; native in OSS stack" },
+  { name: "KNN Regressor", doctrine: ["donor-contribution-forecasting"], cat: "regression", eng: ["sklearn"],
+    lib: "sklearn.neighbors.KNeighborsRegressor", purpose: "Instance-based; slow at score time",
+    params: ["n_neighbors", "weights", "metric"] },
+  { name: "SGD Regressor", doctrine: ["donor-contribution-forecasting"], cat: "regression", eng: ["sklearn"],
+    lib: "sklearn.linear_model.SGDRegressor", purpose: "Online-learning friendly linear model",
+    params: ["loss", "penalty", "alpha", "learning_rate", "max_iter"] },
+  { name: "Neural Network Regressor", doctrine: ["donor-contribution-forecasting"], cat: "regression", eng: ["keras"],
+    lib: "keras / tensorflow", purpose: "Multi-layer perceptron regression",
+    params: ["hidden_layers", "units", "activation", "optimizer", "batch_size", "epochs"] },
+  { name: "MLLib Linear Regression", doctrine: ["donor-contribution-forecasting"], cat: "regression", eng: ["mllib"],
+    lib: "pyspark.ml.regression.LinearRegression", purpose: "Distributed linear regression",
+    params: ["regParam", "elasticNetParam"] },
+  { name: "MLLib GBT Regressor", doctrine: ["donor-contribution-forecasting"], cat: "regression", eng: ["mllib"],
+    lib: "pyspark.ml.regression.GBTRegressor", purpose: "Distributed gradient-boosted trees",
+    params: ["maxIter", "maxDepth", "stepSize"] },
+
+  // ---------- CLASSIFICATION ----------
+  { name: "Logistic Regression", doctrine: ["donor-grading-system", "contactability-tiering"], cat: "classification", eng: ["sklearn"],
+    lib: "sklearn.linear_model.LogisticRegression",
+    purpose: "Interpretable linear classifier; baseline for binary/multiclass",
+    params: ["C", "penalty (l1/l2/elasticnet)", "solver", "class_weight", "max_iter"],
+    formula: "\\( P(y=1 \\mid x) = \\frac{1}{1 + e^{-x^T\\beta}} \\)" },
+  { name: "Decision Tree Classifier", doctrine: ["donor-grading-system"], cat: "classification", eng: ["sklearn"],
+    lib: "sklearn.tree.DecisionTreeClassifier", purpose: "White-box tree classifier",
+    params: ["max_depth", "min_samples_split", "criterion (gini/entropy)"],
+    formula: "Gini: \\( 1 - \\sum_c p_c^2 \\)   ·   Entropy: \\( -\\sum_c p_c \\log p_c \\)" },
+  { name: "Random Forest Classifier", doctrine: ["donor-grading-system"], cat: "classification", eng: ["sklearn"],
+    lib: "sklearn.ensemble.RandomForestClassifier", purpose: "Bagged trees; robust baseline",
+    params: ["n_estimators", "max_depth", "class_weight", "max_features"] },
+  { name: "Extra Trees Classifier", doctrine: ["donor-grading-system"], cat: "classification", eng: ["sklearn"],
+    lib: "sklearn.ensemble.ExtraTreesClassifier", purpose: "Randomized-split forest, faster than RF",
+    params: ["n_estimators", "max_depth", "max_features"] },
+  { name: "Gradient Boosted Classifier", doctrine: ["donor-grading-system"], cat: "classification", eng: ["sklearn"],
+    lib: "sklearn.ensemble.GradientBoostingClassifier", purpose: "Sequential boosted trees",
+    params: ["n_estimators", "learning_rate", "max_depth", "subsample"] },
+  { name: "XGBoost Classifier", doctrine: ["donor-grading-system", "broyhillgop-data-analyst"], cat: "classification", eng: ["xgboost"],
+    lib: "xgboost.XGBClassifier",
+    purpose: "Gradient-boosted trees, standard for tabular; Java scoring supported",
+    params: ["n_estimators", "max_depth", "learning_rate", "min_child_weight",
+             "subsample", "colsample_bytree", "scale_pos_weight", "objective"],
+    notes: "Objective: binary:logistic, multi:softprob, etc." },
+  { name: "LightGBM Classifier", doctrine: ["donor-grading-system"], cat: "classification", eng: ["lightgbm"],
+    lib: "lightgbm.LGBMClassifier", purpose: "Leaf-wise gradient boosting classifier",
+    params: ["num_leaves", "learning_rate", "n_estimators", "class_weight", "is_unbalance"] },
+  { name: "CatBoost Classifier", doctrine: ["donor-grading-system"], cat: "classification", eng: ["catboost", "mlflow-import"],
+    lib: "catboost.CatBoostClassifier",
+    purpose: "Ordered boosting with native categorical handling",
+    params: ["iterations", "learning_rate", "depth", "l2_leaf_reg", "cat_features"],
+    notes: "MLflow-import path in Dataiku" },
+  { name: "KNN Classifier", doctrine: ["donor-grading-system"], cat: "classification", eng: ["sklearn"],
+    lib: "sklearn.neighbors.KNeighborsClassifier", purpose: "Instance-based classifier",
+    params: ["n_neighbors", "weights", "metric"] },
+  { name: "SGD Classifier", doctrine: ["donor-grading-system"], cat: "classification", eng: ["sklearn"],
+    lib: "sklearn.linear_model.SGDClassifier",
+    purpose: "Linear model via SGD; loss selects behavior (hinge = linear SVM, log_loss = logistic)",
+    params: ["loss (hinge/log_loss/perceptron)", "penalty", "alpha"] },
+  { name: "Support Vector Machine (SVC)", doctrine: ["donor-grading-system"], cat: "classification", eng: ["sklearn"],
+    lib: "sklearn.svm.SVC", purpose: "Kernel-based classifier; slow at scale",
+    params: ["C", "kernel (linear/rbf/poly)", "gamma"] },
+  { name: "Gaussian Naive Bayes", doctrine: ["donor-grading-system"], cat: "classification", eng: ["sklearn"],
+    lib: "sklearn.naive_bayes.GaussianNB",
+    purpose: "Probabilistic classifier assuming feature independence",
+    params: ["var_smoothing"] },
+  { name: "Multinomial Naive Bayes", doctrine: ["donor-grading-system"], cat: "classification", eng: ["sklearn"],
+    lib: "sklearn.naive_bayes.MultinomialNB", purpose: "For count/text features",
+    params: ["alpha"] },
+  { name: "Neural Network Classifier", doctrine: ["donor-grading-system"], cat: "classification", eng: ["keras"],
+    lib: "keras / tensorflow", purpose: "Multi-layer perceptron classifier",
+    params: ["layers", "activation", "optimizer", "batch_size", "epochs"] },
+  { name: "TabICL", doctrine: ["donor-grading-system"], cat: "classification", eng: ["dataiku-native"],
+    lib: "TabICL (tabular foundation model)",
+    purpose: "Pretrained tabular foundation model with few-shot capability",
+    params: ["context_size", "few_shot_examples"],
+    notes: "New in DSS 14" },
+  { name: "MLLib Logistic Regression", doctrine: ["donor-grading-system"], cat: "classification", eng: ["mllib"],
+    lib: "pyspark.ml.classification.LogisticRegression",
+    purpose: "Distributed logistic regression",
+    params: ["regParam", "elasticNetParam", "family"] },
+  { name: "MLLib GBT Classifier", doctrine: ["donor-grading-system"], cat: "classification", eng: ["mllib"],
+    lib: "pyspark.ml.classification.GBTClassifier",
+    purpose: "Distributed gradient boosted trees",
+    params: ["maxIter", "maxDepth", "stepSize"] },
+
+  // ---------- CLUSTERING ----------
+  { name: "K-Means", doctrine: ["microsegment-selection", "donor-faction-assignment"], cat: "clustering", eng: ["sklearn"],
+    lib: "sklearn.cluster.KMeans", purpose: "Centroid-based clustering",
+    params: ["n_clusters", "init (k-means++)", "n_init", "max_iter"],
+    formula: "\\( \\arg\\min_{S} \\sum_{i=1}^{k} \\sum_{x \\in S_i} \\|x - \\mu_i\\|^2 \\)" },
+  { name: "Mini-batch K-Means", doctrine: ["microsegment-selection"], cat: "clustering", eng: ["sklearn"],
+    lib: "sklearn.cluster.MiniBatchKMeans", purpose: "Fast K-Means for large data",
+    params: ["n_clusters", "batch_size", "max_iter"] },
+  { name: "Ward Hierarchical Clustering", doctrine: ["microsegment-selection"], cat: "clustering", eng: ["sklearn"],
+    lib: "sklearn.cluster.AgglomerativeClustering", purpose: "Agglomerative hierarchical clustering",
+    params: ["n_clusters", "linkage (ward/complete/average)"] },
+  { name: "Spectral Clustering", doctrine: ["microsegment-selection"], cat: "clustering", eng: ["sklearn"],
+    lib: "sklearn.cluster.SpectralClustering", purpose: "Graph-based clustering via Laplacian eigenmaps",
+    params: ["n_clusters", "affinity", "gamma"] },
+  { name: "DBSCAN", doctrine: ["microsegment-selection"], cat: "clustering", eng: ["sklearn"],
+    lib: "sklearn.cluster.DBSCAN", purpose: "Density-based clustering; handles noise",
+    params: ["eps", "min_samples", "metric"] },
+  { name: "Gaussian Mixture", doctrine: ["microsegment-selection", "donor-faction-assignment"], cat: "clustering", eng: ["sklearn"],
+    lib: "sklearn.mixture.GaussianMixture", purpose: "Soft (probabilistic) clustering",
+    params: ["n_components", "covariance_type"] },
+  { name: "Isolation Forest", doctrine: ["donor-identity-ingestion", "confabulation-guard"], cat: "clustering", eng: ["sklearn"],
+    lib: "sklearn.ensemble.IsolationForest", purpose: "Anomaly detection",
+    params: ["n_estimators", "contamination", "max_samples"] },
+
+  // ---------- DIM REDUCTION ----------
+  { name: "PCA", doctrine: ["donor-centric-architecture"], cat: "dim-reduction", eng: ["sklearn", "dataiku-native"],
+    lib: "sklearn.decomposition.PCA",
+    purpose: "Linear projection maximizing variance; feature reduction and interactive stats card",
+    params: ["n_components", "whiten", "svd_solver"],
+    formula: "\\( X_{\\text{proj}} = X W \\text{ where } W = \\text{top-}k \\text{ eigenvectors of } X^TX \\)" },
+  { name: "Truncated SVD", doctrine: ["donor-centric-architecture"], cat: "dim-reduction", eng: ["sklearn"],
+    lib: "sklearn.decomposition.TruncatedSVD", purpose: "SVD-based dim reduction for sparse data",
+    params: ["n_components"] },
+  { name: "t-SNE", doctrine: ["donor-centric-architecture"], cat: "dim-reduction", eng: ["sklearn"],
+    lib: "sklearn.manifold.TSNE", purpose: "Non-linear visualization of high-dim data",
+    params: ["perplexity", "learning_rate", "n_iter"] },
+  { name: "UMAP", doctrine: ["donor-centric-architecture"], cat: "dim-reduction", eng: ["oss"],
+    lib: "umap-learn.UMAP",
+    purpose: "Non-linear dim reduction preserving local + global structure",
+    params: ["n_neighbors", "min_dist", "metric"] },
+  { name: "Kernel PCA", doctrine: ["donor-centric-architecture"], cat: "dim-reduction", eng: ["sklearn"],
+    lib: "sklearn.decomposition.KernelPCA", purpose: "Non-linear PCA via kernel trick",
+    params: ["n_components", "kernel", "gamma"] },
+
+  // ---------- STATISTICAL TESTS ----------
+  { name: "Student t-test (one-sample)", doctrine: ["broyhillgop-data-analyst"], cat: "stats-test", eng: ["dataiku-native"],
+    lib: "Statistics card",
+    purpose: "Test if a variable's mean equals a hypothesized value",
+    params: ["test variable (numerical)", "hypothesized mean μ₀", "alternative (two/one-sided)"],
+    h0: "Mean = μ₀",
+    formula: "\\( t = \\frac{\\bar{x} - \\mu_0}{s / \\sqrt{n}} \\)" },
+  { name: "Z-test (one-sample)", doctrine: ["broyhillgop-data-analyst"], cat: "stats-test", eng: ["dataiku-native"],
+    lib: "Statistics card",
+    purpose: "One-sample mean test when population σ is known",
+    params: ["test variable", "μ₀", "σ (known)"],
+    h0: "Mean = μ₀",
+    formula: "\\( z = \\frac{\\bar{x} - \\mu_0}{\\sigma / \\sqrt{n}} \\)" },
+  { name: "Sign test (one-sample)", doctrine: ["broyhillgop-data-analyst"], cat: "stats-test", eng: ["dataiku-native"],
+    lib: "Statistics card", purpose: "Non-parametric test on median",
+    params: ["test variable", "hypothesized median m₀"],
+    h0: "Median = m₀",
+    formula: "Uses binomial distribution of \\( \\text{sign}(x_i - m_0) \\)" },
+  { name: "Shapiro-Wilk", doctrine: ["broyhillgop-data-analyst"], cat: "stats-test", eng: ["dataiku-native"],
+    lib: "Statistics card", purpose: "Test if a variable is normally distributed",
+    params: ["test variable"],
+    h0: "Sample ~ N(μ, σ²)",
+    formula: "\\( W = \\frac{(\\sum a_i x_{(i)})^2}{\\sum(x_i - \\bar{x})^2} \\)" },
+  { name: "Student/Welch t-test (two-sample)", doctrine: ["broyhillgop-data-analyst"], cat: "stats-test", eng: ["dataiku-native"],
+    lib: "Statistics card",
+    purpose: "Compare means of two groups",
+    params: ["test variable (numerical)", "categorical (2 levels)",
+             "assume equal variance (Welch vs Student)"],
+    h0: "Mean₁ = Mean₂" },
+  { name: "Median Mood test (two-sample)", doctrine: ["broyhillgop-data-analyst"], cat: "stats-test", eng: ["dataiku-native"],
+    lib: "Statistics card", purpose: "Non-parametric two-sample median test",
+    params: ["test variable", "categorical (2 levels)"],
+    h0: "Median₁ = Median₂" },
+  { name: "Levene test (two-sample)", doctrine: ["broyhillgop-data-analyst"], cat: "stats-test", eng: ["dataiku-native"],
+    lib: "Statistics card", purpose: "Compare variances between two groups (robust)",
+    params: ["test variable", "categorical (2 levels)",
+             "centering statistic (mean/median/trimmed)"],
+    h0: "Var₁ = Var₂" },
+  { name: "Kolmogorov-Smirnov (two-sample)", doctrine: ["broyhillgop-data-analyst"], cat: "stats-test", eng: ["dataiku-native"],
+    lib: "Statistics card", purpose: "Compare full distributions of two samples",
+    params: ["test variable", "categorical (2 levels)"],
+    h0: "F₁(x) = F₂(x)",
+    formula: "\\( D = \\sup_x |F_1(x) - F_2(x)| \\)" },
+  { name: "One-way ANOVA", doctrine: ["broyhillgop-data-analyst"], cat: "stats-test", eng: ["dataiku-native"],
+    lib: "Statistics card", purpose: "Compare means across ≥2 groups",
+    params: ["test variable", "categorical (n levels)", "population definition"],
+    h0: "All group means equal",
+    formula: "\\( F = \\frac{\\text{MS}_{\\text{between}}}{\\text{MS}_{\\text{within}}} \\)" },
+  { name: "Median Mood test (N-sample)", doctrine: ["broyhillgop-data-analyst"], cat: "stats-test", eng: ["dataiku-native"],
+    lib: "Statistics card", purpose: "Non-parametric N-group median comparison",
+    params: ["test variable", "categorical (n levels)"],
+    h0: "All medians equal" },
+  { name: "Levene test (N-sample)", doctrine: ["broyhillgop-data-analyst"], cat: "stats-test", eng: ["dataiku-native"],
+    lib: "Statistics card", purpose: "Compare variances across n groups",
+    params: ["test variable", "categorical", "centering statistic"],
+    h0: "All variances equal" },
+  { name: "Pairwise Student/Welch t-test", doctrine: ["broyhillgop-data-analyst"], cat: "stats-test", eng: ["dataiku-native"],
+    lib: "Statistics card",
+    purpose: "Pairwise mean comparisons with multiple-testing adjustment",
+    params: ["test variable", "categorical", "compare all pairs OR vs reference",
+             "adjustment (None / Bonferroni / Holm-Bonferroni / FDR-BH)"],
+    h0: "Means equal in each pair" },
+  { name: "Pairwise Median Mood test", doctrine: ["broyhillgop-data-analyst"], cat: "stats-test", eng: ["dataiku-native"],
+    lib: "Statistics card", purpose: "Pairwise median comparisons",
+    params: ["test variable", "categorical", "comparison mode", "adjustment"],
+    h0: "Medians equal in each pair" },
+  { name: "Pairwise Levene test", doctrine: ["broyhillgop-data-analyst"], cat: "stats-test", eng: ["dataiku-native"],
+    lib: "Statistics card", purpose: "Pairwise variance comparisons",
+    params: ["test variable", "categorical", "centering", "comparison mode", "adjustment"],
+    h0: "Variances equal in each pair" },
+  { name: "Chi-square independence", doctrine: ["broyhillgop-data-analyst", "issue-polarity-mapper"], cat: "stats-test", eng: ["dataiku-native"],
+    lib: "Statistics card", purpose: "Test independence of two categorical variables",
+    params: ["variable 1 (categorical)", "variable 2 (categorical)",
+             "max X levels", "max Y levels"],
+    h0: "The two variables are independent",
+    formula: "\\( \\chi^2 = \\sum_{i,j} \\frac{(O_{ij} - E_{ij})^2}{E_{ij}} \\)" },
+
+  // ---------- DESCRIPTIVE ----------
+  { name: "Mean", doctrine: ["broyhillgop-data-analyst"], cat: "descriptive", eng: ["dataiku-native"],
+    lib: "Univariate card", purpose: "Arithmetic average",
+    formula: "\\( \\bar{x} = \\frac{1}{n}\\sum_i x_i \\)" },
+  { name: "Median", doctrine: ["broyhillgop-data-analyst"], cat: "descriptive", eng: ["dataiku-native"],
+    lib: "Univariate card", purpose: "50th percentile" },
+  { name: "Variance (sample)", doctrine: ["broyhillgop-data-analyst"], cat: "descriptive", eng: ["dataiku-native"],
+    lib: "Univariate card", purpose: "Spread around mean",
+    formula: "\\( s^2 = \\frac{1}{n-1}\\sum_i(x_i - \\bar{x})^2 \\)" },
+  { name: "Standard deviation", doctrine: ["broyhillgop-data-analyst"], cat: "descriptive", eng: ["dataiku-native"],
+    lib: "Univariate card", purpose: "√variance",
+    formula: "\\( s = \\sqrt{s^2} \\)" },
+  { name: "Skewness", doctrine: ["broyhillgop-data-analyst"], cat: "descriptive", eng: ["dataiku-native"],
+    lib: "Univariate card", purpose: "Distribution asymmetry",
+    formula: "\\( \\tilde{\\mu}_3 = \\frac{1}{n}\\sum_i \\left(\\frac{x_i - \\bar{x}}{s}\\right)^3 \\)" },
+  { name: "Excess kurtosis", doctrine: ["broyhillgop-data-analyst"], cat: "descriptive", eng: ["dataiku-native"],
+    lib: "Univariate card", purpose: "Tailedness relative to normal",
+    formula: "\\( \\tilde{\\mu}_4 - 3 \\)" },
+  { name: "IQR", doctrine: ["broyhillgop-data-analyst"], cat: "descriptive", eng: ["dataiku-native"],
+    lib: "Univariate card", purpose: "Interquartile range Q3 − Q1" },
+  { name: "MAD", doctrine: ["broyhillgop-data-analyst"], cat: "descriptive", eng: ["dataiku-native"],
+    lib: "Univariate card", purpose: "Median absolute deviation",
+    formula: "\\( \\text{median}(|x_i - \\text{median}(x)|) \\)" },
+  { name: "Coefficient of variation", doctrine: ["broyhillgop-data-analyst"], cat: "descriptive", eng: ["dataiku-native"],
+    lib: "Univariate card", purpose: "Relative variability",
+    formula: "\\( CV = s / \\bar{x} \\)" },
+
+  // ---------- BIVARIATE ----------
+  { name: "Pearson correlation", doctrine: ["broyhillgop-data-analyst", "bespoke-variable-investment-framework"], cat: "bivariate", eng: ["dataiku-native"],
+    lib: "Correlation matrix",
+    purpose: "Linear correlation between two continuous variables",
+    formula: "\\( r = \\frac{\\sum (x_i - \\bar{x})(y_i - \\bar{y})}{\\sqrt{\\sum(x_i - \\bar{x})^2 \\sum(y_i - \\bar{y})^2}} \\)" },
+  { name: "Spearman rank correlation", doctrine: ["broyhillgop-data-analyst"], cat: "bivariate", eng: ["dataiku-native"],
+    lib: "Correlation matrix", purpose: "Monotonic correlation via ranks" },
+  { name: "Kendall tau", doctrine: ["broyhillgop-data-analyst"], cat: "bivariate", eng: ["dataiku-native"],
+    lib: "Correlation matrix", purpose: "Rank concordance",
+    formula: "\\( \\tau = \\frac{C - D}{\\binom{n}{2}} \\)" },
+  { name: "Covariance", doctrine: ["broyhillgop-data-analyst"], cat: "bivariate", eng: ["dataiku-native"],
+    lib: "Univariate/Bivariate",
+    purpose: "Joint variability of two variables",
+    formula: "\\( \\text{cov}(x,y) = \\frac{1}{n-1}\\sum_i (x_i - \\bar{x})(y_i - \\bar{y}) \\)" },
+  { name: "Cramér's V", doctrine: ["broyhillgop-data-analyst"], cat: "bivariate", eng: ["dataiku-native"],
+    lib: "Bivariate categorical",
+    purpose: "Association strength between two categorical variables",
+    formula: "\\( V = \\sqrt{\\frac{\\chi^2 / n}{\\min(k-1, r-1)}} \\)" },
+  { name: "Mutual information", doctrine: ["donor-centric-architecture", "bespoke-variable-investment-framework"], cat: "bivariate", eng: ["sklearn"],
+    lib: "sklearn.feature_selection.mutual_info_*",
+    purpose: "Non-linear dependency between two variables",
+    formula: "\\( I(X;Y) = \\sum_{x,y} p(x,y)\\log\\frac{p(x,y)}{p(x)p(y)} \\)" },
+
+  // ---------- PREPROCESSING ----------
+  { name: "Standard rescaling (z-score)", doctrine: ["donor-data-matching"], cat: "preprocessing", eng: ["dataiku-native"],
+    lib: "Features handling", purpose: "Center and scale to unit variance",
+    formula: "\\( x' = (x - \\bar{x}) / s \\)" },
+  { name: "MinMax rescaling", doctrine: ["donor-data-matching"], cat: "preprocessing", eng: ["dataiku-native"],
+    lib: "Features handling", purpose: "Scale to [0, 1]",
+    formula: "\\( x' = (x - \\min) / (\\max - \\min) \\)" },
+  { name: "Robust rescaling", doctrine: ["donor-data-matching"], cat: "preprocessing", eng: ["dataiku-native"],
+    lib: "Features handling", purpose: "Median/IQR rescaling; robust to outliers",
+    formula: "\\( x' = (x - \\text{median}) / IQR \\)" },
+  { name: "Equal-frequency binning", doctrine: ["donor-data-matching"], cat: "preprocessing", eng: ["dataiku-native"],
+    lib: "Features handling", purpose: "Quantile-based discretization" },
+  { name: "Equal-width binning", doctrine: ["donor-data-matching"], cat: "preprocessing", eng: ["dataiku-native"],
+    lib: "Features handling", purpose: "Uniform-width discretization" },
+  { name: "Log transform", doctrine: ["donor-data-matching"], cat: "preprocessing", eng: ["dataiku-native"],
+    lib: "Features handling", purpose: "Reduce skew of positive-valued variables",
+    formula: "\\( x' = \\ln(x + \\epsilon) \\)" },
+  { name: "One-hot encoding (dummification)", doctrine: ["donor-data-matching"], cat: "preprocessing", eng: ["dataiku-native", "sklearn"],
+    lib: "Features handling / sklearn.preprocessing.OneHotEncoder",
+    purpose: "Categorical → k or k-1 boolean columns" },
+  { name: "Impact coding", doctrine: ["donor-data-matching"], cat: "preprocessing", eng: ["dataiku-native"],
+    lib: "Features handling", purpose: "Replace category with target mean; leakage-safe via CV" },
+  { name: "Target encoding (GLMM)", doctrine: ["donor-data-matching"], cat: "preprocessing", eng: ["dataiku-native"],
+    lib: "Features handling",
+    purpose: "Bayesian mixed-model shrinkage of category → target mean" },
+  { name: "Hashing trick", doctrine: ["donor-data-matching"], cat: "preprocessing", eng: ["dataiku-native", "sklearn"],
+    lib: "sklearn.feature_extraction.FeatureHasher",
+    purpose: "High-cardinality categorical → fixed-size hash" },
+  { name: "TF-IDF", doctrine: ["donor-profile-enrichment"], cat: "preprocessing", eng: ["dataiku-native", "sklearn"],
+    lib: "sklearn.feature_extraction.text.TfidfVectorizer",
+    purpose: "Text → weighted sparse matrix",
+    formula: "\\( \\text{tfidf}(t, d) = \\text{tf}(t,d) \\cdot \\log \\frac{N}{\\text{df}(t)} \\)" },
+  { name: "Count vectorization", doctrine: ["donor-profile-enrichment"], cat: "preprocessing", eng: ["sklearn"],
+    lib: "sklearn.feature_extraction.text.CountVectorizer",
+    purpose: "Text → bag-of-words counts" },
+
+  // ---------- CURVE FIT ----------
+  { name: "Linear fit", doctrine: ["broyhillgop-data-analyst"], cat: "curve-fit", eng: ["dataiku-native"],
+    lib: "Fit curves card", purpose: "y = a·x + b" },
+  { name: "Polynomial fit", doctrine: ["broyhillgop-data-analyst"], cat: "curve-fit", eng: ["dataiku-native"],
+    lib: "Fit curves card", purpose: "y = Σ aᵢ·xⁱ" },
+  { name: "Exponential fit", doctrine: ["broyhillgop-data-analyst"], cat: "curve-fit", eng: ["dataiku-native"],
+    lib: "Fit curves card", purpose: "y = a·exp(b·x)" },
+  { name: "Logarithmic fit", doctrine: ["broyhillgop-data-analyst"], cat: "curve-fit", eng: ["dataiku-native"],
+    lib: "Fit curves card", purpose: "y = a·ln(x) + b" },
+  { name: "Power fit", doctrine: ["broyhillgop-data-analyst"], cat: "curve-fit", eng: ["dataiku-native"],
+    lib: "Fit curves card", purpose: "y = a·xᵇ" },
+  { name: "Sigmoid (logistic) fit", doctrine: ["ask-amount-elasticity"], cat: "curve-fit", eng: ["dataiku-native"],
+    lib: "Fit curves card",
+    purpose: "S-shaped growth curve",
+    formula: "\\( y = \\frac{L}{1 + e^{-k(x - x_0)}} \\)" },
+
+  // ---------- DISTRIBUTIONS ----------
+  { name: "Normal distribution", doctrine: ["broyhillgop-data-analyst"], cat: "distribution", eng: ["dataiku-native"],
+    lib: "Fit distributions card",
+    purpose: "Bell curve; params μ, σ²",
+    formula: "\\( f(x) = \\frac{1}{\\sigma\\sqrt{2\\pi}} e^{-\\frac{(x-\\mu)^2}{2\\sigma^2}} \\)" },
+  { name: "LogNormal distribution", doctrine: ["donor-contribution-forecasting"], cat: "distribution", eng: ["dataiku-native"],
+    lib: "Fit distributions card",
+    purpose: "ln(X) is normal; skewed right",
+    formula: "\\( f(x) = \\frac{1}{x\\sigma\\sqrt{2\\pi}} e^{-\\frac{(\\ln x - \\mu)^2}{2\\sigma^2}} \\)" },
+  { name: "Exponential distribution", doctrine: ["donor-retention-triggers"], cat: "distribution", eng: ["dataiku-native"],
+    lib: "Fit distributions card",
+    purpose: "Time-to-event; memoryless",
+    formula: "\\( f(x) = \\lambda e^{-\\lambda x} \\)" },
+  { name: "Gamma distribution", doctrine: ["donor-contribution-forecasting"], cat: "distribution", eng: ["dataiku-native"],
+    lib: "Fit distributions card",
+    purpose: "Waiting time for k events",
+    formula: "\\( f(x) = \\frac{1}{\\Gamma(k)\\theta^k} x^{k-1} e^{-x/\\theta} \\)" },
+  { name: "Beta distribution", doctrine: ["donor-contribution-forecasting"], cat: "distribution", eng: ["dataiku-native"],
+    lib: "Fit distributions card", purpose: "Proportions on [0,1]",
+    formula: "\\( f(x) = \\frac{x^{\\alpha-1}(1-x)^{\\beta-1}}{B(\\alpha,\\beta)} \\)" },
+  { name: "Weibull distribution", doctrine: ["donor-retention-triggers"], cat: "distribution", eng: ["dataiku-native"],
+    lib: "Fit distributions card",
+    purpose: "Reliability/lifetime",
+    formula: "\\( f(x) = \\frac{k}{\\lambda}\\left(\\frac{x}{\\lambda}\\right)^{k-1} e^{-(x/\\lambda)^k} \\)" },
+  { name: "Poisson distribution", doctrine: ["donor-contribution-forecasting"], cat: "distribution", eng: ["dataiku-native"],
+    lib: "Fit distributions card",
+    purpose: "Count events per interval",
+    formula: "\\( P(X=k) = \\frac{\\lambda^k e^{-\\lambda}}{k!} \\)" },
+  { name: "Binomial distribution", doctrine: ["broyhillgop-data-analyst"], cat: "distribution", eng: ["dataiku-native"],
+    lib: "Fit distributions card",
+    purpose: "k successes in n trials",
+    formula: "\\( P(X=k) = \\binom{n}{k} p^k (1-p)^{n-k} \\)" },
+
+  // ---------- TIME SERIES / SURVIVAL (BGOP OSS stack) ----------
+  { name: "BG/NBD model", doctrine: ["donor-contribution-forecasting"], cat: "time-series", eng: ["oss"],
+    lib: "lifetimes.BetaGeoFitter",
+    purpose: "Donor gift-frequency prediction (E01 donor forecasting)",
+    params: ["penalizer_coef"],
+    notes: "Per donor-contribution-forecasting" },
+  { name: "Pareto/NBD model", doctrine: ["donor-contribution-forecasting"], cat: "time-series", eng: ["oss"],
+    lib: "lifetimes.ParetoNBDFitter",
+    purpose: "Alternative gift-frequency + churn model",
+    params: ["penalizer_coef"] },
+  { name: "Gamma-Gamma model", doctrine: ["donor-contribution-forecasting"], cat: "time-series", eng: ["oss"],
+    lib: "lifetimes.GammaGammaFitter",
+    purpose: "Gift-size prediction conditional on frequency" },
+  { name: "Kalman filter", doctrine: ["news-driven-heat-quantification", "heat-tensor-scoring"], cat: "time-series", eng: ["oss"],
+    lib: "pykalman.KalmanFilter",
+    purpose: "State-space updates for E63 heat tensor" },
+  { name: "Cox proportional hazards", doctrine: ["donor-retention-triggers"], cat: "time-series", eng: ["oss"],
+    lib: "lifelines.CoxPHFitter",
+    purpose: "Donor lapse / survival analysis" },
+  { name: "ARIMA", doctrine: ["donor-contribution-forecasting"], cat: "time-series", eng: ["oss"],
+    lib: "statsmodels.tsa.arima.model.ARIMA",
+    purpose: "Univariate time-series forecasting",
+    params: ["order (p,d,q)", "seasonal_order"] },
+  { name: "Prophet", doctrine: ["donor-contribution-forecasting"], cat: "time-series", eng: ["oss"],
+    lib: "prophet.Prophet",
+    purpose: "Time-series with automatic seasonality + holidays",
+    params: ["seasonality_mode", "holidays", "changepoint_prior_scale"] },
+
+  // ---------- DRIFT ----------
+  { name: "KS test (data drift)", doctrine: ["closed-loop-ml-system"], cat: "drift", eng: ["dataiku-native", "oss"],
+    lib: "Drift analysis / scipy.stats.ks_2samp",
+    purpose: "Per-feature data drift (numerical)",
+    formula: "\\( D = \\sup_x |F_1(x) - F_2(x)| \\)" },
+  { name: "Chi-square drift", doctrine: ["closed-loop-ml-system"], cat: "drift", eng: ["dataiku-native", "oss"],
+    lib: "Drift analysis / scipy.stats.chi2_contingency",
+    purpose: "Per-feature data drift (categorical)" },
+  { name: "Population Stability Index (PSI)", doctrine: ["closed-loop-ml-system"], cat: "drift", eng: ["dataiku-native", "oss"],
+    lib: "Drift analysis",
+    purpose: "Feature drift magnitude score",
+    formula: "\\( \\text{PSI} = \\sum_i (P_i - Q_i) \\ln \\frac{P_i}{Q_i} \\)",
+    notes: "Rule of thumb: <0.1 no drift, 0.1–0.25 moderate, >0.25 significant" },
+  { name: "Prediction drift", doctrine: ["closed-loop-ml-system"], cat: "drift", eng: ["dataiku-native"],
+    lib: "Drift analysis",
+    purpose: "Distribution shift of predicted probabilities" },
+  { name: "Domain classifier drift", doctrine: ["closed-loop-ml-system"], cat: "drift", eng: ["dataiku-native", "oss"],
+    lib: "Drift analysis",
+    purpose: "Train adversarial classifier on old vs new data; p-value on discriminability" },
+
+  // ---------- DIAGNOSTIC ----------
+  { name: "Confusion matrix", doctrine: ["broyhillgop-data-analyst"], cat: "diagnostic", eng: ["dataiku-native", "sklearn"],
+    lib: "Model diagnostics / sklearn.metrics.confusion_matrix",
+    purpose: "TP/FP/TN/FN table" },
+  { name: "ROC curve + AUC", doctrine: ["broyhillgop-data-analyst"], cat: "diagnostic", eng: ["dataiku-native", "sklearn"],
+    lib: "sklearn.metrics.roc_auc_score",
+    purpose: "TPR vs FPR; AUC summarizes ranking quality" },
+  { name: "Precision-Recall curve", doctrine: ["broyhillgop-data-analyst"], cat: "diagnostic", eng: ["dataiku-native", "sklearn"],
+    lib: "sklearn.metrics.precision_recall_curve",
+    purpose: "Better than ROC for imbalanced classes" },
+  { name: "Lift chart", doctrine: ["broyhillgop-data-analyst"], cat: "diagnostic", eng: ["dataiku-native"],
+    lib: "Model diagnostics",
+    purpose: "Cumulative gain over baseline" },
+  { name: "Calibration curve", doctrine: ["broyhillgop-data-analyst"], cat: "diagnostic", eng: ["dataiku-native", "sklearn"],
+    lib: "sklearn.calibration.calibration_curve",
+    purpose: "Observed vs predicted probability agreement" },
+  { name: "Feature importance (gain/split)", doctrine: ["broyhillgop-data-analyst", "bespoke-variable-investment-framework"], cat: "diagnostic", eng: ["xgboost", "lightgbm"],
+    lib: "model.feature_importances_",
+    purpose: "Tree ensembles: gain / cover / split importance" },
+  { name: "Permutation importance", doctrine: ["bespoke-variable-investment-framework"], cat: "diagnostic", eng: ["sklearn"],
+    lib: "sklearn.inspection.permutation_importance",
+    purpose: "Model-agnostic importance via random feature shuffling" },
+  { name: "Partial dependence plot (PDP)", doctrine: ["broyhillgop-data-analyst"], cat: "diagnostic", eng: ["dataiku-native", "sklearn"],
+    lib: "sklearn.inspection.PartialDependenceDisplay",
+    purpose: "Marginal effect of a feature on the prediction" },
+  { name: "ICE plot", doctrine: ["broyhillgop-data-analyst"], cat: "diagnostic", eng: ["dataiku-native"],
+    lib: "Model diagnostics",
+    purpose: "Per-instance conditional expectation" },
+  { name: "SHAP values", doctrine: ["approval-queue-architecture", "broyhillgop-message-review"], cat: "diagnostic", eng: ["oss"],
+    lib: "shap.TreeExplainer / shap.KernelExplainer",
+    purpose: "Additive per-feature contribution to a single prediction",
+    formula: "\\( \\phi_i = \\sum_{S \\subseteq N \\setminus \\{i\\}} \\frac{|S|!(|N|-|S|-1)!}{|N|!}[v(S \\cup \\{i\\}) - v(S)] \\)" },
+  { name: "Subpopulation analysis", doctrine: ["candidate-silo-protections"], cat: "diagnostic", eng: ["dataiku-native"],
+    lib: "Model diagnostics",
+    purpose: "Metrics by segment (per-group performance breakdown)" },
+  // ---------- BGOP MOAT (bespoke, code-first) ----------
+  { name: "LP Decision Engine (E60)", doctrine: ["lp-decision-engine","advanced-decision-modeling","bespoke-variable-investment-framework"], cat: "bgop-moat", eng: ["oss","bgop-moat"],
+    lib: "OR-Tools GLOP / HiGHS / Gurobi (backend/python/ecosystems/e60_profit_engine/lp_solver.py)",
+    purpose: "SPINE of BGOP: LP/MIP optimizer maximizing expected net revenue over (donor × candidate × channel × time), subject to channel capacity, fatigue caps, TCPA/10DLC/FEC, opt-out, budget, and candidate-time inventory",
+    params: ["Solver (OR-Tools GLOP / HiGHS / Gurobi)","Time horizon T","Channel set K","Budget B","Per-candidate time inventory T_c","Fatigue cap F_d per donor"],
+    formula: "\\( \\max \\sum_{d,c,k,t} x_{d,c,k,t} \\cdot \\text{ENR}(d,c,k,t) \\text{ s.t. capacity, fatigue, TCPA, budget, candidate-time} \\)",
+    notes: "Takes priority over donor-contribution-forecasting: forecasting feeds LP; LP decides. Emits shadow prices + sensitivity analysis. Consumed by E68 Wizard Step 7 via /lp/solve on port 8083." },
+  { name: "Two-Tower Recommender (E11-E25)", doctrine: ["donor-centric-architecture","race-relational-scoring","heat-tensor-scoring"], cat: "bgop-moat", eng: ["keras","oss","bgop-moat"],
+    lib: "TensorFlow Recommenders / PyTorch (backend/python/ecosystems/e11_donor_intelligence/two_tower/)",
+    purpose: "Score every (donor, candidate) pair via dot product of donor tower and candidate tower embeddings; multiplied by donor-intrinsic Receptivity and candidate capacity",
+    params: ["Embedding dim k (typically 128)","Donor signature width (2550+ vars)","Loss (contrastive / triplet)","Negative sampling strategy","pgvector index (ivfflat, cosine ops)","Candidate-tower refresh cadence"],
+    formula: "\\( \\text{score}(d,c) = R(d) \\cdot \\phi_D(x_d) \\cdot \\phi_C(x_c) \\cdot K(c) \\)",
+    notes: "Donor tower precomputed nightly (feast.donor_embedding, pgvector). Candidate tower in-memory in BentoML two-tower-svc. Candidate-scoped pseudonymous IDs enforced at request time. p95 < 25 ms per (candidate, top-k=200)." },
+  { name: "CPDR (Discounted Cost Per Dollar Raised)", doctrine: ["lp-decision-engine","donor-contribution-forecasting"], cat: "bgop-moat", eng: ["oss","bgop-moat"],
+    lib: "backend/python/ecosystems/e60_profit_engine/cpdr.py",
+    purpose: "Activity-Based Costing × Probability-Weighted × Allocated Overhead cost per dollar raised, discounted by election-cycle relevance curve",
+    params: ["Channel k","Time t in cycle","ABC cost model","Overhead allocation rule","Cycle relevance curve"],
+    formula: "\\( \\text{CPDR}_{disc}(k,t) = \\text{CPDR}(k,t) / \\rho(t) \\text{ where } \\rho(t) \\text{ is election-cycle relevance} \\)",
+    notes: "Coefficient in LP decision engine objective; drives LTV:CAC ratio per capacity tier" },
+  { name: "Ask-Amount Elasticity", doctrine: ["ask-amount-elasticity","donor-contribution-forecasting"], cat: "bgop-moat", eng: ["oss","bgop-moat"],
+    lib: "backend/python/ecosystems/e01_donor_intelligence/ask_amount.py",
+    purpose: "Calibrate each prospect's ask amount from lifetime value, capacity tier, and recency",
+    params: ["LTV (BG/NBD × Gamma-Gamma)","Capacity tier","Recency bucket","Ask-elasticity curve per tier"],
+    formula: "\\( \\text{ask}^*(d) = \\arg\\max_a P_\\text{gift}(a \\mid d) \\cdot a \\)",
+    notes: "Fed into LP decision engine; consumed by E64 Step 3 (decision trigger)" },
+  { name: "Multinomial Logit Channel Choice", doctrine: ["waterfall-orchestration-engine","lp-decision-engine"], cat: "bgop-moat", eng: ["sklearn","oss","bgop-moat"],
+    lib: "backend/python/ecosystems/e60_profit_engine/channel_choice.py",
+    purpose: "Predict P(engage | donor, candidate, channel, time) as multinomial logit over channels",
+    params: ["Feature set (grade, contactability, faction, prior engagement)","Regularization","CV folds"],
+    formula: "\\( P(k \\mid d,c,t) = \\frac{\\exp(\\beta_k^T z_{d,c,t})}{\\sum_{k’} \\exp(\\beta_{k’}^T z_{d,c,t})} \\)",
+    notes: "Feeds ENR coefficient into LP; respects TCPA/10DLC/opt-out feasibility" },
+  { name: "Triple Grade Percentile", doctrine: ["donor-grading-system"], cat: "bgop-moat", eng: ["oss","bgop-moat"],
+    lib: "CALCULATE_TRIPLE_GRADES.sql / core.donor_grades_hist",
+    purpose: "State + District + County percentile ranks + composite grade on 13-tier A++ to D- + U ladder",
+    params: ["State/District/County scope","Cat 13 component weights","Grade ladder thresholds"],
+    formula: "\\( \\text{percentile}_g(d) = \\frac{|\\{d’ \\in g : \\text{giving}(d’) \\le \\text{giving}(d)\\}|}{|g|} \\)",
+    notes: "13 lettered tiers A++ down to D- plus U. Feeds two-tower Receptivity and LP objective." },
+  { name: "Race-Relational Score", doctrine: ["race-relational-scoring"], cat: "bgop-moat", eng: ["oss","bgop-moat"],
+    lib: "backend/python/ecosystems/e01_donor_intelligence/race_relational.py",
+    purpose: "'Grade the matchup, not the donor.' Composite of donor fingerprint × office class with the 40% Rule (60% ideology / 25% tribal / 15% strategic-industry)",
+    params: ["Office class taxonomy (10 classes)","Layer weights (60/25/15)","Tribal-override qualifiers","Single-driver detection threshold"],
+    formula: "\\( \\text{RRS}(d,r) = 0.60 \\cdot L_\\text{ideology} + 0.25 \\cdot L_\\text{tribal} + 0.15 \\cdot L_\\text{industry} \\)",
+    notes: "Tribal-override qualifiers: religion, ethnicity, military unit, alumni, family, hometown" },
+  { name: "Kalman Heat-Tensor Update", doctrine: ["news-driven-heat-quantification","heat-tensor-scoring"], cat: "bgop-moat", eng: ["oss","bgop-moat"],
+    lib: "pykalman.KalmanFilter + backend/python/ecosystems/e63_heat_tensor/",
+    purpose: "State-space update of issue × faction × industry × geography heat tensor from live news on 60-sec tick + 06:14 EDT morning sweep",
+    params: ["Transition matrix F","Observation matrix H","Process noise Q","Observation noise R","Salience decay curve","Bias monitor thresholds"],
+    formula: "\\( x_{t|t} = x_{t|t-1} + K_t (y_t - H x_{t|t-1}) \\)",
+    notes: "Heat re-scores propagate to E59 microsegments and E68 Wizard heat triggers" },
+  { name: "Faction Assignment (25 codes)", doctrine: ["donor-faction-assignment"], cat: "bgop-moat", eng: ["oss","bgop-moat"],
+    lib: "backend/python/ecosystems/e59_microsegment/faction_assign.py",
+    purpose: "Assign each donor to one of 25 canonical donor-side factions for messaging + clustering",
+    params: ["25 canonical faction codes","Per-donor feature vector","Assignment method (max-prob classifier)"],
+    notes: "Consumed by E36 messaging routing and E64 Step 2 (risk-reduction anchoring)" },
+  { name: "Contactability Tier Grader", doctrine: ["contactability-tiering"], cat: "bgop-moat", eng: ["oss","bgop-moat"],
+    lib: "backend/python/ecosystems/e01_donor_intelligence/contactability.py",
+    purpose: "Grade each donor into one of 4 contactability tiers based on reachable, consented channels",
+    params: ["Per-channel consent stamps","TCPA compliance status","Channel history (email/SMS/mail/phone)","Bounce and opt-out records"],
+    notes: "Feeds R(d) donor-intrinsic Receptivity in the two-tower recommender" },
+  { name: "Bespoke Override Rule (R-01..R-07)", doctrine: ["bespoke-variable-investment-framework"], cat: "bgop-moat", eng: ["oss","bgop-moat"],
+    lib: "Master Data Management override gate",
+    purpose: "Named rules for when bespoke evidence outweighs syndicated (DataTrust / Acxiom) values in golden-record resolution",
+    params: ["R-01 through R-07 rule set","Evidence strength thresholds","Provenance record"],
+    notes: "Preserves full provenance; behavior outranks model. Quarterly Value-of-Information portfolio review." },
+
+  // ---------- ORCHESTRATION (Part E — multi-cannon matrix) ----------
+  { name: "Volume Gearbox (±4 gears)", doctrine: ["lp-decision-engine","waterfall-orchestration-engine","news-driven-heat-quantification","campaign-heat-response-system"], cat: "orchestration", eng: ["oss","bgop-moat"],
+    lib: "brain.volume_dials + brain.intent_variances (Donor Intent Engine Variance Doctrine 2026-07-07)",
+    purpose: "4-gears-up / 4-gears-down volume regulator per activity (play × segment × cannon). Upshifts persistence-gated; -4 is instant handbrake (compliance). Named gears whisper / matinee / premiere / 1812 Overture at the Wizard tier.",
+    params: ["Dial 0-100 per activity","Welford σ tolerance band","Persistence window (1 / 2 / 3+ days)","Upshift trigger (favorable σ magnitude)","Downshift trigger (unfavorable σ or CPDR breach)","Exploration floor (Thompson trickle)"],
+    formula: "\\( \\text{gear}(t) = f(\\text{sign}(v), |v|/\\sigma, \\text{persistence}) \\text{ where } v = R_\\text{realized} - R_\\text{predicted} \\)",
+    notes: "Downshift meaning ladder: -1 same subject less volume · -2 change the subject · -3 change the play · -4 stop talking. Gear +4 is the 1812 Overture coordinated volley (all 16 cannons in orchestrated score). Ratified per DONOR_INTENT_ENGINE_VARIANCE_DOCTRINE_2026-07-07." },
+  { name: "Momentum Score (7-signal)", doctrine: ["news-driven-heat-quantification","closed-loop-ml-system","lp-decision-engine","heat-tensor-scoring"], cat: "orchestration", eng: ["oss","bgop-moat"],
+    lib: "brain.momentum_scores (MOMENTUM_SCORING_MODEL_SPEC_v0.1_2026-06-29)",
+    purpose: "Composite 0-100 momentum score per candidate × microsegment × 48h window. 3+ independent behavioral signals converging in same direction = momentum confirmed.",
+    params: ["Signal 1: Conversion rate (>2× baseline, 15pts)","Signal 2: Email open rate (>1.5×, 10pts)","Signal 3: Social amplification (>3×, 12pts)","Signal 4: Heat tensor (>75/100, 15pts)","Signal 5: Portal engagement surge (10pts)","Signal 6: Peer cluster (≥3 same ZIP/employer/coalition, 18pts)","Signal 7: RFM recency surge (10pts)","Convergence bonus (+8 across 3+ channels, +3 across 2)"],
+    formula: "\\( \\text{score} = \\min(100, \\sum \\text{pts}_i + \\text{convergence bonus}) \\)",
+    notes: "Independence rule: signals must come from causally separate pathways. Email open + click are NOT independent (count as 1). Score ≥71 fires URGENT Wizard card. Feeds gear-jump decisions." },
+  { name: "Funnel Instance State Machine", doctrine: ["waterfall-orchestration-engine","broyhillgop-doctrine","authorization-protocol"], cat: "orchestration", eng: ["oss","bgop-moat"],
+    lib: "brain.funnel_instances + brain.funnel_instance_events",
+    purpose: "State model for a funnel instance (donor × microsegment × candidate) as it moves through its multi-step multichannel weapon program",
+    params: ["States: template → armed → mid-flight → paused → re-planning → firing → cooling → completed → post-mortem (or aborted)","Transitions: pulse-machine holds → paused; sequence completes → cooling; opt-out/silo/handbrake → aborted","Every transition written to append-only audit table"],
+    notes: "A funnel is a planned time-sequenced multichannel weapon program — arbitrary length (1-touch birthday email to 60-day multi-cannon sequence). Adaptive re-planning uses pulse-machine reads to select next step's arm." },
+  { name: "MPI (Microsegment Propensity Intensity)", doctrine: ["lp-decision-engine","donor-contribution-forecasting","donor-grading-system"], cat: "orchestration", eng: ["oss","bgop-moat"],
+    lib: "brain.intent_predictions (Donor Intent Engine 2026-07-07)",
+    purpose: "One MPI score per donor per action class per day. MPI-<class> <propensity>/<intensity>, e.g. MPI-G 74/8.",
+    params: ["Class: MPI-G (give) / MPI-R (RSVP) / MPI-V (volunteer) / MPI-C (callback)","Propensity 0-100 (calibrated P(act now))","Intensity 1-10 (magnitude × commitment)","Each class has its own LP formulation","Per-class × activity dial"],
+    formula: "\\( \\text{MPI-G}(d) = P_\\text{give}(d) \\cdot \\mathbb{E}[\\text{amount} \\mid \\text{give}](d) \\cdot \\text{multi-level multiplier} \\)",
+    notes: "Sits beside Triple Grade letters, not replacing them: grades say who the donor IS (long-run standing); MPI says what they'll DO today. Fatigue ledger arbitrates across classes." },
+  { name: "Blood Pressure Pulse Machine", doctrine: ["closed-loop-ml-system","addiction-mechanics-and-kpis","waterfall-orchestration-engine"], cat: "orchestration", eng: ["oss","bgop-moat"],
+    lib: "backend/python/ecosystems/e63/pulse_reader.py",
+    purpose: "The conductor's SENSOR. Continuously reads donor / volunteer vital signs (opens, clicks, dwell, quiz responses, social reactions, sentiment, donations, opt-outs). Emits pulse(d,t) = direction × magnitude × confidence.",
+    params: ["Vital streams: survey micro-response, email/SMS opens+clicks, landing dwell/scroll, donation micro-moves, social reactions, sentiment, propensity drift","Response-rate bands: 0-10% cold (HOLD+diagnose) / 11-30% warming / 31-60% hot / 61-100% inflamed (surge candidate)","Consistency gate: multi-tick × multi-source before dial moves","Look-ahead window (Cursor-style anticipation)"],
+    notes: "Segment pulse = distribution not average. 5/100 open → flat/cold, NOT a spend signal. 90/100 respond → inflamed 'another story', escalate. Reads against segment's OWN baseline, not global threshold. Gates dial moves through the consistency check." },
+  { name: "Variance Ledger (F/U signed)", doctrine: ["closed-loop-ml-system","lp-decision-engine","broyhillgop-doctrine"], cat: "orchestration", eng: ["oss","bgop-moat"],
+    lib: "brain.intent_variances (Donor Intent Engine Variance Doctrine 2026-07-07)",
+    purpose: "Standard-cost analogy: every prediction posts a favorable (F, positive) or unfavorable (U, negative) variance vs realized outcome. Variances — not opinions — recalibrate the model and shift gears.",
+    params: ["Signed variance: realized – predicted","Decomposition: rate × volume × mix × price","Sigma-distance against Welford tolerance band","Persistence (1 / 2 / 3+ days)","Investigation threshold: outside band → signal, inside → noise"],
+    formula: "\\( v = R_\\text{real} - R_\\text{pred};\\ z = v/\\sigma;\\ \\text{gear\\_shift} = f(\\text{sign}(v), |z|, \\text{persistence}) \\)",
+    notes: "Rate variance = intent model wrong. Volume variance = eligibility gates wrong. Mix variance = segmentation wrong. Price variance = ask ladder wrong. Champion-challenger refit when systematic bias > tolerance." },
+  { name: "News-Pulse Throttle Controller", doctrine: ["news-driven-heat-quantification","heat-tensor-scoring","lp-decision-engine"], cat: "orchestration", eng: ["oss","bgop-moat"],
+    lib: "backend/python/ecosystems/e42_e63/news_conductor.py (Conductor Pattern replicated)",
+    purpose: "News-side mirror of the volume conductor. Per news knob (faction / issue / industry / geo / opponent) gets 4 levels × 1-100 dial that gates how aggressively the news signal is amplified into the donor heat tensor.",
+    params: ["4 levels: Ignore (1-25) / Monitor (26-50) / Amplify (51-75) / Rapid-Response (76-100)","Salience × relevance × bias-adjusted coverage → dial input","House-fire gate: high salience + multi-source corroboration + bias monitor + real event","Look-ahead window + consistency gate before commit","Δ_max rate limit (gradual on 95%)"],
+    formula: "\\( \\text{dial}(t+1) = \\text{dial}(t) + \\text{clamp}(-\\Delta_\\max, +\\Delta_\\max, \\text{desired} - \\text{dial}(t)) \\) unless house_fire()",
+    notes: "News L4 injects full-weight heat into E63 tensor → turns matched E59 donor dials. Two conductors chained: news intensity → donor intensity. Bias monitor caps manufactured-outrage salience at 25." },
+  { name: "Sequence Completion Predictor", doctrine: ["donor-contribution-forecasting","waterfall-orchestration-engine"], cat: "orchestration", eng: ["oss","bgop-moat"],
+    lib: "backend/python/ecosystems/e60_profit_engine/sequence_completion.py",
+    purpose: "For a funnel with n steps, predict P(donor reaches step k) for k=1..n. Feeds per-step attribution and revenue forecasting.",
+    params: ["Historical per-step exit rate (dropout at step k)","Donor-level covariates (grade, tier, contactability, prior sequence history)","Between-step latency","Cross-funnel interference (this donor is in 3 other funnels)"],
+    formula: "\\( P_\\text{complete}(F, d, n) = \\prod_{i=1}^{n} P(\\text{stay}_i \\mid \\text{reached step } i-1, d) \\)",
+    notes: "Attribution model: last-touch default, fractional (Shapley) for multi-touch mode. Drop-off between step i and i+1 is a rich signal — posts variance to the ledger." },
+  { name: "Blast-Radius Overlap Penalty", doctrine: ["lp-decision-engine","ethical-guardrails","household-donor-safety"], cat: "orchestration", eng: ["oss","bgop-moat"],
+    lib: "backend/python/ecosystems/e60_profit_engine/blast_overlap.py",
+    purpose: "Penalize the LP objective when two funnels' blast radii overlap on the same donors / households / peer networks. Prevents hammering the same household through parallel funnels.",
+    params: ["Blast radius per cannon (from E1 taxonomy)","Overlap set: |Blast(F) ∩ Blast(F')|","Average fatigue score of overlap set","Aversion coefficient λ"],
+    formula: "\\( \\text{Penalty}(F, F') = \\lambda \\cdot |\\text{Blast}(F) \\cap \\text{Blast}(F')| \\cdot \\overline{\\text{Fatigue}}(\\text{overlap}) \\)",
+    notes: "Household-safety companion — spouse / partner / peer bundlers in the same address get counted, not double-billed. Social organic (blast ≈50) and Social paid (blast ≥100) generate the largest penalty terms." },
+  { name: "Per-Funnel Revenue Forecaster", doctrine: ["donor-contribution-forecasting","lp-decision-engine","ask-amount-elasticity"], cat: "orchestration", eng: ["oss","bgop-moat"],
+    lib: "backend/python/ecosystems/e60_profit_engine/funnel_forecast.py",
+    purpose: "Sequence-scoped revenue forecast with 80% confidence band from stochastic scenario simulation. Trajectory not point estimate.",
+    params: ["Sequence completion probability per step","Intent P(act) per step","Gamma-Gamma × ask-ladder expected gift","Orchestration multiplier (gear² × momentum boost)","Cycle-relevance discount ρ(t)","Stochastic sim n=1000"],
+    formula: "\\( \\hat{R}(F) = \\sum_d P_\\text{complete}(F,d) \\cdot P_\\text{convert}(F,d) \\cdot \\mathbb{E}[\\text{gift} \\mid \\text{convert}](d) \\cdot M_\\text{orch}(F) \\cdot \\rho(t) \\)",
+    notes: "Reports P10 / P50 / P90 from n=1000 scenarios. Per-step attribution: each step in the sequence gets its own attributed revenue ± σ. Variance posted at T+τ+7 into the ledger." },
+  { name: "Shock Revision Machine", doctrine: ["news-driven-heat-quantification","ethical-guardrails","legal/compliance"], cat: "orchestration", eng: ["oss","bgop-moat"],
+    lib: "brain.shock_revisions + e42.catastrophe_class (Variance Doctrine §2c)",
+    purpose: "On-demand off-cycle MPI recalculation when an event shock hits a segment (catastrophe, death of members, scandal, bill dying, plant closure). Same calculation, event-driven cadence.",
+    params: ["Volume revision, dollar-weighted (deceased bundler drops forecast >> proportion of members)","Rate shock (E42 catastrophe-class trigger → same-day coefficient rewrite)","Decency gate: MPI-G dial → -4 by rule (not by variance)","Rebound trajectory: sharp suppression → quiet cultivation → elevated rebound","10-year quarterly county curves for post-disaster calibration"],
+    notes: "Hurricane example is CANONICAL (Variance Doctrine §2c). Decency gate is a compliance-grade override, same class as opt-out. Rebound trajectory is a trajectory not a point — the variance ledger measures whether it materializes." },
+
+];
+
+// Category display order + labels
+const CATS = [
+  ["regression",    "Regression"],
+  ["classification","Classification"],
+  ["clustering",    "Clustering"],
+  ["dim-reduction", "Dimensionality Reduction"],
+  ["stats-test",    "Statistical Tests"],
+  ["descriptive",   "Descriptive Statistics"],
+  ["bivariate",     "Bivariate / Association"],
+  ["preprocessing", "Feature Preprocessing"],
+  ["curve-fit",     "Curve Fitting"],
+  ["distribution",  "Probability Distributions"],
+  ["time-series",   "Time-Series / Survival"],
+  ["drift",         "Drift Analysis"],
+  ["diagnostic",    "Model Diagnostics"],
+  ["orchestration", "Orchestration (Part E)"],
+  ["bgop-moat",     "BGOP Moat (Bespoke)"],
+];
+
+// State
+let currentCat = "all";
+let currentEng = "all";
+let currentQuery = "";
+
+// Utility
+function textOf(item) {
+  return [
+    item.name, item.lib, item.purpose, item.formula || "",
+    (item.params || []).join(" "), (item.eng || []).join(" "),
+    (item.doctrine || []).join(" "),
+    item.notes || "", item.h0 || ""
+  ].join(" ").toLowerCase();
+}
+
+function matches(item) {
+  if (currentCat !== "all" && item.cat !== currentCat) return false;
+  if (currentEng !== "all" && !(item.eng || []).includes(currentEng)) return false;
+  if (currentQuery && !textOf(item).includes(currentQuery)) return false;
+  return true;
+}
+
+function badgesFor(item) {
+  const engs = (item.eng || []).map(e => `<span class="badge engine">${e}</span>`).join("");
+  const doc = (item.doctrine || []).slice(0, 2)
+    .map(d => `<span class="badge doctrine">${d}</span>`).join(" ");
+  return engs + (doc ? "<br>" + doc : "");
+}
+
+function detailFor(item, idx) {
+  const parts = [];
+  parts.push(`<dl class="kv">`);
+  if (item.lib)     parts.push(`<dt>Library</dt><dd><code>${item.lib}</code></dd>`);
+  if (item.purpose) parts.push(`<dt>Purpose</dt><dd>${item.purpose}</dd>`);
+  if (item.h0)      parts.push(`<dt>Null hypothesis</dt><dd>${item.h0}</dd>`);
+  if (item.notes)   parts.push(`<dt>Notes</dt><dd>${item.notes}</dd>`);
+  if (item.doctrine && item.doctrine.length) {
+    const chips = item.doctrine.map(d => `<span class="badge doctrine">${d}</span>`).join(" ");
+    parts.push(`<dt>Doctrine</dt><dd>${chips}</dd>`);
+  }
+  parts.push(`</dl>`);
+  if (item.params && item.params.length) {
+    parts.push(`<div style="color: var(--muted); font-size: 12px; margin-top: 6px;">PARAMETERS / INPUTS</div>`);
+    parts.push(`<ul class="hp-list">`);
+    for (const p of item.params) parts.push(`<li>${p}</li>`);
+    parts.push(`</ul>`);
+  }
+  if (item.formula) {
+    parts.push(`<div style="color: var(--muted); font-size: 12px; margin-top: 6px;">FORMULA</div>`);
+    parts.push(`<div class="formula">${item.formula}</div>`);
+  }
+  return `<td colspan="4">${parts.join("")}</td>`;
+}
+
+function render() {
+  const container = document.getElementById("results");
+  const countLine = document.getElementById("count-line");
+  container.innerHTML = "";
+
+  let totalVisible = 0;
+  const byCat = {};
+  for (const [catId] of CATS) byCat[catId] = [];
+  for (const item of DATA) {
+    if (matches(item)) {
+      byCat[item.cat].push(item);
+      totalVisible++;
+    }
+  }
+
+  countLine.textContent = totalVisible === 0
+    ? "No items match your filters."
+    : `Showing ${totalVisible} of ${DATA.length} items`;
+
+  let idxCounter = 0;
+  for (const [catId, catLabel] of CATS) {
+    const items = byCat[catId];
+    if (!items.length) continue;
+    const hdr = document.createElement("div");
+    hdr.className = "category-hdr";
+    hdr.textContent = `${catLabel}  ·  ${items.length}`;
+    container.appendChild(hdr);
+
+    const wrap = document.createElement("div");
+    wrap.className = "table-wrap";
+    const table = document.createElement("table");
+    table.innerHTML = `
+      <thead><tr>
+        <th style="width: 26%;">Name</th>
+        <th style="width: 30%;">Library / Where</th>
+        <th style="width: 30%;">Purpose</th>
+        <th style="width: 14%;">Engines</th>
+      </tr></thead>
+      <tbody></tbody>`;
+    const tbody = table.querySelector("tbody");
+    for (const item of items) {
+      const idx = idxCounter++;
+      const row = document.createElement("tr");
+      row.className = "row";
+      row.dataset.idx = idx;
+      row.innerHTML = `
+        <td><span class="expand-toggle">▶</span><strong>${item.name}</strong></td>
+        <td><code style="font-size: 11.5px;">${item.lib || ""}</code></td>
+        <td>${item.purpose || ""}</td>
+        <td>${badgesFor(item)}</td>`;
+      const detailRow = document.createElement("tr");
+      detailRow.className = "detail-row collapsed";
+      detailRow.innerHTML = detailFor(item, idx);
+      row.addEventListener("click", () => {
+        row.classList.toggle("expanded");
+        detailRow.classList.toggle("collapsed");
+        if (!detailRow.classList.contains("collapsed") && window.MathJax && MathJax.typesetPromise) {
+          MathJax.typesetPromise([detailRow]).catch(() => {});
+        }
+      });
+      tbody.appendChild(row);
+      tbody.appendChild(detailRow);
+    }
+    wrap.appendChild(table);
+    container.appendChild(wrap);
+  }
+}
+
+// Wire controls
+document.getElementById("q").addEventListener("input", e => {
+  currentQuery = e.target.value.trim().toLowerCase();
+  render();
+});
+document.querySelectorAll(".filter-group[data-group=category] button.chip").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".filter-group[data-group=category] button.chip")
+      .forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentCat = btn.dataset.cat;
+    render();
+  });
+});
+document.querySelectorAll(".filter-group[data-group=engine] button.chip").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".filter-group[data-group=engine] button.chip")
+      .forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentEng = btn.dataset.eng;
+    render();
+  });
+});
+
+render();
+</script>
+</body>
+</html>

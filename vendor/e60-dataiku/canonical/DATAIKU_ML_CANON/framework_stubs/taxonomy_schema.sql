@@ -1,0 +1,1 @@
+--- Production Artifact: taxonomy_schema.sql ---
