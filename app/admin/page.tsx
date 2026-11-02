@@ -55,34 +55,31 @@ function NavIcon({ section }: { section: Section }) {
   );
 }
 
-const NAV_GROUPS: { heading: string | null; items: { key: Section; label: string }[] }[] = [
-  { heading: null, items: [{ key: "dashboard", label: "Today" }] },
-  { heading: "People", items: [{ key: "leads", label: "Leads" }] },
-  { heading: "Outreach", items: [
-    { key: "campaigns", label: "Email campaigns" },
-    { key: "queue", label: "Review queue" },
-    { key: "history", label: "Sent" },
-  ] },
-  { heading: "Venue", items: [
-    { key: "events", label: "Events" },
-    { key: "availability", label: "Availability" },
-    { key: "express", label: "Requests" },
-    { key: "journeys", label: "Journeys" },
-  ] },
-  { heading: "Content", items: [
-    { key: "examples", label: "Examples" },
-    { key: "templates", label: "Templates" },
-    { key: "studio", label: "Email studio" },
-    { key: "social", label: "Social posts" },
-    { key: "video", label: "Video" },
-    { key: "photos", label: "Photo library" },
-    { key: "stock", label: "Free media" },
-  ] },
-  { heading: "Tools", items: [
-    { key: "ask", label: "Ask" },
-    { key: "brand", label: "Brand setup" },
-    { key: "settings", label: "Venue & account" },
-  ] },
+// Daily workflow first (in the order a day runs); everything else folds under
+// "More tools" so the rail stays calm.
+const NAV_PRIMARY: { key: Section; label: string }[] = [
+  { key: "dashboard", label: "Today" },
+  { key: "leads", label: "Leads" },
+  { key: "queue", label: "Review queue" },
+  { key: "express", label: "Requests" },
+  { key: "events", label: "Events" },
+  { key: "availability", label: "Availability" },
+  { key: "journeys", label: "Journeys" },
+  { key: "campaigns", label: "Email campaigns" },
+  { key: "history", label: "Sent" },
+];
+
+const NAV_SECONDARY: { key: Section; label: string }[] = [
+  { key: "templates", label: "Templates" },
+  { key: "examples", label: "Examples" },
+  { key: "studio", label: "Email studio" },
+  { key: "social", label: "Social posts" },
+  { key: "video", label: "Video" },
+  { key: "photos", label: "Photo library" },
+  { key: "stock", label: "Free media" },
+  { key: "ask", label: "Ask" },
+  { key: "brand", label: "Brand setup" },
+  { key: "settings", label: "Venue & account" },
 ];
 
 const TITLES: Record<Section, string> = {
@@ -181,12 +178,18 @@ export default function AdminConsole() {
         </div>
 
         <nav className="flex-1 px-3 py-3 overflow-y-auto" aria-label="Console sections">
-          {NAV_GROUPS.map((g, i) => (
-            <div key={g.heading ?? i} className={i === 0 ? "" : "mt-5"}>
-              {g.heading && <p className="ins-navlabel px-3 pb-1 text-[12px]">{g.heading}</p>}
-              <div className="space-y-0.5">{g.items.map((n) => navButton(n.key, n.label))}</div>
-            </div>
-          ))}
+          <div className="space-y-0.5">{NAV_PRIMARY.map((n) => navButton(n.key, n.label))}</div>
+          <details
+            key={NAV_SECONDARY.some((n) => n.key === section) ? "open" : "closed"}
+            open={NAV_SECONDARY.some((n) => n.key === section)}
+            className="mt-5"
+          >
+            <summary className="ins-navlabel px-3 pb-1 text-[12px] cursor-pointer list-none flex items-center justify-between select-none">
+              More tools
+              <span aria-hidden="true" className="text-[10px]">▾</span>
+            </summary>
+            <div className="space-y-0.5 mt-1">{NAV_SECONDARY.map((n) => navButton(n.key, n.label))}</div>
+          </details>
         </nav>
         <div className="p-3 border-t border-white/10">
           <button onClick={signOut} className="ins-navitem w-full flex items-center gap-3 px-3 min-h-[44px] rounded-md text-[14px]">
