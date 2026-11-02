@@ -4,7 +4,7 @@
 // Bounces and complaints become suppression writes in BOTH scopes (Track B §4); every event
 // becomes a SubscriberActivity row, idempotent on the Svix message id.
 
-import type { ActivityType, SuppressionLevel } from '@prisma/client';
+import type { ActivityType, SuppressionLevel } from '@generated/wizard-prisma';
 import { fromBase64Url, hmacSha256, safeEqual, toBase64Url } from '../auth/crypto';
 import { normalizeEmail } from '../identity';
 import { levelForEvent } from '../compliance/suppression';

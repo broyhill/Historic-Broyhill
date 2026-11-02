@@ -1,5 +1,5 @@
-import { json, withAdmin } from '@/wizard/lib/api';
-import { prisma } from '@/wizard/lib/prisma';
+import { json, withAdmin } from '@/lib/wizard/api';
+import { prisma } from '@/lib/wizard/prisma';
 
 // Telemetry ribbon: activity counts per type for the active silo, or per silo for the agency
 // overview (agency admins only — enforced by the tenant resolver).

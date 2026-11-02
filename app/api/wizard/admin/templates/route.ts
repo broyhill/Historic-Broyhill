@@ -1,8 +1,8 @@
-import type { Prisma } from '@prisma/client';
-import { json, readJson, withAdmin } from '@/wizard/lib/api';
-import { prisma } from '@/wizard/lib/prisma';
-import { requireSilo, scoped } from '@/wizard/lib/scope';
-import { defaultBlocks } from '@/wizard/lib/templates/blocks';
+import type { Prisma } from '@generated/wizard-prisma';
+import { json, readJson, withAdmin } from '@/lib/wizard/api';
+import { prisma } from '@/lib/wizard/prisma';
+import { requireSilo, scoped } from '@/lib/wizard/scope';
+import { defaultBlocks } from '@/lib/wizard/templates/blocks';
 
 export async function GET(request: Request) {
   return withAdmin(request, 'template.read', async ({ tenant }) => {

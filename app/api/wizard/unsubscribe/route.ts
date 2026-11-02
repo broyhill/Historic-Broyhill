@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { errorResponse, json } from '@/wizard/lib/api';
-import { prisma } from '@/wizard/lib/prisma';
-import { applyUnsubscribe } from '@/wizard/lib/services/telemetry';
+import { errorResponse, json } from '@/lib/wizard/api';
+import { prisma } from '@/lib/wizard/prisma';
+import { applyUnsubscribe } from '@/lib/wizard/services/telemetry';
 
 // RFC 8058 one-click endpoint (List-Unsubscribe-Post) and the target of the confirm form on
 // /unsubscribe. Silo-scoped, bulk-only suppression. Tokens carry ids, never email addresses.

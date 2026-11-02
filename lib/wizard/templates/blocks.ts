@@ -1,7 +1,7 @@
 // Visual Block Studio schema (Weapon 7). Blocks are stored as JSON on EmailTemplate.blocks.
 // A block with locked=true is agency-owned: only AGENCY_ADMIN may change, move out, or unlock it.
 
-import type { UserRole } from '@prisma/client';
+import type { UserRole } from '@generated/wizard-prisma';
 
 export const GOLD = '#D4AF37';
 

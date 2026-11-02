@@ -1,10 +1,10 @@
 import { cookies, headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
-import { sessionFromCookieValue } from '@/wizard/lib/api';
-import { ACTIVE_SILO_COOKIE, SESSION_COOKIE, SILO_HEADER } from '@/wizard/lib/config';
-import { prisma } from '@/wizard/lib/prisma';
-import { prismaSiloLookup, resolveTenant } from '@/wizard/lib/tenant';
-import { parseBlocks } from '@/wizard/lib/templates/blocks';
+import { sessionFromCookieValue } from '@/lib/wizard/api';
+import { ACTIVE_SILO_COOKIE, SESSION_COOKIE, SILO_HEADER } from '@/lib/wizard/config';
+import { prisma } from '@/lib/wizard/prisma';
+import { prismaSiloLookup, resolveTenant } from '@/lib/wizard/tenant';
+import { parseBlocks } from '@/lib/wizard/templates/blocks';
 import { StudioEditor } from './StudioEditor';
 
 export const dynamic = 'force-dynamic';

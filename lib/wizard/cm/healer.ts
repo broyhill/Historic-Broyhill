@@ -3,7 +3,7 @@
 // (deleted list), escalate identity faults (401/503) to a human. An agent never rotates
 // credentials or rekeys a tenant on its own. >=4 consecutive faults => escalate.
 import { prisma } from '../prisma';
-import type { FaultSignature, EscalationState } from '@prisma/client';
+import type { FaultSignature, EscalationState } from '@generated/wizard-prisma';
 
 const MAX_CONSECUTIVE_FAULTS = 4;
 

@@ -1,11 +1,13 @@
 // Control-plane telemetry: escalation-state rollup, fault-signature distribution, active
 // incidents. Admin-scoped read; drives the self-healing dashboard view.
 import { NextResponse } from 'next/server';
-import { prisma } from '@/wizard/lib/prisma';
-import { withAdmin } from '@/wizard/lib/api';
+import { prisma } from '@/lib/wizard/prisma';
+import { withAdmin } from '@/lib/wizard/api';
+import { requireSilo } from '@/lib/wizard/scope';
 
 export async function GET(request: Request) {
-  return withAdmin(request, 'telemetry.read', async ({ silo }) => {
+  return withAdmin(request, 'telemetry.read', async ({ tenant }) => {
+    const silo = requireSilo(tenant).silo.id;
     const groups = await prisma.cpAnomalyLog.groupBy({
       by: ['escalationState'],
       where: { candidateId: silo },

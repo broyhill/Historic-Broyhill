@@ -5,7 +5,7 @@
 // queue (AiContentPipeline.channel), approval and suppression interfaces, but their dispatch is
 // not built here; it refuses with NOT_BUILT. Everything else is UNCONNECTED.
 
-import type { Channel } from '@prisma/client';
+import type { Channel } from '@generated/wizard-prisma';
 
 export type GovernanceStatus = 'GOVERNED' | 'HOOKED' | 'UNCONNECTED';
 

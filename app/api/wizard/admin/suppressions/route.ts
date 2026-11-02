@@ -1,11 +1,11 @@
-import type { SuppressionLevel } from '@prisma/client';
-import { json, readJson, withAdmin } from '@/wizard/lib/api';
-import { normalizeEmail } from '@/wizard/lib/identity';
-import { prisma } from '@/wizard/lib/prisma';
-import { can } from '@/wizard/lib/rbac';
-import { requireSilo, scoped } from '@/wizard/lib/scope';
-import { LifecycleError } from '@/wizard/lib/services/campaigns';
-import { mergeLevel } from '@/wizard/lib/compliance/suppression';
+import type { SuppressionLevel } from '@generated/wizard-prisma';
+import { json, readJson, withAdmin } from '@/lib/wizard/api';
+import { normalizeEmail } from '@/lib/wizard/identity';
+import { prisma } from '@/lib/wizard/prisma';
+import { can } from '@/lib/wizard/rbac';
+import { requireSilo, scoped } from '@/lib/wizard/scope';
+import { LifecycleError } from '@/lib/wizard/services/campaigns';
+import { mergeLevel } from '@/lib/wizard/compliance/suppression';
 
 export async function GET(request: Request) {
   return withAdmin(request, 'suppression.read', async ({ tenant, actor }) => {

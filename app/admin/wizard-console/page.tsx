@@ -1,10 +1,10 @@
 import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { sessionFromCookieValue } from '@/wizard/lib/api';
-import { CHANNELS, CONVERSATION_HOOK } from '@/wizard/lib/channels/registry';
-import { ACTIVE_SILO_COOKIE, AGENCY_OVERVIEW_SLUG, SESSION_COOKIE, SILO_HEADER, requestedDispatchMode } from '@/wizard/lib/config';
-import { prisma } from '@/wizard/lib/prisma';
-import { prismaSiloLookup, resolveTenant, TenantError } from '@/wizard/lib/tenant';
+import { sessionFromCookieValue } from '@/lib/wizard/api';
+import { CHANNELS, CONVERSATION_HOOK } from '@/lib/wizard/channels/registry';
+import { ACTIVE_SILO_COOKIE, AGENCY_OVERVIEW_SLUG, SESSION_COOKIE, SILO_HEADER, requestedDispatchMode } from '@/lib/wizard/config';
+import { prisma } from '@/lib/wizard/prisma';
+import { prismaSiloLookup, resolveTenant, TenantError } from '@/lib/wizard/tenant';
 import { CandidateSwitcher, type SwitcherOption } from './CandidateSwitcher';
 
 export const dynamic = 'force-dynamic';

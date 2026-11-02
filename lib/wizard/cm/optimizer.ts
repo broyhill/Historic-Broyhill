@@ -80,7 +80,7 @@ export async function optimize(
       propensityOpen: c.propensityOpen,
       propensityClick: c.propensityClick,
       propensityBuy: c.propensityBuy,
-      expectedRevenue: c.expectedRevenue,
+      expectedRevenue: alloc.expectedRevenue,
       arbitrationWin: true,
     });
   }

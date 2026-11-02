@@ -1,6 +1,6 @@
 // Journey tick: advances due runs in one silo. Stages drafts; never fires (E41 rule).
 
-import type { Prisma, PrismaClient } from '@prisma/client';
+import type { Prisma, PrismaClient } from '@generated/wizard-prisma';
 import { advance, parseJourneyDefinition, type RunLogEntry, type RunState } from '../journeys/runner';
 import type { ForgeComposer } from '../orchestration/forge';
 import { applyEffects } from './staging';

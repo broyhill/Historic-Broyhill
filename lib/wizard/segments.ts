@@ -1,7 +1,7 @@
 // Dynamic segmentation (Weapon 8). Rules are exact attribute filters only — no similarity, no
 // propensity inference, no clustering. Evaluated in Prisma (where clause) and in memory alike.
 
-import type { IdentityState, Prisma } from '@prisma/client';
+import type { IdentityState, Prisma } from '@generated/wizard-prisma';
 
 export interface SegmentRules {
   minVipScore?: number;

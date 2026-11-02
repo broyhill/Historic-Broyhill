@@ -1,6 +1,6 @@
 // Telemetry and suppression writes: Resend webhook events and one-click unsubscribes.
 
-import { Prisma, type PrismaClient, type SuppressionLevel } from '@prisma/client';
+import { Prisma, type PrismaClient, type SuppressionLevel } from '@generated/wizard-prisma';
 import { mergeLevel } from '../compliance/suppression';
 import { verifyUnsubscribeToken } from '../compliance/unsubscribe';
 import { planForEvent, type ResendEvent } from '../webhooks/resend';

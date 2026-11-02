@@ -1,7 +1,7 @@
-import { ACTIVE_SILO_COOKIE, AGENCY_OVERVIEW_SLUG } from '@/wizard/lib/config';
-import { json, readJson, withAdmin } from '@/wizard/lib/api';
-import { prisma } from '@/wizard/lib/prisma';
-import { prismaSiloLookup, resolveTenant } from '@/wizard/lib/tenant';
+import { ACTIVE_SILO_COOKIE, AGENCY_OVERVIEW_SLUG } from '@/lib/wizard/config';
+import { json, readJson, withAdmin } from '@/lib/wizard/api';
+import { prisma } from '@/lib/wizard/prisma';
+import { prismaSiloLookup, resolveTenant } from '@/lib/wizard/tenant';
 
 // Candidate switcher data: admins see every silo in their agency; everyone else sees their own.
 export async function GET(request: Request) {

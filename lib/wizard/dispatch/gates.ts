@@ -19,7 +19,7 @@
 //   LIVE_RUNTIME          NODE_ENV=production and WIZARD_DISPATCH_MODE=LIVE
 // Per-recipient gates (exit gate, suppression) are applied by the courier.
 
-import type { Channel, MessageClass, UserRole } from '@prisma/client';
+import type { Channel, MessageClass, UserRole } from '@generated/wizard-prisma';
 import { AUTHORIZATION_PHRASE } from '../config';
 import { PUBLISHER_ROLES } from '../rbac';
 import type { ProviderVerdict } from './providers';

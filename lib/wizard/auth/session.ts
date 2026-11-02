@@ -1,7 +1,7 @@
 // Signed session token: "<base64url(payload)>.<base64url(hmac)>". Never contains a secret,
 // cannot be forged without WIZARD_SESSION_SECRET. Verified in middleware and in every route.
 
-import type { UserRole } from '@prisma/client';
+import type { UserRole } from '@generated/wizard-prisma';
 import { decodeJson, encodeJson, hmacBase64Url, safeEqual } from './crypto';
 
 export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 12;

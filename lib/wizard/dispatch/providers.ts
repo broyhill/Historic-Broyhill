@@ -4,7 +4,7 @@
 //   E10 clearance → e10.check_clearance_batch(...) CLEAR row in e10.clearance_log before any send
 // E20_GO is not consent (Eight Houses, House 1): it never substitutes for Wizard authorization.
 
-import type { Channel } from '@prisma/client';
+import type { Channel } from '@generated/wizard-prisma';
 
 export interface ProviderVerdict {
   granted: boolean;

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { GOLD, HERO_PRESETS, type EmailBlock, type HeroPreset } from '@/wizard/lib/templates/blocks';
+import { GOLD, HERO_PRESETS, type EmailBlock, type HeroPreset } from '@/lib/wizard/templates/blocks';
 
 interface Props {
   templateId: string;

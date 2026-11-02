@@ -1,7 +1,7 @@
-import { errorResponse, json } from '@/wizard/lib/api';
-import { prisma } from '@/wizard/lib/prisma';
-import { applyResendEvent } from '@/wizard/lib/services/telemetry';
-import { verifySvix, type ResendEvent } from '@/wizard/lib/webhooks/resend';
+import { errorResponse, json } from '@/lib/wizard/api';
+import { prisma } from '@/lib/wizard/prisma';
+import { applyResendEvent } from '@/lib/wizard/services/telemetry';
+import { verifySvix, type ResendEvent } from '@/lib/wizard/webhooks/resend';
 
 // Real-time telemetry gateway: delivered, opened, clicked, bounced, complained. Signature is
 // verified over the raw body before anything is parsed or written. Fails closed with no secret.

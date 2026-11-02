@@ -1,8 +1,8 @@
-import { safeEqual } from '@/wizard/lib/auth/crypto';
-import { errorResponse, json } from '@/wizard/lib/api';
-import { composerFromEnv } from '@/wizard/lib/orchestration/forge';
-import { prisma } from '@/wizard/lib/prisma';
-import { parseCaptureInput, processCapture } from '@/wizard/lib/services/capture';
+import { safeEqual } from '@/lib/wizard/auth/crypto';
+import { errorResponse, json } from '@/lib/wizard/api';
+import { composerFromEnv } from '@/lib/wizard/orchestration/forge';
+import { prisma } from '@/lib/wizard/prisma';
+import { parseCaptureInput, processCapture } from '@/lib/wizard/services/capture';
 
 // Webhook capture gateway (Weapons 1–3). Devices (NFC tap, kiosks) and server integrations send
 // x-capture-secret and may set a VIP score; public QR/web-form posts may not. Pattern reused from

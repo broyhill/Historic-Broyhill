@@ -2,7 +2,7 @@
 // (candidate principal, exact hash) → dispatch (gated). Any content change after approval sends
 // the campaign back to PENDING_REVIEW and produces a new hash that no authorization covers.
 
-import { Prisma, type PrismaClient, type UserRole } from '@prisma/client';
+import { Prisma, type PrismaClient, type UserRole } from '@generated/wizard-prisma';
 import { AUTHORIZATION_PHRASE, publicBaseUrl } from '../config';
 import { PUBLISHER_ROLES, canAuthorizeWizard } from '../rbac';
 import { parseBlocks, type EmailBlock } from '../templates/blocks';

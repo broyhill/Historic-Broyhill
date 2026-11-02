@@ -1,7 +1,7 @@
 // Prisma-backed MeshStore. Every query carries candidateId — a signal, route, or proposal
 // can never name another silo.
 
-import type { FunnelAction, PrismaClient } from '@prisma/client';
+import type { FunnelAction, PrismaClient } from '@generated/wizard-prisma';
 import { normalizeEmail } from '../identity';
 import type { FeederActivity, FeederVerdict, PropensityGoal } from '../feeder/nova';
 import type { MeshSignal, NewSignal } from './orchestrator';

@@ -1,6 +1,6 @@
-import { json, withAdmin } from '@/wizard/lib/api';
-import { prisma } from '@/wizard/lib/prisma';
-import { requireSilo, scoped } from '@/wizard/lib/scope';
+import { json, withAdmin } from '@/lib/wizard/api';
+import { prisma } from '@/lib/wizard/prisma';
+import { requireSilo, scoped } from '@/lib/wizard/scope';
 
 export async function GET(request: Request) {
   return withAdmin(request, 'lead.read', async ({ tenant }) => {

@@ -2,7 +2,7 @@
 // re-checked user, a resolved tenant and an RBAC permission check — in that order — or a clean
 // error. Handlers never see a request that skipped any of the four.
 
-import type { UserRole } from '@prisma/client';
+import type { UserRole } from '@generated/wizard-prisma';
 import { NextResponse } from 'next/server';
 import { verifySessionToken, type SessionPayload } from './auth/session';
 import { SESSION_COOKIE } from './config';

@@ -3,8 +3,8 @@
 // IS the auth. Consent flips write SubscriberActivity provenance + update our system of
 // record with the origin event pinned.
 import { NextResponse } from 'next/server';
-import { prisma } from '@/wizard/lib/prisma';
-import { normalizeEmail } from '@/wizard/lib/identity';
+import { prisma } from '@/lib/wizard/prisma';
+import { normalizeEmail } from '@/lib/wizard/identity';
 
 interface CmWebhookEvent {
   Type: 'Subscribe' | 'Deactivate' | 'Update';
@@ -35,6 +35,7 @@ export async function POST(req: Request) {
     await prisma.$transaction(async (tx) => {
       for (const event of events) {
         const email = normalizeEmail(event.EmailAddress);
+        if (!email) continue;
         const occurredAt = new Date(event.Date);
         const type =
           event.Type === 'Deactivate' ? 'UNSUBSCRIBED'

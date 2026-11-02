@@ -2,7 +2,7 @@
 // The Wizard's exact-version authorization is NOT a role permission: it belongs to the
 // candidate principal (CandidateUser.isCandidatePrincipal) — see canAuthorizeWizard().
 
-import type { UserRole } from '@prisma/client';
+import type { UserRole } from '@generated/wizard-prisma';
 
 export type Permission =
   | 'agency.overview'

@@ -1,7 +1,7 @@
-import { AUTHORIZATION_PHRASE } from '@/wizard/lib/config';
-import { json, readJson, withAdmin } from '@/wizard/lib/api';
-import { prisma } from '@/wizard/lib/prisma';
-import { LifecycleError } from '@/wizard/lib/services/campaigns';
+import { AUTHORIZATION_PHRASE } from '@/lib/wizard/config';
+import { json, readJson, withAdmin } from '@/lib/wizard/api';
+import { prisma } from '@/lib/wizard/prisma';
+import { LifecycleError } from '@/lib/wizard/services/campaigns';
 
 async function agencyIdFor(candidateId: string): Promise<string> {
   const silo = await prisma.candidateSilo.findUniqueOrThrow({ where: { id: candidateId }, select: { agencyId: true } });

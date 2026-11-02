@@ -1,9 +1,9 @@
-import type { Prisma } from '@prisma/client';
-import { json, readJson, withAdmin } from '@/wizard/lib/api';
-import { prisma } from '@/wizard/lib/prisma';
-import { assertInSilo, requireSilo } from '@/wizard/lib/scope';
-import { LifecycleError } from '@/wizard/lib/services/campaigns';
-import { parseBlocks, validateTemplateEdit } from '@/wizard/lib/templates/blocks';
+import type { Prisma } from '@generated/wizard-prisma';
+import { json, readJson, withAdmin } from '@/lib/wizard/api';
+import { prisma } from '@/lib/wizard/prisma';
+import { assertInSilo, requireSilo } from '@/lib/wizard/scope';
+import { LifecycleError } from '@/lib/wizard/services/campaigns';
+import { parseBlocks, validateTemplateEdit } from '@/lib/wizard/templates/blocks';
 
 type Params = { params: Promise<{ id: string }> };
 

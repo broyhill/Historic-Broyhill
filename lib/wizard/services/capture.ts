@@ -3,7 +3,7 @@
 // authoritative source — so every captured subscriber starts HELD_MISSING_EVIDENCE and cannot be
 // sent to until an authoritative bridge supplies the exact RegID (exit gate).
 
-import type { CaptureMethod, Prisma, PrismaClient } from '@prisma/client';
+import type { CaptureMethod, Prisma, PrismaClient } from '@generated/wizard-prisma';
 import { normalizeEmail } from '../identity';
 import { advance, newRun, parseJourneyDefinition, shouldEnroll } from '../journeys/runner';
 import type { ForgeComposer } from '../orchestration/forge';

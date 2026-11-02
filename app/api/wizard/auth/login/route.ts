@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import { verifyPassword } from '@/wizard/lib/auth/password';
-import { createSessionToken, SESSION_MAX_AGE_SECONDS } from '@/wizard/lib/auth/session';
-import { ACTIVE_SILO_COOKIE, SESSION_COOKIE } from '@/wizard/lib/config';
-import { errorResponse, json, readJson } from '@/wizard/lib/api';
-import { normalizeEmail } from '@/wizard/lib/identity';
-import { prisma } from '@/wizard/lib/prisma';
+import { verifyPassword } from '@/lib/wizard/auth/password';
+import { createSessionToken, SESSION_MAX_AGE_SECONDS } from '@/lib/wizard/auth/session';
+import { ACTIVE_SILO_COOKIE, SESSION_COOKIE } from '@/lib/wizard/config';
+import { errorResponse, json, readJson } from '@/lib/wizard/api';
+import { normalizeEmail } from '@/lib/wizard/identity';
+import { prisma } from '@/lib/wizard/prisma';
 
 const cookieOptions = { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' as const, path: '/' };
 

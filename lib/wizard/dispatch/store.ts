@@ -1,7 +1,7 @@
 // Persistence boundary for dispatch. Two implementations: Prisma (the app) and in-memory
 // (tests and proofs, so every gate can be demonstrated without touching any database).
 
-import type { Channel, DispatchMode, MessageClass, UserRole } from '@prisma/client';
+import type { Channel, DispatchMode, MessageClass, UserRole } from '@generated/wizard-prisma';
 import type { SuppressionRow } from '../compliance/suppression';
 import type { FeederActivity, FeederVerdict } from '../feeder/nova';
 import type { EmailBlock } from '../templates/blocks';

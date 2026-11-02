@@ -1,9 +1,9 @@
-import { json, readJson, withAdmin } from '@/wizard/lib/api';
-import { publicBaseUrl } from '@/wizard/lib/config';
-import { prisma } from '@/wizard/lib/prisma';
-import { assertInSilo, requireSilo } from '@/wizard/lib/scope';
-import { parseBlocks } from '@/wizard/lib/templates/blocks';
-import { compileEmail, MERGE_TAGS, type MergeTag } from '@/wizard/lib/templates/compiler';
+import { json, readJson, withAdmin } from '@/lib/wizard/api';
+import { publicBaseUrl } from '@/lib/wizard/config';
+import { prisma } from '@/lib/wizard/prisma';
+import { assertInSilo, requireSilo } from '@/lib/wizard/scope';
+import { parseBlocks } from '@/lib/wizard/templates/blocks';
+import { compileEmail, MERGE_TAGS, type MergeTag } from '@/lib/wizard/templates/compiler';
 
 type Params = { params: Promise<{ id: string }> };
 

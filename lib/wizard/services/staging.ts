@@ -2,7 +2,7 @@
 // PENDING_REVIEW campaigns with a composed variant; SMS drafts become PENDING_REVIEW rows on the
 // hooked E31 channel with no dispatch path in this package.
 
-import { Prisma, type CandidateSilo, type PrismaClient, type Subscriber } from '@prisma/client';
+import { Prisma, type CandidateSilo, type PrismaClient, type Subscriber } from '@generated/wizard-prisma';
 import type { JourneyEffect } from '../journeys/runner';
 import { forgeDraft, type ForgeComposer } from '../orchestration/forge';
 import type { EmailBlock } from '../templates/blocks';

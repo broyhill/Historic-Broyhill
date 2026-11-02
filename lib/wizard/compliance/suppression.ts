@@ -6,7 +6,7 @@
 // blocks bulk email only; event invitations and personal candidate contact still pass. An
 // ALL_EMAIL entry (hard bounce, deceased) blocks every email class.
 
-import type { MessageClass, SuppressionLevel } from '@prisma/client';
+import type { MessageClass, SuppressionLevel } from '@generated/wizard-prisma';
 import { normalizeEmail } from '../identity';
 
 export type SuppressionScope = 'SILO' | 'GLOBAL' | 'PLATFORM_E30' | 'PLATFORM_BRAIN';

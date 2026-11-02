@@ -1,8 +1,8 @@
-import { json, withAdmin } from '@/wizard/lib/api';
-import { composerFromEnv } from '@/wizard/lib/orchestration/forge';
-import { prisma } from '@/wizard/lib/prisma';
-import { requireSilo } from '@/wizard/lib/scope';
-import { runJourneyTick } from '@/wizard/lib/services/journeys';
+import { json, withAdmin } from '@/lib/wizard/api';
+import { composerFromEnv } from '@/lib/wizard/orchestration/forge';
+import { prisma } from '@/lib/wizard/prisma';
+import { requireSilo } from '@/lib/wizard/scope';
+import { runJourneyTick } from '@/lib/wizard/services/journeys';
 
 // Advances due journey runs in the active silo. Stages drafts for review; never sends.
 export async function POST(request: Request) {

@@ -1,7 +1,7 @@
 // Prisma-backed DispatchStore. Every query carries candidateId; nothing reads across silos except
 // the agency-wide GlobalSuppression lookup, which is the point of that table.
 
-import { Prisma, type PrismaClient, type UserRole } from '@prisma/client';
+import { Prisma, type PrismaClient, type UserRole } from '@generated/wizard-prisma';
 import type { SuppressionRow } from '../compliance/suppression';
 import { PRODUCED_GOALS, type FeederActivity, type FeederVerdict, type PropensityGoal } from '../feeder/nova';
 import { normalizeEmail } from '../identity';

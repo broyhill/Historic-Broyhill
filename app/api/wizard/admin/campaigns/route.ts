@@ -1,18 +1,18 @@
 // Campaign queue + lifecycle for the active silo. Every read and write is scoped by candidateId.
 // PATCH actions: COMPOSE · SUBMIT · PUBLISH · DISMISS · AUTHORIZE · DISPATCH.
 
-import type { Channel, MessageClass } from '@prisma/client';
-import { edLiveOrder, publicBaseUrl, requestedDispatchMode, requireSecret } from '@/wizard/lib/config';
-import { json, readJson, withAdmin } from '@/wizard/lib/api';
-import { unboundPlatformSuppression } from '@/wizard/lib/compliance/suppression';
-import { dispatchCampaign } from '@/wizard/lib/dispatch/courier';
-import { unboundE10Clearance, unboundE20Go } from '@/wizard/lib/dispatch/providers';
-import { PrismaDispatchStore } from '@/wizard/lib/dispatch/store-prisma';
-import { transportFromEnv } from '@/wizard/lib/dispatch/transport';
-import { prisma } from '@/wizard/lib/prisma';
-import { can } from '@/wizard/lib/rbac';
-import { requireSilo, scoped } from '@/wizard/lib/scope';
-import { authorizeVariant, dismiss, LifecycleError, publish, saveComposition, submitForReview } from '@/wizard/lib/services/campaigns';
+import type { Channel, MessageClass } from '@generated/wizard-prisma';
+import { edLiveOrder, publicBaseUrl, requestedDispatchMode, requireSecret } from '@/lib/wizard/config';
+import { json, readJson, withAdmin } from '@/lib/wizard/api';
+import { unboundPlatformSuppression } from '@/lib/wizard/compliance/suppression';
+import { dispatchCampaign } from '@/lib/wizard/dispatch/courier';
+import { unboundE10Clearance, unboundE20Go } from '@/lib/wizard/dispatch/providers';
+import { PrismaDispatchStore } from '@/lib/wizard/dispatch/store-prisma';
+import { transportFromEnv } from '@/lib/wizard/dispatch/transport';
+import { prisma } from '@/lib/wizard/prisma';
+import { can } from '@/lib/wizard/rbac';
+import { requireSilo, scoped } from '@/lib/wizard/scope';
+import { authorizeVariant, dismiss, LifecycleError, publish, saveComposition, submitForReview } from '@/lib/wizard/services/campaigns';
 
 const CHANNELS: readonly Channel[] = ['EMAIL', 'SMS', 'RVM', 'DIRECT_MAIL', 'SOCIAL', 'PHONE_BANK', 'CONVERSATION'];
 const CLASSES: readonly MessageClass[] = ['BULK', 'EVENT_INVITATION', 'PERSONAL', 'TRANSACTIONAL'];
