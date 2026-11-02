@@ -47,6 +47,13 @@ async function getJson(url: string, headers: Record<string, string> = {}) {
   return res.json();
 }
 
+// Jamendo answers application-level failures (bad client_id, quota exhausted) with HTTP 200 and
+// {headers:{status:"failed", error_message}} — without this check an error reads as an empty result list.
+function checkJamendo(d: any) {
+  const h = d?.headers;
+  if (h && h.status !== "success") throw new Error(s(h.error_message) || "Jamendo returned an error — check JAMENDO_CLIENT_ID in Vercel.");
+}
+
 const s = (v: unknown) => (typeof v === "string" ? v : "");
 const n = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
 
