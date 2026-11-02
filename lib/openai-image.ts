@@ -22,7 +22,7 @@ const OPENAI_SIZES: Record<string, string> = {
 // (fill empty chairs, add a speaker, change the scene). No polling.
 export async function editWithOpenAI(opts: {
   prompt: string;
-  image: { data: Uint8Array; name: string; contentType: string };
+  image: { data: ArrayBuffer; name: string; contentType: string };
   aspectRatio: string;
   numVariations: number;
 }): Promise<AsyncJobOutcome> {

@@ -148,7 +148,7 @@ export async function generateImages(opts: {
 // a speaker). Only the OpenAI adapter supports edits today; the source image
 // arrives as bytes either fetched from a blob URL or sent as base64.
 export interface SourceImage {
-  data: Uint8Array;
+  data: ArrayBuffer;
   name: string;
   contentType: string;
 }
@@ -165,13 +165,14 @@ export async function resolveSourceImage(opts: {
     if (!res.ok) throw new Error("Could not read the source photo.");
     const contentType = res.headers.get("content-type")?.split(";")[0] || "image/png";
     if (!contentType.startsWith("image/")) throw new Error("Source photo is not an image.");
-    const data = new Uint8Array(await res.arrayBuffer());
+    const data = await res.arrayBuffer();
     if (data.byteLength > 25 * 1024 * 1024) throw new Error("Source photo is too large (max 25 MB).");
     return { data, name: opts.name || "source.png", contentType };
   }
   if (opts.data) {
+    const buf = Buffer.from(opts.data, "base64");
     return {
-      data: new Uint8Array(Buffer.from(opts.data, "base64")),
+      data: buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength),
       name: opts.name || "source.png",
       contentType: opts.contentType || "image/png",
     };
