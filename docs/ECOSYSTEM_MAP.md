@@ -48,6 +48,15 @@ talks to another spoke directly, and nothing stands alone.
    (efficiency-recommendation contracts, the E90↔E20↔E68 integration contract,
    wizard handoff) + the ops-mgmt-science doc.
 
+4b. **Microsegment Intelligence (E59)** — *the sorter / the pyramid
+   builder.* The engine that slices one big audience into living
+   microsegments — hierarchy, intensity log, taxonomy extension — crowned by
+   the **Living Pyramid crosswalk** (applied live 2026-08-03): the ladder
+   that walks a person from stranger up to true believer, and maps every
+   other spoke's signals onto its rungs. Vendored at `vendor/e59-microsegment/`
+   — ECO_CANONICAL/E59 (intelligence engine, agent mesh, rule engine,
+   hierarchy/intensity SQL, control panel) + pyramid/crosswalk docs.
+
 5. **CFO (E72)** — *the money steward.* Holds the budget, the spend caps,
    and the purse strings — but **controls nobody**: the cost accountant and
    the revenue maker are peers, not reports. Vendored at `vendor/e72-cfo/` —
