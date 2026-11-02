@@ -42,6 +42,9 @@ export default function PhotosPanel() {
   const dirRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const [webCopies, setWebCopies] = useState(false); // slow in the browser, so off unless asked for
+  const [genPrompt, setGenPrompt] = useState("");
+  const [genRatio, setGenRatio] = useState("1:1");
+  const [genCount, setGenCount] = useState(1);
 
   const load = useCallback(async () => {
     try {
@@ -198,6 +201,30 @@ export default function PhotosPanel() {
               {missingSuggestions.map((s) => <button key={s} onClick={() => addFolder(s)} disabled={busy !== null} className="text-[11.5px] px-2 py-1 rounded-full border border-line text-muted hover:border-accent/60">+ {s}</button>)}
             </div>
           )}
+        </div></section>
+
+        <section className="ibox"><div className="ibox-content space-y-2">
+          <div className="text-[12px] font-semibold text-muted">Generate with AI (Adobe Firefly)</div>
+          <textarea value={genPrompt} onChange={(e) => setGenPrompt(e.target.value)} placeholder="Describe the image, e.g. wedding table setting in a historic brick hall, warm candlelight" maxLength={1000} rows={3} className={inputCls} aria-label="Image description" />
+          <div className="flex gap-2">
+            <select value={genRatio} onChange={(e) => setGenRatio(e.target.value)} className={inputCls} aria-label="Aspect ratio">
+              <option value="1:1">Square 1:1</option>
+              <option value="4:3">Landscape 4:3</option>
+              <option value="3:4">Portrait 3:4</option>
+              <option value="16:9">Widescreen 16:9</option>
+              <option value="9:16">Vertical 9:16</option>
+            </select>
+            <select value={genCount} onChange={(e) => setGenCount(Number(e.target.value))} className={inputCls} aria-label="How many">
+              {[1, 2, 3, 4].map((n) => <option key={n} value={n}>{n}</option>)}
+            </select>
+          </div>
+          <button className={btnPrimary} disabled={busy !== null || !genPrompt.trim()} onClick={() => run("generate", async () => {
+            const r = await call("/api/admin/firefly", json("POST", { prompt: genPrompt.trim(), aspectRatio: genRatio, numVariations: genCount }));
+            setGenPrompt("");
+            setCurrent(r.folder);
+            return `Generated ${r.photos.length} image${r.photos.length === 1 ? "" : "s"} into "${r.folder}".`;
+          })}>{busy === "generate" ? "Generating…" : "Generate into library"}</button>
+          <p className="text-[11.5px] text-subtle">Saves into the "Firefly" folder. Needs the Adobe API key in Vercel env to run.</p>
         </div></section>
       </aside>
 
