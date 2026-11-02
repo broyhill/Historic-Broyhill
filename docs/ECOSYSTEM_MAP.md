@@ -7,7 +7,7 @@ talks to another spoke directly, and nothing stands alone.
 
 ## The loop, in plain English
 
-> **Brain decides → Wizard asks Ed → Engage sends → the hub remembers.**
+> **Brain decides → Wizard asks Ed → Engage sends — and IFTTT nerves keep feeding the Brain events → the hub remembers.**
 
 1. **Brain (E20)** — *decides.* The intelligence daemon: watches events
    (a lead opens, RSVPs, goes quiet, a date approaches), matches them against
@@ -23,12 +23,20 @@ talks to another spoke directly, and nothing stands alone.
    `/api/wizard/**`. Dispatch fails closed to dry-run until providers bind.
    Original copy kept at `wizard/` for reference.
 
-3. **Engage / Iterable** — *sends.* The engagement engine: journeys,
+3. **IFTTT (E91)** — *the nerves.* Watches for events anywhere in the hub
+   (a date approaches, a lead goes quiet, a trigger condition flips true) and
+   fires rules — event → rule → action — that hand work to the Brain or a
+   channel. Vendored at `vendor/e91-ifttt/`: the XSELLNET rule engines
+   (e20/e26/e40 trigger engines), ECO_CANONICAL/E91 spec, and the canonical
+   rulings. In BroyhillGOP doctrine this is E91 — the empty shelf that gets
+   stocked here first.
+
+4. **Engage / Iterable** — *sends.* The engagement engine: journeys,
    templates, suppression, propensity sync. Vendored at `vendor/bgop-engage/`
    + `vendor/iterable/` (clone map, E30 bridge, Nova teardown, peer design
    draft). Dormant until a channel provider is bound.
 
-4. **The hub itself** — *remembers.* Leads, profiles, scores, timelines,
+5. **The hub itself** — *remembers.* Leads, profiles, scores, timelines,
    photos, campaigns: `app/`, `lib/`, the root Prisma schema. This is the
    shared memory every spoke reads and writes — the reason a new spoke
    plugs in without rewiring the others.

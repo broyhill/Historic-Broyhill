@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BroyhillGOP - IFTTT Automation Control Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @keyframes pulse-green { 0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); } 50% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); } }
+        @keyframes pulse-yellow { 0%, 100% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.4); } 50% { box-shadow: 0 0 0 8px rgba(234, 179, 8, 0); } }
+        @keyframes countdown { from { stroke-dashoffset: 0; } to { stroke-dashoffset: 100; } }
+        .pulse-on { animation: pulse-green 2s infinite; }
+        .pulse-timer { animation: pulse-yellow 1.5s infinite; }
+        .timer-ring { stroke-dasharray: 100; animation: countdown linear forwards; }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <div id="app" class="container mx-auto px-4 py-6">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-3xl font-bold flex items-center gap-3">
+                    <span class="text-4xl">🎛️</span>
+                    IFTTT Automation Control Panel
+                </h1>
+                <p class="text-gray-400 mt-1">Manage all automation workflows • ON / OFF / TIMER</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="bg-gray-800 rounded-lg px-4 py-2 flex items-center gap-2">
+                    <span class="text-gray-400">Last Updated:</span>
+                    <span id="lastUpdate" class="font-mono">--:--:--</span>
+                </div>
+                <button onclick="refreshDashboard()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg flex items-center gap-2">
+                    🔄 Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-gradient-to-br from-green-900 to-green-800 rounded-xl p-4 border border-green-700">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-green-300 text-sm">ACTIVE (ON)</p>
+                        <p id="countOn" class="text-4xl font-bold">12</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center pulse-on">
+                        <span class="text-2xl">✓</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-gradient-to-br from-yellow-900 to-yellow-800 rounded-xl p-4 border border-yellow-700">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-yellow-300 text-sm">ON TIMER</p>
+                        <p id="countTimer" class="text-4xl font-bold">3</p>
+                    </div>
+                    <div class="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center pulse-timer">
+                        <span class="text-2xl">⏱</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-gradient-to-br from-gray-800 to-gray-700 rounded-xl p-4 border border-gray-600">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">SUSPENDED (OFF)</p>
+                        <p id="countOff" class="text-4xl font-bold">2</p>
+                    </div>
+                    <div class="w-12 h-12 bg-gray-500 rounded-full flex items-center justify-center">
+                        <span class="text-2xl">⏸</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-gradient-to-br from-purple-900 to-purple-800 rounded-xl p-4 border border-purple-700">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-purple-300 text-sm">TOTAL TRIGGERS</p>
+                        <p id="countTriggers" class="text-4xl font-bold">847</p>
+                    </div>
+                    <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
+                        <span class="text-2xl">⚡</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="flex gap-2 mb-6">
+            <button onclick="filterWorkflows('all')" class="filter-btn active px-4 py-2 rounded-lg bg-blue-600" data-filter="all">
+                All Workflows
+            </button>
+            <button onclick="filterWorkflows('on')" class="filter-btn px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600" data-filter="on">
+                🟢 Active
+            </button>
+            <button onclick="filterWorkflows('timer')" class="filter-btn px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600" data-filter="timer">
+                🟡 Timer
+            </button>
+            <button onclick="filterWorkflows('off')" class="filter-btn px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600" data-filter="off">
+                ⚫ Off
+            </button>
+            <button onclick="filterWorkflows('news')" class="filter-btn px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600" data-filter="news">
+                📰 News Intelligence
+            </button>
+            <button onclick="filterWorkflows('issue')" class="filter-btn px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600" data-filter="issue">
+                🚨 Issue Suspensions
+            </button>
+        </div>
+
+        <!-- Main Workflows Grid -->
+        <div id="workflowsGrid" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 mb-8">
+            <!-- Workflow cards will be inserted here -->
+        </div>
+
+        <!-- Issue Suspensions Section -->
+        <div class="mb-8">
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                🚨 Issue Response Suspensions
+                <span class="bg-red-600 text-sm px-2 py-1 rounded" id="suspensionCount">1 Active</span>
+            </h2>
+            <div id="issueSuspensions" class="space-y-3">
+                <!-- Issue suspensions will be inserted here -->
+            </div>
+        </div>
+
+        <!-- Active Timers Section -->
+        <div class="mb-8">
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                ⏱️ Active Timers
+                <span class="bg-yellow-600 text-sm px-2 py-1 rounded" id="timerCount">3 Running</span>
+            </h2>
+            <div id="activeTimers" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Timer cards will be inserted here -->
+            </div>
+        </div>
+
+        <!-- Recent Activity Log -->
+        <div class="bg-gray-800 rounded-xl p-6">
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                📋 Recent Activity
+            </h2>
+            <div id="activityLog" class="space-y-2 max-h-64 overflow-y-auto">
+                <!-- Activity log will be inserted here -->
+            </div>
+        </div>
+
+        <!-- Control Modal -->
+        <div id="controlModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+            <div class="bg-gray-800 rounded-xl p-6 w-full max-w-md mx-4">
+                <h3 id="modalTitle" class="text-xl font-bold mb-4">Control Workflow</h3>
+                <div id="modalContent">
+                    <!-- Modal content will be inserted here -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Sample data (in production, this comes from API)
+        const workflows = [
+            {
+                id: 'wf-001',
+                name: 'Welcome Series',
+                trigger: 'contact.created',
+                category: 'engagement',
+                mode: 'on',
+                stats: { enrollments: 1250, completions: 892, goals: 234 },
+                lastTriggered: '2 min ago'
+            },
+            {
+                id: 'wf-002',
+                name: 'Donation Thank You',
+                trigger: 'donation.received',
+                category: 'donor',
+                mode: 'on',
+                stats: { enrollments: 567, completions: 567, goals: 89 },
+                lastTriggered: '15 min ago'
+            },
+            {
+                id: 'wf-003',
+                name: 'Rapid Response - Negative Coverage',
+                trigger: 'news.crisis_detected',
+                category: 'news',
+                mode: 'timer',
+                timerMinutes: 120,
+                timerRemaining: 47,
+                timerExpiresAt: '2:45 PM',
+                stats: { enrollments: 3, completions: 3, goals: 2 },
+                lastTriggered: '1 hour ago'
+            },
+            {
+                id: 'wf-004',
+                name: 'Lapsed Donor Reactivation',
+                trigger: 'donor.became_lapsed',
+                category: 'donor',
+                mode: 'on',
+                stats: { enrollments: 234, completions: 156, goals: 45 },
+                lastTriggered: '3 hours ago'
+            },
+            {
+                id: 'wf-005',
+                name: 'Event Reminder Series',
+                trigger: 'event.rsvp',
+                category: 'events',
+                mode: 'on',
+                stats: { enrollments: 89, completions: 67, goals: 52 },
+                lastTriggered: '30 min ago'
+            },
+            {
+                id: 'wf-006',
+                name: 'Issue Capitalize - Crime',
+                trigger: 'news.issue_trending',
+                category: 'news',
+                mode: 'off',
+                suspendedBy: 'comms_director',
+                suspendedReason: 'Awaiting official statement',
+                stats: { enrollments: 12, completions: 12, goals: 8 },
+                lastTriggered: '2 days ago'
+            },
+            {
+                id: 'wf-007',
+                name: 'Opponent Attack Response',
+                trigger: 'news.competitor_attack',
+                category: 'news',
+                mode: 'timer',
+                timerMinutes: 240,
+                timerRemaining: 183,
+                timerExpiresAt: '5:30 PM',
+                stats: { enrollments: 5, completions: 5, goals: 3 },
+                lastTriggered: '4 hours ago'
+            },
+            {
+                id: 'wf-008',
+                name: 'Daily Intelligence Brief',
+                trigger: 'time.recurring',
+                category: 'news',
+                mode: 'on',
+                stats: { enrollments: 45, completions: 45, goals: 45 },
+                lastTriggered: '7:00 AM'
+            },
+            {
+                id: 'wf-009',
+                name: 'New Donor Nurture',
+                trigger: 'donation.first',
+                category: 'donor',
+                mode: 'on',
+                stats: { enrollments: 345, completions: 287, goals: 123 },
+                lastTriggered: '45 min ago'
+            },
+            {
+                id: 'wf-010',
+                name: 'Local Issue Response - Forsyth',
+                trigger: 'news.hot_issue_local',
+                category: 'news',
+                mode: 'timer',
+                timerMinutes: 60,
+                timerRemaining: 23,
+                timerExpiresAt: '1:23 PM',
+                stats: { enrollments: 8, completions: 8, goals: 6 },
+                lastTriggered: '37 min ago'
+            },
+            {
+                id: 'wf-011',
+                name: 'Email Not Opened Follow-up',
+                trigger: 'email.not_opened',
+                category: 'engagement',
+                mode: 'on',
+                stats: { enrollments: 2340, completions: 1890, goals: 456 },
+                lastTriggered: '5 min ago'
+            },
+            {
+                id: 'wf-012',
+                name: 'SMS Keyword Response',
+                trigger: 'sms.keyword',
+                category: 'communication',
+                mode: 'off',
+                suspendedBy: 'admin',
+                suspendedReason: 'Testing new keywords',
+                stats: { enrollments: 156, completions: 156, goals: 78 },
+                lastTriggered: '1 day ago'
+            }
+        ];
+
+        const issueSuspensions = [
+            {
+                id: 'iss-001',
+                name: 'Crime/Public Safety Response',
+                keywords: ['crime', 'public safety', 'shooting', 'law enforcement'],
+                mode: 'timer_active',
+                timerMinutes: 120,
+                timerRemaining: 47,
+                timerExpiresAt: '2:45 PM',
+                suspendedBy: 'comms_director',
+                reason: 'Crafting official statement on recent incident',
+                channels: { email: true, sms: true, social: true, phone: false, ai: true }
+            }
+        ];
+
+        const activityLog = [
+            { time: '12:58 PM', action: 'Timer set', target: 'Local Issue Response - Forsyth', user: 'admin', details: '60 minutes' },
+            { time: '12:45 PM', action: 'Workflow triggered', target: 'Rapid Response - Negative Coverage', user: 'system', details: 'News alert detected' },
+            { time: '12:30 PM', action: 'Issue suspended', target: 'Crime/Public Safety', user: 'comms_director', details: 'Timer: 2 hours' },
+            { time: '12:15 PM', action: 'Workflow turned OFF', target: 'SMS Keyword Response', user: 'admin', details: 'Testing new keywords' },
+            { time: '11:45 AM', action: 'Timer extended', target: 'Opponent Attack Response', user: 'campaign_mgr', details: '+2 hours' },
+            { time: '11:00 AM', action: 'Goal achieved', target: 'Welcome Series', user: 'system', details: 'First donation from new contact' },
+            { time: '10:30 AM', action: 'Workflow turned ON', target: 'Event Reminder Series', user: 'events_team', details: '' },
+            { time: '9:00 AM', action: 'Timer expired', target: 'Morning News Monitor', user: 'system', details: 'Auto turned OFF' }
+        ];
+
+        // Render functions
+        function renderWorkflows(filter = 'all') {
+            const grid = document.getElementById('workflowsGrid');
+            let filtered = workflows;
+            
+            if (filter === 'on') filtered = workflows.filter(w => w.mode === 'on');
+            else if (filter === 'off') filtered = workflows.filter(w => w.mode === 'off');
+            else if (filter === 'timer') filtered = workflows.filter(w => w.mode === 'timer');
+            else if (filter === 'news') filtered = workflows.filter(w => w.category === 'news');
+            
+            grid.innerHTML = filtered.map(w => renderWorkflowCard(w)).join('');
+        }
+
+        function renderWorkflowCard(workflow) {
+            const modeColors = {
+                'on': 'border-green-500 bg-gradient-to-br from-green-900/30 to-gray-800',
+                'off': 'border-gray-600 bg-gray-800',
+                'timer': 'border-yellow-500 bg-gradient-to-br from-yellow-900/30 to-gray-800'
+            };
+            
+            const modeIcons = {
+                'on': '🟢',
+                'off': '⚫',
+                'timer': '🟡'
+            };
+            
+            const categoryIcons = {
+                'news': '📰',
+                'donor': '💰',
+                'engagement': '📧',
+                'events': '📅',
+                'communication': '💬'
+            };
+
+            let timerHtml = '';
+            if (workflow.mode === 'timer') {
+                const pct = (workflow.timerRemaining / workflow.timerMinutes) * 100;
+                timerHtml = `
+                    <div class="mt-3 bg-gray-900 rounded-lg p-3">
+                        <div class="flex items-center justify-between text-sm mb-2">
+                            <span class="text-yellow-400">⏱ Timer Active</span>
+                            <span class="font-mono">${workflow.timerRemaining} min remaining</span>
+                        </div>
+                        <div class="w-full bg-gray-700 rounded-full h-2">
+                            <div class="bg-yellow-500 h-2 rounded-full transition-all" style="width: ${pct}%"></div>
+                        </div>
+                        <div class="text-xs text-gray-400 mt-1">Expires: ${workflow.timerExpiresAt}</div>
+                    </div>
+                `;
+            }
+
+            let suspendedHtml = '';
+            if (workflow.mode === 'off' && workflow.suspendedReason) {
+                suspendedHtml = `
+                    <div class="mt-3 bg-gray-900 rounded-lg p-3 text-sm">
+                        <div class="text-gray-400">Suspended by: ${workflow.suspendedBy}</div>
+                        <div class="text-gray-500 italic">"${workflow.suspendedReason}"</div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="border-2 ${modeColors[workflow.mode]} rounded-xl p-4 transition-all hover:shadow-lg">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="text-2xl">${categoryIcons[workflow.category] || '⚡'}</span>
+                            <div>
+                                <h3 class="font-bold">${workflow.name}</h3>
+                                <p class="text-xs text-gray-400">${workflow.trigger}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl">${modeIcons[workflow.mode]}</span>
+                            <span class="text-xs uppercase font-bold ${workflow.mode === 'on' ? 'text-green-400' : workflow.mode === 'timer' ? 'text-yellow-400' : 'text-gray-400'}">${workflow.mode}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-2 text-center text-sm bg-gray-900/50 rounded-lg p-2 mb-3">
+                        <div>
+                            <div class="text-lg font-bold text-blue-400">${workflow.stats.enrollments.toLocaleString()}</div>
+                            <div class="text-xs text-gray-400">Enrolled</div>
+                        </div>
+                        <div>
+                            <div class="text-lg font-bold text-green-400">${workflow.stats.completions.toLocaleString()}</div>
+                            <div class="text-xs text-gray-400">Completed</div>
+                        </div>
+                        <div>
+                            <div class="text-lg font-bold text-purple-400">${workflow.stats.goals.toLocaleString()}</div>
+                            <div class="text-xs text-gray-400">Goals</div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-xs text-gray-500 mb-3">
+                        Last triggered: ${workflow.lastTriggered}
+                    </div>
+                    
+                    ${timerHtml}
+                    ${suspendedHtml}
+                    
+                    <div class="flex gap-2 mt-4">
+                        ${workflow.mode === 'on' ? `
+                            <button onclick="setMode('${workflow.id}', 'off')" class="flex-1 bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded text-sm">
+                                ⏸ Turn Off
+                            </button>
+                            <button onclick="showTimerModal('${workflow.id}')" class="flex-1 bg-yellow-700 hover:bg-yellow-600 px-3 py-2 rounded text-sm">
+                                ⏱ Set Timer
+                            </button>
+                        ` : workflow.mode === 'off' ? `
+                            <button onclick="setMode('${workflow.id}', 'on')" class="flex-1 bg-green-700 hover:bg-green-600 px-3 py-2 rounded text-sm">
+                                ▶ Turn On
+                            </button>
+                            <button onclick="showTimerModal('${workflow.id}')" class="flex-1 bg-yellow-700 hover:bg-yellow-600 px-3 py-2 rounded text-sm">
+                                ⏱ Set Timer
+                            </button>
+                        ` : `
+                            <button onclick="extendTimer('${workflow.id}')" class="flex-1 bg-yellow-700 hover:bg-yellow-600 px-3 py-2 rounded text-sm">
+                                ➕ Extend
+                            </button>
+                            <button onclick="setMode('${workflow.id}', 'off')" class="flex-1 bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded text-sm">
+                                ⏸ Turn Off
+                            </button>
+                            <button onclick="setMode('${workflow.id}', 'on')" class="flex-1 bg-green-700 hover:bg-green-600 px-3 py-2 rounded text-sm">
+                                ♾ Always On
+                            </button>
+                        `}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderIssueSuspensions() {
+            const container = document.getElementById('issueSuspensions');
+            container.innerHTML = issueSuspensions.map(issue => `
+                <div class="bg-gradient-to-r from-red-900/30 to-gray-800 border-2 border-red-700 rounded-xl p-4">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-2xl">🚨</span>
+                                <h3 class="font-bold text-lg">${issue.name}</h3>
+                                <span class="bg-red-600 text-xs px-2 py-1 rounded">SUSPENDED</span>
+                            </div>
+                            <div class="flex flex-wrap gap-1 mb-3">
+                                ${issue.keywords.map(k => `<span class="bg-gray-700 text-xs px-2 py-1 rounded">${k}</span>`).join('')}
+                            </div>
+                            <div class="text-sm text-gray-400 mb-2">
+                                <strong>Reason:</strong> ${issue.reason}
+                            </div>
+                            <div class="text-sm text-gray-500">
+                                Suspended by: ${issue.suspendedBy}
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            ${issue.mode === 'timer_active' ? `
+                                <div class="bg-yellow-900/50 border border-yellow-700 rounded-lg p-3 text-center">
+                                    <div class="text-yellow-400 text-sm mb-1">⏱ Timer</div>
+                                    <div class="text-2xl font-bold font-mono">${issue.timerRemaining}</div>
+                                    <div class="text-xs text-gray-400">minutes</div>
+                                    <div class="text-xs text-gray-500 mt-1">Expires: ${issue.timerExpiresAt}</div>
+                                </div>
+                            ` : `
+                                <div class="bg-gray-700 rounded-lg p-3 text-center">
+                                    <div class="text-gray-400 text-sm">Indefinite</div>
+                                </div>
+                            `}
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 mt-4 pt-4 border-t border-gray-700">
+                        <div class="text-sm text-gray-400">Suspended Channels:</div>
+                        <div class="flex gap-2">
+                            <span class="${issue.channels.email ? 'bg-red-700' : 'bg-green-700'} text-xs px-2 py-1 rounded">📧 Email</span>
+                            <span class="${issue.channels.sms ? 'bg-red-700' : 'bg-green-700'} text-xs px-2 py-1 rounded">📱 SMS</span>
+                            <span class="${issue.channels.social ? 'bg-red-700' : 'bg-green-700'} text-xs px-2 py-1 rounded">📱 Social</span>
+                            <span class="${issue.channels.phone ? 'bg-red-700' : 'bg-green-700'} text-xs px-2 py-1 rounded">📞 Phone</span>
+                            <span class="${issue.channels.ai ? 'bg-red-700' : 'bg-green-700'} text-xs px-2 py-1 rounded">🤖 AI</span>
+                        </div>
+                        <div class="flex-1"></div>
+                        <button onclick="resumeIssue('${issue.id}')" class="bg-green-700 hover:bg-green-600 px-4 py-2 rounded text-sm">
+                            ▶ Resume All
+                        </button>
+                        <button onclick="extendIssueSuspension('${issue.id}')" class="bg-yellow-700 hover:bg-yellow-600 px-4 py-2 rounded text-sm">
+                            ➕ Extend Timer
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('suspensionCount').textContent = `${issueSuspensions.length} Active`;
+        }
+
+        function renderActiveTimers() {
+            const container = document.getElementById('activeTimers');
+            const timerWorkflows = workflows.filter(w => w.mode === 'timer');
+            
+            container.innerHTML = timerWorkflows.map(w => {
+                const pct = (w.timerRemaining / w.timerMinutes) * 100;
+                return `
+                    <div class="bg-gradient-to-br from-yellow-900/30 to-gray-800 border border-yellow-700 rounded-xl p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-bold">${w.name}</h4>
+                            <span class="text-yellow-400">⏱</span>
+                        </div>
+                        <div class="relative w-24 h-24 mx-auto mb-3">
+                            <svg class="w-24 h-24 transform -rotate-90">
+                                <circle cx="48" cy="48" r="40" stroke="#374151" stroke-width="8" fill="none"/>
+                                <circle cx="48" cy="48" r="40" stroke="#EAB308" stroke-width="8" fill="none"
+                                    stroke-dasharray="251.2" 
+                                    stroke-dashoffset="${251.2 - (251.2 * pct / 100)}"
+                                    stroke-linecap="round"/>
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold">${w.timerRemaining}</div>
+                                    <div class="text-xs text-gray-400">min</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center text-sm text-gray-400 mb-3">
+                            Expires: ${w.timerExpiresAt}
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="extendTimer('${w.id}')" class="flex-1 bg-yellow-700 hover:bg-yellow-600 px-2 py-1 rounded text-xs">
+                                +30 min
+                            </button>
+                            <button onclick="setMode('${w.id}', 'on')" class="flex-1 bg-green-700 hover:bg-green-600 px-2 py-1 rounded text-xs">
+                                Always On
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('timerCount').textContent = `${timerWorkflows.length} Running`;
+        }
+
+        function renderActivityLog() {
+            const container = document.getElementById('activityLog');
+            container.innerHTML = activityLog.map(log => {
+                const actionColors = {
+                    'Timer set': 'text-yellow-400',
+                    'Workflow triggered': 'text-blue-400',
+                    'Issue suspended': 'text-red-400',
+                    'Workflow turned OFF': 'text-gray-400',
+                    'Workflow turned ON': 'text-green-400',
+                    'Timer extended': 'text-yellow-400',
+                    'Goal achieved': 'text-purple-400',
+                    'Timer expired': 'text-orange-400'
+                };
+                return `
+                    <div class="flex items-center gap-4 py-2 border-b border-gray-700">
+                        <span class="text-sm text-gray-500 font-mono w-20">${log.time}</span>
+                        <span class="text-sm ${actionColors[log.action] || 'text-gray-300'} w-40">${log.action}</span>
+                        <span class="text-sm font-medium flex-1">${log.target}</span>
+                        <span class="text-sm text-gray-400">${log.user}</span>
+                        ${log.details ? `<span class="text-xs bg-gray-700 px-2 py-1 rounded">${log.details}</span>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateCounts() {
+            document.getElementById('countOn').textContent = workflows.filter(w => w.mode === 'on').length;
+            document.getElementById('countOff').textContent = workflows.filter(w => w.mode === 'off').length;
+            document.getElementById('countTimer').textContent = workflows.filter(w => w.mode === 'timer').length;
+            document.getElementById('countTriggers').textContent = workflows.reduce((sum, w) => sum + w.stats.enrollments, 0).toLocaleString();
+        }
+
+        // Control functions
+        function filterWorkflows(filter) {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600');
+                btn.classList.add('bg-gray-700');
+            });
+            event.target.classList.remove('bg-gray-700');
+            event.target.classList.add('bg-blue-600');
+            renderWorkflows(filter);
+        }
+
+        function setMode(workflowId, mode) {
+            const workflow = workflows.find(w => w.id === workflowId);
+            if (workflow) {
+                workflow.mode = mode;
+                renderWorkflows();
+                renderActiveTimers();
+                updateCounts();
+                
+                activityLog.unshift({
+                    time: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+                    action: mode === 'on' ? 'Workflow turned ON' : 'Workflow turned OFF',
+                    target: workflow.name,
+                    user: 'admin',
+                    details: ''
+                });
+                renderActivityLog();
+            }
+        }
+
+        function showTimerModal(workflowId) {
+            const workflow = workflows.find(w => w.id === workflowId);
+            const modal = document.getElementById('controlModal');
+            const content = document.getElementById('modalContent');
+            
+            document.getElementById('modalTitle').textContent = `Set Timer: ${workflow.name}`;
+            content.innerHTML = `
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Duration</label>
+                        <div class="grid grid-cols-4 gap-2">
+                            <button onclick="setTimerDuration('${workflowId}', 30)" class="bg-gray-700 hover:bg-gray-600 p-3 rounded">30m</button>
+                            <button onclick="setTimerDuration('${workflowId}', 60)" class="bg-gray-700 hover:bg-gray-600 p-3 rounded">1h</button>
+                            <button onclick="setTimerDuration('${workflowId}', 120)" class="bg-gray-700 hover:bg-gray-600 p-3 rounded">2h</button>
+                            <button onclick="setTimerDuration('${workflowId}', 240)" class="bg-gray-700 hover:bg-gray-600 p-3 rounded">4h</button>
+                            <button onclick="setTimerDuration('${workflowId}', 480)" class="bg-gray-700 hover:bg-gray-600 p-3 rounded">8h</button>
+                            <button onclick="setTimerDuration('${workflowId}', 720)" class="bg-gray-700 hover:bg-gray-600 p-3 rounded">12h</button>
+                            <button onclick="setTimerDuration('${workflowId}', 1440)" class="bg-gray-700 hover:bg-gray-600 p-3 rounded">24h</button>
+                            <input type="number" id="customMinutes" placeholder="Min" class="bg-gray-700 p-3 rounded text-center">
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="autoRenew" class="w-4 h-4">
+                        <label for="autoRenew" class="text-sm text-gray-400">Auto-renew when timer expires</label>
+                    </div>
+                    <div class="flex gap-2 pt-4">
+                        <button onclick="closeModal()" class="flex-1 bg-gray-700 hover:bg-gray-600 py-2 rounded">Cancel</button>
+                        <button onclick="applyCustomTimer('${workflowId}')" class="flex-1 bg-yellow-600 hover:bg-yellow-500 py-2 rounded">Set Timer</button>
+                    </div>
+                </div>
+            `;
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function setTimerDuration(workflowId, minutes) {
+            const workflow = workflows.find(w => w.id === workflowId);
+            if (workflow) {
+                workflow.mode = 'timer';
+                workflow.timerMinutes = minutes;
+                workflow.timerRemaining = minutes;
+                
+                const expires = new Date(Date.now() + minutes * 60000);
+                workflow.timerExpiresAt = expires.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                
+                closeModal();
+                renderWorkflows();
+                renderActiveTimers();
+                updateCounts();
+                
+                activityLog.unshift({
+                    time: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+                    action: 'Timer set',
+                    target: workflow.name,
+                    user: 'admin',
+                    details: `${minutes} minutes`
+                });
+                renderActivityLog();
+            }
+        }
+
+        function extendTimer(workflowId) {
+            const workflow = workflows.find(w => w.id === workflowId);
+            if (workflow && workflow.mode === 'timer') {
+                workflow.timerRemaining += 30;
+                workflow.timerMinutes += 30;
+                
+                const expires = new Date(Date.now() + workflow.timerRemaining * 60000);
+                workflow.timerExpiresAt = expires.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                
+                renderWorkflows();
+                renderActiveTimers();
+                
+                activityLog.unshift({
+                    time: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+                    action: 'Timer extended',
+                    target: workflow.name,
+                    user: 'admin',
+                    details: '+30 minutes'
+                });
+                renderActivityLog();
+            }
+        }
+
+        function resumeIssue(issueId) {
+            const index = issueSuspensions.findIndex(i => i.id === issueId);
+            if (index > -1) {
+                const issue = issueSuspensions[index];
+                issueSuspensions.splice(index, 1);
+                renderIssueSuspensions();
+                
+                activityLog.unshift({
+                    time: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+                    action: 'Issue resumed',
+                    target: issue.name,
+                    user: 'admin',
+                    details: ''
+                });
+                renderActivityLog();
+            }
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('controlModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function refreshDashboard() {
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+            renderWorkflows();
+            renderIssueSuspensions();
+            renderActiveTimers();
+            renderActivityLog();
+            updateCounts();
+        }
+
+        // Auto-refresh timers every minute
+        setInterval(() => {
+            workflows.forEach(w => {
+                if (w.mode === 'timer' && w.timerRemaining > 0) {
+                    w.timerRemaining--;
+                    if (w.timerRemaining <= 0) {
+                        w.mode = 'off';
+                    }
+                }
+            });
+            issueSuspensions.forEach(i => {
+                if (i.mode === 'timer_active' && i.timerRemaining > 0) {
+                    i.timerRemaining--;
+                }
+            });
+            renderActiveTimers();
+            renderWorkflows();
+            renderIssueSuspensions();
+            updateCounts();
+        }, 60000);
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            refreshDashboard();
+        });
+        
+        // Close modal on outside click
+        document.getElementById('controlModal').addEventListener('click', (e) => {
+            if (e.target.id === 'controlModal') closeModal();
+        });
+    </script>
+</body>
+</html>
