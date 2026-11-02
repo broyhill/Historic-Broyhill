@@ -37,7 +37,16 @@ talks to another spoke directly, and nothing stands alone.
    models, funnel intelligence, journey sensing, cost ledger — each spoke
    gets the model built for it. Vendored at `vendor/e60-dataiku/` —
    ECO_CANONICAL/E60 code + specs + tests, the Dataiku platform-selection
-   ruling, and the class-analytics requirements doc.
+   ruling, and the class-analytics requirements doc. Its efficiency/prod­uction
+   models ship through spoke 4a below.
+
+4a. **Ops-Management Science (E90)** — *the efficiency layer.* The
+   industrial-engineering spoke: Dataiku equips it with production/efficiency
+   math models and it applies them to *every* ecosystem — including the
+   Wizard of Oz itself — so the whole machine runs efficient, not just the
+   math. Vendored at `vendor/e90-ops-science/` — ECO_CANONICAL/E90
+   (efficiency-recommendation contracts, the E90↔E20↔E68 integration contract,
+   wizard handoff) + the ops-mgmt-science doc.
 
 5. **CFO (E72)** — *the money steward.* Holds the budget, the spend caps,
    and the purse strings — but **controls nobody**: the cost accountant and
