@@ -37,12 +37,18 @@ talks to another spoke directly, and nothing stands alone.
    `vendor/e60-dataiku/` — ECO_CANONICAL/E60 code + specs + tests, the Dataiku
    platform-selection ruling, and the class-analytics requirements doc.
 
-5. **Engage / Iterable** — *sends.* The engagement engine: journeys,
+5. **CFO (E72)** — *the money organ.* Budgets, spend caps, the cost ledger,
+   and campaign-investment ROI — the spoke that says what a decision costs and
+   whether it paid off. Vendored at `vendor/e72-cfo/` — ECO_CANONICAL/E72 spec
+   + SQL + the campaign-investment engine (orchestrator, automation, control
+   panel) and architecture docs.
+
+6. **Engage / Iterable** — *sends.* The engagement engine: journeys,
    templates, suppression, propensity sync. Vendored at `vendor/bgop-engage/`
    + `vendor/iterable/` (clone map, E30 bridge, Nova teardown, peer design
    draft). Dormant until a channel provider is bound.
 
-6. **The hub itself** — *remembers.* Leads, profiles, scores, timelines,
+7. **The hub itself** — *remembers.* Leads, profiles, scores, timelines,
    photos, campaigns: `app/`, `lib/`, the root Prisma schema. This is the
    shared memory every spoke reads and writes — the reason a new spoke
    plugs in without rewiring the others.

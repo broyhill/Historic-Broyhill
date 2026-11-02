@@ -13,6 +13,7 @@ counterpart to the agency spine already merged in `lib/wizard/`.
 - `iterable/migrations/` — `061_ITERABLE_COMPLETE_PLATFORM.sql`,
   `062_BGOP_ENGAGE.sql` (reference; not applied).
 - `iterable/ITERABLE_INTEGRATION_DESIGN_PEER_DRAFT.md` — peer-session design draft: endpoint directory, Prisma ledger model, FastAPI webhook router, Next.js dispatch route with credit-ledger charge/refund. Reference only — contains draft code, not wired.
+- `e72-cfo/` — the CFO / money organ: ECO_CANONICAL/E72 + the campaign-investment engine (orchestrator, automation, ML, control panel) + architecture docs. Owns budgets, spend caps, cost ledger, investment ROI.
 - `e60-dataiku/` — the math muscle: ECO_CANONICAL/E60 (LP solver, ML optimizer, funnel intelligence, journey sensor, cost ledger) + the Dataiku platform-selection ruling and class-analytics requirements. Computes what the Brain decides with.
 - `e91-ifttt/` — the nerves: IFTTT-style rule engines (`rule-engines/ifttt/` — e20/e26/e40 trigger engines from XSELLNET), ECO_CANONICAL/E91, and the canonical rulings/placement docs. Watches events, fires rules into the Brain.
 - `e20-brain/` — the Brain: ECO_CANONICAL/E20 spec + the Python daemon (`brain_worker.py`, `registry_dispatcher.py`). Decides what fires.
