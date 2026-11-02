@@ -1,0 +1,184 @@
+
+1. Unified Firefly Architecture & Tech Stack
+
+[ Edge API Gateway (Adobe API Mesh) ]
+                │
+                ▼ (Scope & Token Validation)
+[ Ingestion & Async Choreography Bus (Kafka + Adobe I/O Runtime) ]
+        │                                 │
+        ▼ (Generative Tasks)              ▼ (Canvas Actions)
+[ Firefly Engine (PyTorch/GPU clusters) ] [ Headless CC Orchestrator (C++ / WASM Engine) ]
+• API Gateway & Edge Mesh: Adobe API Mesh (GraphQL + Reverse Proxy routing layers).
+• Choreography & Async Event Hub: Kafka cluster handling task distribution. Adobe I/O Runtime (Serverless Node.js infrastructure) capturing lifecycle tracking records.
+• Generative AI Pipeline: Python execution framework leveraging PyTorch clusters with custom CUDA scaling architectures for v2/v3 diffusion model evaluations.
+• Canvas Orchestration Engine: Native C++ codebase compiled down into automated service layers running within containerized headless configurations (Photoshop/Lightroom instances).
+
+2. Comprehensive cURL Request Breakdowns
+
+
+A. Identity Generation (Token Fetch Pass)
+
+bash
+curl -X POST https://adobelogin.com \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=client_credentials" \
+  -d "client_id=YOUR_FIREFLY_CLIENT_ID" \
+  -d "client_secret=YOUR_FIREFLY_CLIENT_SECRET" \
+  -d "scope=openid,AdobeID,read_organizations,firefly_enterprise,firefly_api,ff_apis"
+Use code with caution.
+
+B. Generative Text-to-Image (v3 Asynchronous Engine)
+
+bash
+curl -X POST https://adobe.io \
+  -H "Authorization: Bearer YOUR_OAUTH_ACCESS_TOKEN" \
+  -H "x-api-key: YOUR_FIREFLY_CLIENT_ID" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "numVariations": 4,
+    "prompt": "Minimalist sleek smartphone placed on a glossy marble workspace, dramatic volumetric lighting, cinematic presentation",
+    "aspectRatio": "16:9",
+    "imageStyles": {
+      "styles": ["photo", "hyper_realistic"]
+    },
+    "contentClass": "photo"
+  }'
+Use code with caution.
+
+C. Asynchronous Task Lifecycle Tracker (Polling)
+
+bash
+curl -X GET https://adobe.io \
+  -H "Authorization: Bearer YOUR_OAUTH_ACCESS_TOKEN" \
+  -H "x-api-key: YOUR_FIREFLY_CLIENT_ID"
+Use code with caution.
+
+D. Generative Fill & Inpainting (v1 Core Engine)
+
+bash
+curl -X POST https://adobe.io \
+  -H "Authorization: Bearer YOUR_OAUTH_ACCESS_TOKEN" \
+  -H "x-api-key: YOUR_FIREFLY_CLIENT_ID" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "An elegant white porcelain coffee mug, steaming hot coffee",
+    "image": {
+      "source": { "url": "https://amazonaws.com" },
+      "mask": { "url": "https://amazonaws.com" }
+    }
+  }'
+Use code with caution.
+
+3. System Invariant Triggers & Event Model Schema
+
+Adobe Firefly Service tracking passes emit JSON-structured webhook operations when asynchronous worker queues complete tasks.
+json
+{
+  "id": "evt_abc12377fd8831a",
+  "source": "/firefly/services/engine",
+  "specversion": "1.0",
+  "type": "com.adobe.firefly.job.completed",
+  "datacontenttype": "application/json",
+  "time": "2026-11-01T21:48:10.003Z",
+  "data": {
+    "jobId": "job_01jbf88319aa51c2",
+    "status": "SUCCEEDED",
+    "tenantId": "tnt_enterprise_99312b",
+    "metrics": {
+      "executionTimeMs": 4218,
+      "gpuComputeUnits": 1.25,
+      "currencyType": "FIREFLY_GENERATIVE_CREDITS"
+    },
+    "outputs": [
+      {
+        "id": "img_v3_var_0",
+        "url": "https://amazonaws.com",
+        "mimeType": "image/jpeg",
+        "fileSize": 1845102,
+        "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  }
+}
+Use code with caution.
+
+4. Relational Taxonomy Schema (SQL / Prisma Ecosystem)
+
+This layout tracks structural job states, model variations, and credits across a multi-tenant enterprise system.
+prisma
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model OrganizationWorkspace {
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  adobeOrgId      String         @unique @map("adobe_org_id")
+  name            String         @db.VarChar(255)
+  createdAt       DateTime       @default(now()) @map("created_at")
+  
+  fireflyJobs     FireflyJob[]
+  creditLedgers   CreditLedger[]
+
+  @@map("organization_workspaces")
+}
+
+model FireflyJob {
+  id              String         @id @map("id") // Maps to Adobe internal Job ID string
+  workspaceId     String         @db.Uuid @map("workspace_id")
+  engineCategory  EngineCategory @map("engine_category")
+  actionType      String         @map("action_type") // e.g. "TEXT_TO_IMAGE", "GENERATIVE_FILL"
+  status          JobStatus      @default(RUNNING)
+  promptPayload   String         @db.Text @map("prompt_payload")
+  errorMessage    String?        @db.Text @map("error_message")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  workspace       OrganizationWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  outputs         JobOutput[]
+
+  @@index([workspaceId, status])
+  @@map("firefly_jobs")
+}
+
+model JobOutput {
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  jobId           String         @map("job_id")
+  cdnUrl          String         @db.Text @map("cdn_url")
+  fileSize        Int            @map("file_size")
+  checksumSha256  String         @map("checksum_sha256")
+  createdAt       DateTime       @default(now()) @map("created_at")
+
+  job             FireflyJob     @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@map("job_outputs")
+}
+
+model CreditLedger {
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId     String         @db.Uuid @map("workspace_id")
+  amountDebited   Decimal        @db.Decimal(10, 4) @map("amount_debited")
+  referenceJobId  String?        @map("reference_job_id")
+  createdAt       DateTime       @default(now()) @map("created_at")
+
+  workspace       OrganizationWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@map("credit_ledgers")
+}
+
+enum EngineCategory {
+  FIREFLY_GENERATIVE
+  PHOTOSHOP_HEADLESS
+  LIGHTROOM_HEADLESS
+  ILLUSTRATOR_VECTOR
+}
+
+enum JobStatus {
+  RUNNING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+}
+Use code with caution.
+Would you like to build a Python pipeline template using asyncio and aiohttp to poll the job status and download completed images automatically?

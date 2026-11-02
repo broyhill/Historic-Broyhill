@@ -1,0 +1,171 @@
+Here is the comprehensive production endpoint directory for Adobe Firefly Services and Creative Cloud APIs, broken down systematically by base URL domains.
+You can copy-paste these endpoints directly into your Postman collections, HTTP client configurations, or environment variables.
+
+1. Identity & Access Management (Adobe IMS Platform)
+
+• Base URL: https://adobelogin.com
+http
+POST https://adobelogin.com
+Use code with caution.
+• Purpose: Exchanging your client_id and client_secret for a short-lived bearer access token via the client_credentials grant flow.
+
+2. Core Generative AI APIs (Adobe Firefly Engines)
+
+• Base URL: https://firefly-api.adobe.io
+• Authentication Headers Required: Authorization: Bearer <token>, x-api-key: <client_id>
+
+A. Image Generation & Modification
+
+http
+POST https://adobe.io
+POST https://adobe.io
+Use code with caution.
+• Purpose: Text-to-Image creation loops utilizing the native Firefly Image Model layers.
+http
+POST https://adobe.io
+Use code with caution.
+• Purpose: Generative Fill, inpainting modifications, and localized content additions.
+http
+POST https://adobe.io
+Use code with caution.
+• Purpose: Generative Expand, canvas bounds extensions, and outpainting synthesis patterns.
+http
+POST https://adobe.io
+Use code with caution.
+• Purpose: Content upscaling and high-density image optimization.
+
+B. Text Effects & Typography
+
+http
+POST https://adobe.io
+Use code with caution.
+• Purpose: Stylization of programmatic text strings with dynamic asset patterns.
+
+C. Video Generation
+
+http
+POST https://adobe.io
+Use code with caution.
+• Purpose: Text-to-Video generation using Adobe’s enterprise video model architectures.
+
+D. Product & Scene Composites
+
+http
+POST https://adobe.io
+POST https://adobe.io
+POST https://adobe.io
+Use code with caution.
+• Purpose: Blending standalone object or product pictures seamlessly into generated background environments with matched lighting matrices.
+
+E. Direct File Storage Gateway
+
+http
+POST https://adobe.io
+Use code with caution.
+• Purpose: Uploading raw local canvas binary data blocks to fetch temporary source reference identifiers.
+
+F. Inbound Job Lifecycles (Firefly Engine Context)
+
+http
+GET  https://firefly-api.adobe.io/v3/status/{jobId}
+POST https://firefly-api.adobe.io/v3/cancel/{jobId}
+Use code with caution.
+• Purpose: Direct tracking loops and cancellation hooks for asynchronous Firefly workloads.
+
+3. Canvas Automation APIs (Photoshop & Lightroom Clouds)
+
+• Base URL: https://image.adobe.io
+• Service Engine Constraints: All incoming assets must be passed using signed bucket URLs (S3, Azure Blob, Dropbox).
+
+A. Photoshop Headless Operations (v2 Pipeline Core)
+
+http
+POST https://image.adobe.io/v2/remove-background
+Use code with caution.
+• Purpose: Segmenting and extracting foreground elements from composite assets.
+http
+POST https://adobe.io
+Use code with caution.
+• Purpose: Segmenting semantic objects, backgrounds, and human profiles.
+http
+POST https://adobe.io
+Use code with caution.
+• Purpose: Processing asset layer alterations and internal variable substitutions.
+http
+POST https://adobe.io
+Use code with caution.
+• Purpose: Running typographical modifications on active text layers.
+http
+POST https://adobe.io
+Use code with caution.
+• Purpose: Intelligently identifying layout subjects and applying calculated boundary crops.
+http
+POST https://adobe.io
+Use code with caution.
+• Purpose: Programmatically running Photoshop ATN files converted into automated JSON strings.
+http
+POST https://adobe.io
+Use code with caution.
+• Purpose: Assembling new structural PSD templates or writing out multi-layer documents.
+
+B. Lightroom Headless Enhancements
+
+http
+POST https://adobe.io
+Use code with caution.
+• Purpose: Auto-balancing canvas properties like exposure, whites, and color mapping.
+http
+POST https://adobe.io
+Use code with caution.
+• Purpose: Evaluating spatial matrices to inject digital aperture and field blur filters.
+
+C. Inbound Job Lifecycles (Photoshop / Lightroom Engine Context)
+
+http
+GET  https://image.adobe.io/v2/status/{jobId}
+Use code with caution.
+• Purpose: Status tracking polling route for all asynchronous actions hitting the imaging engine.
+
+4. Vector & Workflow Scale APIs (Illustrator & Batch Pipelines)
+
+• Base URL: https://image.adobe.io
+
+A. Illustrator Headless Engine
+
+http
+POST https://adobe.io
+Use code with caution.
+• Purpose: Running vectorization sweeps to convert raw raster inputs (JPEG/PNG) into scalable vector graphics (SVG).
+http
+POST https://adobe.io
+Use code with caution.
+• Purpose: Injecting database variables directly into structural template layouts.
+
+B. Creative Production Engine
+
+http
+POST https://adobe.io
+Use code with caution.
+• Purpose: Scaling operations by executing unified workflows across thousands of media targets.
+
+C. Inbound Job Lifecycles (Illustrator / Workflow Context)
+
+http
+GET  https://adobe.io{jobId}
+GET  https://adobe.io{jobId}/image-trace
+Use code with caution.
+• Purpose: Tracking asynchronous vectors for structural automation workflows.
+Would you like to build a Postman Environment configuration structure for these domains, or do you need a clean cURL request breakdown for a specific asset generation route?
+• 
+GitHub
+Focus-GTS/firefly-services-skills: Production
+Firefly endpoints live under https://firefly-api.adobe.io Photoshop API endpoints live under https://image.adobe.io/pie/psdService...
+• 
+Adobe Developer
+Overview - Adobe Firefly API
+Blend product shots and objects into generated scenes with complementing tones, colors, lighting, shadows, and textures. setups, b...
+• 
+Adobe Developer
+Firefly API Reference
+Firefly services including image generation, image alteration, image upscaling, video generation, and other related services.
+Show all

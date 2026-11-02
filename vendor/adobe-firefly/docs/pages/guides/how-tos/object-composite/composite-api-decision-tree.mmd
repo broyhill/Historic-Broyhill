@@ -1,0 +1,6 @@
+flowchart TD
+  startNode["Existing background image?"]
+  startNode -->|No| genNode["Generate Object Composite<br/>POST /v3/images/generate-object-composite-async"]
+  startNode -->|Yes| fidelityNode["Pixel-perfect subject fidelity?"]
+  fidelityNode -->|Yes| preciseNode["Precise Composite<br/>POST /v3/images/precise-composite"]
+  fidelityNode -->|No, realism first| adaptiveNode["Adaptive Composite<br/>POST /v3/images/adaptive-composite"]
