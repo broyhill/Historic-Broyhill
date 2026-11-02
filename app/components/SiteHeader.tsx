@@ -16,9 +16,14 @@ export default function SiteHeader() {
             <span className="text-[10px] uppercase tracking-[0.2em] text-[#d4c4a0]">EVENTS &amp; MEETINGS</span>
           </div>
           
-          <a href="/plan-your-event" className="inline-flex min-h-[44px] items-center rounded bg-[#c2a15a] px-4 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#182c3e] hover:bg-[#d2b268]">
-            REQUEST FOR PROPOSAL
-          </a>
+          <div className="flex items-center gap-4">
+            <a href="/admin/login" className="inline-flex min-h-[44px] items-center text-[11px] uppercase tracking-[0.1em] text-[#cdd5d9] hover:text-white">
+              SIGN IN
+            </a>
+            <a href="/plan-your-event" className="inline-flex min-h-[44px] items-center rounded bg-[#c2a15a] px-4 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#182c3e] hover:bg-[#d2b268]">
+              REQUEST FOR PROPOSAL
+            </a>
+          </div>
         </div>
       </div>
 

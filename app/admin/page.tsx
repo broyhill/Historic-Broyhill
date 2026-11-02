@@ -222,6 +222,9 @@ export default function AdminConsole() {
           <div className="flex-1">
             <h2 className="text-[22px] text-ink leading-none">{TITLES[section]}</h2>
           </div>
+          <a href="/" className="h-11 px-3 inline-flex items-center gap-2 border border-line bg-white rounded-md text-[13px] text-muted hover:text-ink hover:border-faint">
+            &larr; Website
+          </a>
           <button onClick={refreshMetrics} className="h-11 px-3 inline-flex items-center gap-2 border border-line bg-white rounded-md text-[13px] text-muted hover:text-ink hover:border-faint" aria-label="Refresh counts">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" /></svg>
             Refresh
