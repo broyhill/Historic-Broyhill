@@ -5,6 +5,10 @@
 //   "google"         Google Imagen via Gemini API (lib/google-image.ts) —
 //                    IMAGE_GEN_GOOGLE_KEY, optional IMAGE_GEN_GOOGLE_MODEL.
 //                    Synchronous: returns base64 bytes, no polling.
+//   "replicate"      Replicate prediction API (lib/replicate.ts) —
+//                    IMAGE_GEN_REPLICATE_TOKEN, optional IMAGE_GEN_REPLICATE_MODEL
+//                    (default black-forest-labs/flux-schnell, ~$0.003/image).
+//                    Async: polls the prediction's urls.get like Firefly.
 //   "engine"         Our own generation engine (e.g. the XSELLNET render lane or a
 //                    self-hosted model) — IMAGE_GEN_ENGINE_URL, optional
 //                    IMAGE_GEN_ENGINE_TOKEN. The engine answers the same async
@@ -13,17 +17,19 @@
 //                    { statusUrl, jobId } polled until { status: "succeeded",
 //                    result: { outputs: [{url|image.url, seed}] } }.
 //
-// Selection: IMAGE_GEN_PROVIDER = "engine" | "google" | "adobe-firefly" pins one;
-// unset ("auto") prefers our engine, then Google, then Adobe.
+// Selection: IMAGE_GEN_PROVIDER = "engine" | "google" | "replicate" |
+// "adobe-firefly" pins one; unset ("auto") prefers our engine, then Google,
+// then Replicate, then Adobe.
 
 import { pollAsyncJob, type AsyncJobOutcome } from "@/lib/async-job";
 import { fireflyEnabled, generateWithFirefly } from "@/lib/firefly";
 import { googleEnabled, generateWithGoogle } from "@/lib/google-image";
+import { replicateEnabled, generateWithReplicate } from "@/lib/replicate";
 
 export const ASPECT_RATIOS = ["1:1", "4:3", "3:4", "16:9", "9:16"] as const;
 export type AspectRatio = (typeof ASPECT_RATIOS)[number];
 
-export type ImageProvider = "engine" | "google" | "adobe-firefly";
+export type ImageProvider = "engine" | "google" | "replicate" | "adobe-firefly";
 
 export interface GeneratedImage {
   seed: number;
@@ -39,7 +45,7 @@ export interface GenerateResult {
 }
 
 export const IMAGE_GEN_NOT_CONFIGURED =
-  "Image generation is not configured (set IMAGE_GEN_ENGINE_URL for the HB engine, IMAGE_GEN_GOOGLE_KEY for Google Imagen, or ADOBE_FIREFLY_CLIENT_ID + ADOBE_FIREFLY_CLIENT_SECRET for the Adobe provider).";
+  "Image generation is not configured (set IMAGE_GEN_ENGINE_URL for the HB engine, IMAGE_GEN_GOOGLE_KEY for Google Imagen, IMAGE_GEN_REPLICATE_TOKEN for Replicate, or ADOBE_FIREFLY_CLIENT_ID + ADOBE_FIREFLY_CLIENT_SECRET for the Adobe provider).";
 
 export const engineEnabled = () => Boolean(process.env.IMAGE_GEN_ENGINE_URL);
 
@@ -47,6 +53,7 @@ export function configuredProviders(): ImageProvider[] {
   const out: ImageProvider[] = [];
   if (engineEnabled()) out.push("engine");
   if (googleEnabled()) out.push("google");
+  if (replicateEnabled()) out.push("replicate");
   if (fireflyEnabled()) out.push("adobe-firefly");
   return out;
 }
@@ -100,20 +107,33 @@ export async function generateImages(opts: {
   numVariations?: number;
   provider?: string;
 }): Promise<GenerateResult> {
-  const provider = resolveProvider(opts.provider);
-  if (!provider) throw new Error(IMAGE_GEN_NOT_CONFIGURED);
+  const primary = resolveProvider(opts.provider);
+  if (!primary) throw new Error(IMAGE_GEN_NOT_CONFIGURED);
 
   const aspectRatio = (ASPECT_RATIOS as readonly string[]).includes(opts.aspectRatio ?? "")
     ? (opts.aspectRatio as AspectRatio)
     : "1:1";
   const numVariations = Math.min(Math.max(opts.numVariations ?? 1, 1), 4);
 
-  const outcome =
-    provider === "engine"
-      ? await generateWithEngine({ prompt: opts.prompt, aspectRatio, numVariations })
-      : provider === "google"
-        ? await generateWithGoogle({ prompt: opts.prompt, aspectRatio, numVariations })
-        : await generateWithFirefly({ prompt: opts.prompt, aspectRatio, numVariations });
-
-  return { jobId: outcome.jobId, provider, images: outcome.images };
+  // Backup chain: the resolved provider first, then every other configured
+  // provider — a vendor outage falls through to the next adapter, not a 500.
+  const chain = [primary, ...configuredProviders().filter((p) => p !== primary)];
+  let lastError: unknown = new Error("No provider succeeded.");
+  for (const provider of chain) {
+    try {
+      const outcome =
+        provider === "engine"
+          ? await generateWithEngine({ prompt: opts.prompt, aspectRatio, numVariations })
+          : provider === "google"
+            ? await generateWithGoogle({ prompt: opts.prompt, aspectRatio, numVariations })
+            : provider === "replicate"
+              ? await generateWithReplicate({ prompt: opts.prompt, aspectRatio, numVariations })
+              : await generateWithFirefly({ prompt: opts.prompt, aspectRatio, numVariations });
+      return { jobId: outcome.jobId, provider, images: outcome.images };
+    } catch (error) {
+      console.error(`image-gen provider ${provider} failed, trying next`, error);
+      lastError = error;
+    }
+  }
+  throw lastError;
 }

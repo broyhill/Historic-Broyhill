@@ -16,6 +16,7 @@ export const maxDuration = 60;
 const PROVIDER_LABELS: Record<ImageProvider, string> = {
   engine: "HB engine",
   google: "Google Imagen",
+  replicate: "Replicate",
   "adobe-firefly": "Adobe Firefly",
 };
 
