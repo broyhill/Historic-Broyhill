@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E59 Microsegment Wizard — 3 Mechanic Prototype | BroyhillGOP</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.24.0/babel.min.js"></script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; }
+  /* Inspinia accents */
+  .inspinia-sidebar { background: #2f4050; color: #a7b1c2; }
+  .inspinia-sidebar .nav-label { color: #fff; }
+  .inspinia-header-bg { background: #f3f3f4; }
+</style>
+</head>
+<body class="bg-slate-100 min-h-screen">
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useCallback, useRef, useEffect } = React;
+
+// ─────────────────────────────────────────────────────────────────────
+// SHARED — mockSearchDonors (12K synthetic donor universe)
+// ─────────────────────────────────────────────────────────────────────
+const COALITION_FLAGS = ['2A', 'pro_life', 'veteran', 'sportsmen', 'evangelical', 'small_business'];
+const ISSUES = ['taxes', 'border', 'education', 'energy', 'healthcare', 'crime', 'china', 'judges', 'religious_liberty', 'small_biz', 'school_choice', 'spending', 'elections', 'agriculture', 'second_amendment'];
+const EVENTS = ['maxed_out', 'first_time', 'lapsed', 'reactivated', 'new_filing', 'bundler_active'];
+const GRADES = ['A++', 'A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'U'];
+const CAPACITY = ['principal', 'major', 'mid', 'mass'];
+const DISTRICTS = [];
+for (let i = 1; i <= 120; i++) DISTRICTS.push(`HD-${String(i).padStart(3, '0')}`);
+for (let i = 1; i <= 50;  i++) DISTRICTS.push(`SD-${String(i).padStart(2, '0')}`);
+for (let i = 1; i <= 14;  i++) DISTRICTS.push(`CD-${String(i).padStart(2, '0')}`);
+DISTRICTS.push('US_SENATE_NC', 'US_PRESIDENT');
+const FIRST = ['James','Mary','Robert','Patricia','John','Jennifer','Michael','Linda','William','Elizabeth','David','Barbara','Richard','Susan','Joseph','Jessica','Thomas','Sarah','Charles','Karen','Daniel','Lisa','Matthew','Margaret','Anthony','Betty','Mark','Sandra'];
+const LAST = ['Smith','Johnson','Williams','Brown','Jones','Garcia','Miller','Davis','Rodriguez','Martinez','Hernandez','Lopez','Wilson','Anderson','Thomas','Taylor','Moore','Jackson','Martin','Lee','Perez','Thompson','White','Harris','Sanchez','Clark','Ramirez','Lewis','Robinson','Walker','Young','Allen','King','Wright'];
+
+function mulberry32(seed) {
+  return function() {
+    let t = seed += 0x6D2B79F5;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+const rand = mulberry32(372171);
+function pickN(arr, n, r) {
+  const out = new Set();
+  while (out.size < n && out.size < arr.length) out.add(arr[Math.floor(r() * arr.length)]);
+  return out;
+}
+function buildUniverse() {
+  const u = [];
+  for (let i = 0; i < 12000; i++) {
+    const r = rand();
+    let g;
+    if (r < 0.02) g = 0; else if (r < 0.06) g = 1; else if (r < 0.12) g = 2;
+    else if (r < 0.20) g = 3; else if (r < 0.32) g = 4; else if (r < 0.45) g = 5;
+    else if (r < 0.58) g = 6; else if (r < 0.68) g = 7; else if (r < 0.77) g = 8;
+    else if (r < 0.85) g = 9; else if (r < 0.91) g = 10; else if (r < 0.96) g = 11;
+    else if (r < 0.99) g = 12; else g = 13;
+    u.push({
+      donor_id: `D-${String(i + 1).padStart(6, '0')}`,
+      name_on_ballot: `${FIRST[Math.floor(rand() * FIRST.length)]} ${LAST[Math.floor(rand() * LAST.length)]}`,
+      grade: GRADES[g],
+      intensity: Math.floor(rand() * 1000),
+      capacity_tier: CAPACITY[Math.min(3, Math.floor(g / 3.5))],
+      coalition_flags: pickN(COALITION_FLAGS, 1 + Math.floor(rand() * 3), rand),
+      issue_affinity:  pickN(ISSUES,          2 + Math.floor(rand() * 4), rand),
+      recent_events:   rand() < 0.4 ? pickN(EVENTS, 1 + Math.floor(rand() * 2), rand) : new Set(),
+      districts:       pickN(DISTRICTS,       3 + Math.floor(rand() * 4), rand),
+    });
+  }
+  return u;
+}
+const UNIVERSE = buildUniverse();
+const UNIVERSE_TOTAL = UNIVERSE.length;
+
+function searchDonors(spec = {}) {
+  return UNIVERSE.filter((d) => {
+    if (spec.coalition_flags?.values?.length > 0) {
+      const { mode, values } = spec.coalition_flags;
+      const hits = values.filter((v) => d.coalition_flags.has(v));
+      if (mode === 'AND' && hits.length !== values.length) return false;
+      if (mode === 'OR'  && hits.length === 0) return false;
+    }
+    if (spec.issue_affinity?.values?.length > 0) {
+      const { mode, values } = spec.issue_affinity;
+      const hits = values.filter((v) => d.issue_affinity.has(v));
+      if (mode === 'AND' && hits.length !== values.length) return false;
+      if (mode === 'OR'  && hits.length === 0) return false;
+    }
+    if (spec.recent_events) {
+      const { include = [], exclude = [] } = spec.recent_events;
+      if (include.length > 0 && !include.some((v) => d.recent_events.has(v))) return false;
+      if (exclude.length > 0 &&  exclude.some((v) => d.recent_events.has(v))) return false;
+    }
+    if (spec.districts) {
+      const { include = [], exclude = [] } = spec.districts;
+      if (include.length > 0 && !include.some((v) => d.districts.has(v))) return false;
+      if (exclude.length > 0 &&  exclude.some((v) => d.districts.has(v))) return false;
+    }
+    return true;
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// Chip
+// ─────────────────────────────────────────────────────────────────────
+const STATE_STYLES = {
+  include: 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200',
+  exclude: 'bg-red-50 text-red-700 border-red-300 hover:bg-red-100',
+  exactMatch: 'bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100',
+};
+const STATE_ICONS = { include: '', exclude: '−', exactMatch: '✓' };
+function Chip({ label, state = 'include', onRemove }) {
+  const cls = STATE_STYLES[state] || STATE_STYLES.include;
+  const icon = STATE_ICONS[state];
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-medium transition-colors duration-150 select-none ${cls}`} data-state={state}>
+      {icon && <span className="font-bold leading-none">{icon}</span>}
+      <span>{label}</span>
+      {onRemove && (
+        <button type="button" onClick={(e) => { e.stopPropagation(); onRemove(); }} aria-label={`Remove ${label}`} className="ml-0.5 text-base leading-none opacity-60 hover:opacity-100">×</button>
+      )}
+    </span>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// MECHANIC #1 — AndOrToggleFilter
+// ─────────────────────────────────────────────────────────────────────
+function AndOrToggleFilter({ label, options, value = { mode: 'OR', values: [] }, onChange, helpText }) {
+  const [open, setOpen] = useState(false);
+  const { mode, values } = value;
+  const toggleValue = (v) => onChange({ mode, values: values.includes(v) ? values.filter((x) => x !== v) : [...values, v] });
+  const toggleMode = () => onChange({ mode: mode === 'OR' ? 'AND' : 'OR', values });
+  const removeValue = (v) => onChange({ mode, values: values.filter((x) => x !== v) });
+  const clearAll = () => onChange({ mode, values: [] });
+
+  return (
+    <div className="border-b border-slate-200 py-3">
+      <div className="flex items-center justify-between mb-2">
+        <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-600">{label}</h4>
+        <button type="button" onClick={toggleMode} disabled={values.length < 2}
+          title={values.length < 2 ? 'Select 2+ values to use AND/OR' : `Currently: ${mode}. Click to switch.`}
+          className={`relative inline-flex items-center text-[10px] font-bold uppercase tracking-wider rounded-full px-2.5 py-1 transition-all duration-150 ${values.length < 2 ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : mode === 'AND' ? 'bg-indigo-600 text-white shadow-sm hover:bg-indigo-700' : 'bg-amber-500 text-white shadow-sm hover:bg-amber-600'}`}>
+          <span className="mr-1.5">{mode}</span>
+          <span className="opacity-75">{mode === 'AND' ? '∧ all' : '∨ any'}</span>
+        </button>
+      </div>
+      {helpText && <p className="text-[11px] text-slate-500 mb-2 leading-relaxed">{helpText}</p>}
+      {values.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-2">
+          {values.map((v) => <Chip key={v} label={v.replace(/_/g,' ')} state="include" onRemove={() => removeValue(v)} />)}
+          <button type="button" onClick={clearAll} className="text-[10px] text-slate-500 hover:text-slate-700 underline ml-1">clear</button>
+        </div>
+      )}
+      <div className="relative">
+        <button type="button" onClick={() => setOpen((o) => !o)} className="w-full text-left text-xs px-3 py-2 border border-slate-300 rounded-md bg-white hover:bg-slate-50 text-slate-600 flex items-center justify-between">
+          <span>{values.length === 0 ? `Add ${label.toLowerCase()}…` : `+ Add more`}</span>
+          <span className="text-slate-400">{open ? '▾' : '▸'}</span>
+        </button>
+        {open && (
+          <div className="absolute z-10 mt-1 w-full bg-white border border-slate-300 rounded-md shadow-lg max-h-56 overflow-y-auto">
+            {options.map((opt) => {
+              const selected = values.includes(opt);
+              return (
+                <button key={opt} type="button" onClick={() => toggleValue(opt)}
+                  className={`w-full text-left px-3 py-1.5 text-xs flex items-center justify-between ${selected ? 'bg-slate-100 text-slate-900' : 'hover:bg-slate-50 text-slate-700'}`}>
+                  <span>{opt.replace(/_/g, ' ')}</span>
+                  {selected && <span className="text-emerald-600 font-bold">✓</span>}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+      {values.length >= 2 && (
+        <p className="text-[10px] text-slate-500 italic mt-2">
+          {mode === 'AND' ? `donor must match ALL ${values.length} selected` : `donor must match ANY of the ${values.length} selected`}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// MECHANIC #2 — IncludeExcludeRow
+// ─────────────────────────────────────────────────────────────────────
+function IncludeExcludeRow({ label, options, value = { include: [], exclude: [] }, onChange, helpText, enableBulkExclude = true }) {
+  const [open, setOpen] = useState(false);
+  const [typed, setTyped] = useState('');
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkText, setBulkText] = useState('');
+  const { include, exclude } = value;
+
+  const setPolarity = (val, polarity) => {
+    const nextInclude = include.filter((v) => v !== val);
+    const nextExclude = exclude.filter((v) => v !== val);
+    if (polarity === 'include') nextInclude.push(val);
+    if (polarity === 'exclude') nextExclude.push(val);
+    onChange({ include: nextInclude, exclude: nextExclude });
+  };
+
+  const handleKey = (e) => {
+    if (e.key === 'Enter' && typed.trim()) {
+      let val = typed.trim();
+      let polarity = 'include';
+      if (val.startsWith('-')) { polarity = 'exclude'; val = val.slice(1).trim(); }
+      const match = options.find((o) => o.toLowerCase() === val.toLowerCase() || o.replace(/_/g, ' ').toLowerCase() === val.toLowerCase());
+      if (match) setPolarity(match, polarity);
+      setTyped('');
+    }
+  };
+
+  const handleBulkExclude = () => {
+    const parsed = bulkText.split(/[,\n]/).map((s) => s.trim().replace(/^-/, '')).filter(Boolean);
+    const newExclude = [...exclude];
+    parsed.forEach((p) => {
+      const m = options.find((o) => o.toLowerCase() === p.toLowerCase());
+      if (m && !newExclude.includes(m)) newExclude.push(m);
+    });
+    onChange({ include: include.filter((v) => !newExclude.includes(v)), exclude: newExclude });
+    setBulkText(''); setBulkOpen(false);
+  };
+
+  const polarityOf = (v) => include.includes(v) ? 'include' : exclude.includes(v) ? 'exclude' : null;
+  const allChips = [...include.map((v) => ({ val: v, state: 'include' })), ...exclude.map((v) => ({ val: v, state: 'exclude' }))];
+
+  return (
+    <div className="border-b border-slate-200 py-3">
+      <div className="flex items-center justify-between mb-2">
+        <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-600">{label}</h4>
+        <div className="flex items-center gap-2">
+          {include.length + exclude.length > 0 && (
+            <span className="text-[10px] text-slate-500">
+              <span className="text-slate-700">{include.length}</span>
+              <span className="mx-1">·</span>
+              <span className="text-red-600">{exclude.length}</span>
+            </span>
+          )}
+          {enableBulkExclude && (
+            <button type="button" onClick={() => setBulkOpen((b) => !b)} title="Bulk exclude" className="text-[10px] font-bold uppercase tracking-wider text-red-600 hover:text-red-800">bulk −</button>
+          )}
+        </div>
+      </div>
+      {helpText && <p className="text-[11px] text-slate-500 mb-2 leading-relaxed">{helpText}</p>}
+      {bulkOpen && (
+        <div className="mb-2 p-2 bg-red-50 border border-red-200 rounded">
+          <textarea value={bulkText} onChange={(e) => setBulkText(e.target.value)} placeholder="paste comma-separated values to exclude" className="w-full text-xs p-1.5 border border-red-200 rounded font-mono" rows={2} />
+          <div className="flex gap-2 mt-1.5">
+            <button onClick={handleBulkExclude} className="text-[10px] font-bold uppercase px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">exclude all</button>
+            <button onClick={() => { setBulkText(''); setBulkOpen(false); }} className="text-[10px] uppercase px-2 py-1 text-slate-600 hover:text-slate-800">cancel</button>
+          </div>
+        </div>
+      )}
+      {allChips.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-2">
+          {allChips.map((c) => <Chip key={`${c.state}:${c.val}`} label={c.val.replace(/_/g, ' ')} state={c.state} onRemove={() => setPolarity(c.val, 'remove')} />)}
+        </div>
+      )}
+      <input type="text" value={typed} onChange={(e) => setTyped(e.target.value)} onKeyDown={handleKey}
+        onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 150)}
+        placeholder={`type a value, or "-value" to exclude…`}
+        className="w-full text-xs px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200" />
+      {open && (
+        <div className="relative">
+          <div className="absolute z-10 mt-1 w-full bg-white border border-slate-300 rounded-md shadow-lg max-h-56 overflow-y-auto">
+            {options.filter((o) => !typed || o.toLowerCase().includes(typed.toLowerCase().replace(/^-/, '')) || o.replace(/_/g, ' ').toLowerCase().includes(typed.toLowerCase().replace(/^-/, ''))).map((opt) => {
+              const p = polarityOf(opt);
+              return (
+                <div key={opt} className={`flex items-center justify-between px-3 py-1.5 text-xs ${p === 'include' ? 'bg-slate-50' : p === 'exclude' ? 'bg-red-50' : 'hover:bg-slate-50'}`}>
+                  <span className="flex-1">{opt.replace(/_/g, ' ')}</span>
+                  <div className="flex gap-1">
+                    <button type="button" onMouseDown={(e) => { e.preventDefault(); setPolarity(opt, p === 'include' ? 'remove' : 'include'); }}
+                      title="Include" className={`px-2 py-0.5 rounded text-[11px] font-bold ${p === 'include' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-500 hover:bg-emerald-100 hover:text-emerald-700'}`}>+</button>
+                    <button type="button" onMouseDown={(e) => { e.preventDefault(); setPolarity(opt, p === 'exclude' ? 'remove' : 'exclude'); }}
+                      title="Exclude" className={`px-2 py-0.5 rounded text-[11px] font-bold ${p === 'exclude' ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-500 hover:bg-red-100 hover:text-red-700'}`}>−</button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      {include.length + exclude.length > 0 && (
+        <p className="text-[10px] text-slate-500 italic mt-2">
+          {include.length > 0 && `donor needs ANY of {${include.join(', ')}}`}
+          {include.length > 0 && exclude.length > 0 && ' · '}
+          {exclude.length > 0 && <span className="text-red-600">AND NONE of {`{${exclude.join(', ')}}`}</span>}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// MECHANIC #3 — LiveMatchCounter
+// ─────────────────────────────────────────────────────────────────────
+function tween(from, to, duration, onTick, onDone) {
+  const start = performance.now();
+  let rafId;
+  const step = (now) => {
+    const t = Math.min(1, (now - start) / duration);
+    const eased = 1 - Math.pow(1 - t, 3);
+    onTick(Math.round(from + (to - from) * eased));
+    if (t < 1) rafId = requestAnimationFrame(step);
+    else onDone?.();
+  };
+  rafId = requestAnimationFrame(step);
+  return () => cancelAnimationFrame(rafId);
+}
+function pickColor(pct) {
+  if (pct > 50) return { ring: 'ring-blue-300',    text: 'text-blue-700',    bg: 'bg-blue-50',    accent: 'bg-blue-500' };
+  if (pct > 10) return { ring: 'ring-emerald-300', text: 'text-emerald-700', bg: 'bg-emerald-50', accent: 'bg-emerald-500' };
+  if (pct > 1)  return { ring: 'ring-amber-300',   text: 'text-amber-700',   bg: 'bg-amber-50',   accent: 'bg-amber-500' };
+  return            { ring: 'ring-red-300',     text: 'text-red-700',     bg: 'bg-red-50',     accent: 'bg-red-500' };
+}
+function LiveMatchCounter({ spec, onMatchesChange, showBreakdown = true }) {
+  const [count, setCount] = useState(UNIVERSE_TOTAL);
+  const [displayedCount, setDisplayedCount] = useState(UNIVERSE_TOTAL);
+  const [loading, setLoading] = useState(false);
+  const [breakdown, setBreakdown] = useState({ principal: 0, major: 0, mid: 0, mass: 0 });
+  const debounceRef = useRef(null);
+  const tweenCancelRef = useRef(null);
+  const prevCountRef = useRef(UNIVERSE_TOTAL);
+
+  useEffect(() => {
+    setLoading(true);
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      const matches = searchDonors(spec);
+      const newCount = matches.length;
+      setCount(newCount);
+      onMatchesChange?.(matches);
+      const b = { principal: 0, major: 0, mid: 0, mass: 0 };
+      matches.forEach((m) => { b[m.capacity_tier] = (b[m.capacity_tier] || 0) + 1; });
+      setBreakdown(b);
+      tweenCancelRef.current?.();
+      tweenCancelRef.current = tween(prevCountRef.current, newCount, 400, setDisplayedCount, () => { setLoading(false); prevCountRef.current = newCount; });
+    }, 150);
+    return () => clearTimeout(debounceRef.current);
+  }, [spec]);
+
+  const pct = (count / UNIVERSE_TOTAL) * 100;
+  const colors = pickColor(pct);
+
+  return (
+    <div className={`${colors.bg} ${colors.ring} ring-1 rounded-lg p-4 transition-colors duration-300`} role="status" aria-live="polite">
+      <div className="flex items-baseline justify-between mb-2">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-600">Addressable donor universe</span>
+        {loading && (
+          <span className="text-[10px] text-slate-500 inline-flex items-center gap-1">
+            <span className={`w-1.5 h-1.5 rounded-full ${colors.accent} animate-pulse`} />
+            computing
+          </span>
+        )}
+      </div>
+      <div className="flex items-baseline gap-2">
+        <span className={`text-4xl font-bold tabular-nums ${colors.text} transition-colors duration-300`}>{displayedCount.toLocaleString()}</span>
+        <span className="text-sm text-slate-500">/ {UNIVERSE_TOTAL.toLocaleString()} donors</span>
+      </div>
+      <div className="mt-2 flex items-center gap-3 text-xs">
+        <span className={`font-semibold ${colors.text}`}>{pct.toFixed(pct < 1 ? 2 : 1)}%</span>
+        <span className="text-slate-500">{UNIVERSE_TOTAL - count > 0 ? `−${(UNIVERSE_TOTAL - count).toLocaleString()} filtered out` : 'no filters applied'}</span>
+      </div>
+      <div className="mt-3 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+        <div className={`h-full ${colors.accent} transition-all duration-400 ease-out`} style={{ width: `${Math.max(0.3, pct)}%` }} />
+      </div>
+      {showBreakdown && count > 0 && (
+        <div className="mt-3 grid grid-cols-4 gap-1 text-center">
+          {['principal', 'major', 'mid', 'mass'].map((tier) => (
+            <div key={tier} className="text-[10px]">
+              <div className={`font-bold ${colors.text}`}>{(breakdown[tier] || 0).toLocaleString()}</div>
+              <div className="text-slate-500 uppercase tracking-wider">{tier}</div>
+            </div>
+          ))}
+        </div>
+      )}
+      {count === 0 && <p className="mt-2 text-xs text-red-700 font-medium">⚠ No donors match. Loosen filters or switch a filter from AND to OR.</p>}
+      {pct > 0 && pct < 1 && <p className="mt-2 text-xs text-amber-700">Tight microsegment — confirm intent before saving.</p>}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// INSPINIA SHELL — 3-zone commander-portal layout
+// ─────────────────────────────────────────────────────────────────────
+function App() {
+  const [spec, setSpec] = useState({
+    coalition_flags: { mode: 'OR', values: [] },
+    issue_affinity:  { mode: 'OR', values: [] },
+    recent_events:   { include: [], exclude: [] },
+    districts:       { include: [], exclude: [] },
+  });
+  const [matches, setMatches] = useState([]);
+
+  return (
+    <div className="min-h-screen flex">
+      {/* LEFT: Inspinia sidebar */}
+      <aside className="inspinia-sidebar w-56 flex-shrink-0 p-4 flex flex-col">
+        <div className="flex items-center gap-2 mb-6">
+          <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-white font-bold text-xs">BG</div>
+          <div>
+            <div className="nav-label text-sm font-semibold">BroyhillGOP</div>
+            <div className="text-[10px] opacity-75">Commander Portal</div>
+          </div>
+        </div>
+        <nav className="flex-1">
+          <div className="text-[10px] uppercase tracking-wider opacity-50 mb-2">Microsegments</div>
+          <a href="#" className="block py-1.5 px-2 text-sm bg-slate-700 text-white rounded mb-1">› E59 Wizard</a>
+          <a href="#" className="block py-1.5 px-2 text-sm opacity-75 hover:opacity-100">Saved (41)</a>
+          <a href="#" className="block py-1.5 px-2 text-sm opacity-75 hover:opacity-100">History</a>
+          <div className="text-[10px] uppercase tracking-wider opacity-50 mb-2 mt-6">Heat Machine</div>
+          <a href="#" className="block py-1.5 px-2 text-sm opacity-75 hover:opacity-100">E42 News</a>
+          <a href="#" className="block py-1.5 px-2 text-sm opacity-75 hover:opacity-100">E63 Tensor</a>
+          <a href="#" className="block py-1.5 px-2 text-sm opacity-75 hover:opacity-100">E68 Approval Q</a>
+        </nav>
+        <div className="text-[10px] opacity-50 mt-4 border-t border-slate-600 pt-2">
+          Sacred canary: 147 / $332,631.30 ✓
+        </div>
+      </aside>
+
+      {/* RIGHT: 3-zone content */}
+      <main className="flex-1 flex flex-col">
+        {/* Header */}
+        <header className="inspinia-header-bg border-b border-slate-200 px-6 py-3 flex items-center justify-between">
+          <div>
+            <h1 className="text-lg font-semibold text-slate-800">E59 Microsegment Wizard</h1>
+            <p className="text-xs text-slate-500">3-Mechanic Prototype · v2 Teardown · Read-only · Mock universe (12,000 donors)</p>
+          </div>
+          <div className="flex gap-2">
+            <button className="text-xs px-3 py-1.5 border border-slate-300 rounded bg-white hover:bg-slate-50">Saved Microsegments</button>
+            <button className="text-xs px-3 py-1.5 bg-indigo-600 text-white rounded hover:bg-indigo-700">Save This</button>
+          </div>
+        </header>
+
+        <div className="flex flex-1">
+          {/* Filter rail */}
+          <div className="w-80 bg-white border-r border-slate-200 p-4 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 60px)' }}>
+            <h3 className="text-sm font-bold text-slate-800 mb-3">Filters</h3>
+
+            <AndOrToggleFilter
+              label="Coalition flags"
+              options={COALITION_FLAGS}
+              value={spec.coalition_flags}
+              onChange={(v) => setSpec((s) => ({ ...s, coalition_flags: v }))}
+              helpText="Mechanic #1 — AND/OR toggle (select 2+ to enable)"
+            />
+            <AndOrToggleFilter
+              label="Issue affinity"
+              options={ISSUES}
+              value={spec.issue_affinity}
+              onChange={(v) => setSpec((s) => ({ ...s, issue_affinity: v }))}
+              helpText="Same mechanic — switch AND/OR to widen/narrow"
+            />
+            <IncludeExcludeRow
+              label="Donor events"
+              options={EVENTS}
+              value={spec.recent_events}
+              onChange={(v) => setSpec((s) => ({ ...s, recent_events: v }))}
+              helpText='Mechanic #2 — type "-lapsed" to exclude'
+            />
+            <IncludeExcludeRow
+              label="Districts"
+              options={DISTRICTS}
+              value={spec.districts}
+              onChange={(v) => setSpec((s) => ({ ...s, districts: v }))}
+              helpText="HD-001..HD-120 / SD-01..SD-50 / CD-01..CD-14 / US_SENATE_NC / US_PRESIDENT"
+            />
+          </div>
+
+          {/* Results zone */}
+          <div className="flex-1 p-6 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 60px)' }}>
+            {/* Mechanic #3 */}
+            <LiveMatchCounter spec={spec} onMatchesChange={setMatches} />
+
+            {/* Results table */}
+            <div className="mt-4 bg-white rounded-lg border border-slate-200">
+              <div className="px-4 py-2 border-b border-slate-200 flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-600">Results · top 25</span>
+                <span className="text-xs text-slate-500">read-only preview</span>
+              </div>
+              <table className="w-full text-xs">
+                <thead className="bg-slate-50 text-slate-600">
+                  <tr>
+                    <th className="text-left px-4 py-2 font-semibold">Donor</th>
+                    <th className="text-left px-4 py-2 font-semibold">Grade</th>
+                    <th className="text-left px-4 py-2 font-semibold">Intensity</th>
+                    <th className="text-left px-4 py-2 font-semibold">Tier</th>
+                    <th className="text-left px-4 py-2 font-semibold">Coalitions</th>
+                    <th className="text-left px-4 py-2 font-semibold">Events</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {matches.slice(0, 25).map((d) => (
+                    <tr key={d.donor_id} className="border-t border-slate-100 hover:bg-slate-50">
+                      <td className="px-4 py-2"><span className="font-medium text-slate-800">{d.name_on_ballot}</span><br/><span className="text-[10px] text-slate-400">{d.donor_id}</span></td>
+                      <td className="px-4 py-2"><span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${d.grade.startsWith('A') ? 'bg-emerald-100 text-emerald-800' : d.grade.startsWith('B') ? 'bg-blue-100 text-blue-800' : d.grade === 'U' ? 'bg-slate-200 text-slate-600' : 'bg-amber-100 text-amber-800'}`}>{d.grade}</span></td>
+                      <td className="px-4 py-2 tabular-nums">{d.intensity}</td>
+                      <td className="px-4 py-2 capitalize text-slate-600">{d.capacity_tier}</td>
+                      <td className="px-4 py-2"><div className="flex flex-wrap gap-1">{Array.from(d.coalition_flags).slice(0, 3).map((c) => <span key={c} className="text-[9px] bg-slate-100 text-slate-600 px-1 rounded">{c.replace(/_/g,' ')}</span>)}</div></td>
+                      <td className="px-4 py-2"><div className="flex flex-wrap gap-1">{Array.from(d.recent_events).map((e) => <span key={e} className="text-[9px] bg-amber-100 text-amber-700 px-1 rounded">{e.replace(/_/g,' ')}</span>)}</div></td>
+                    </tr>
+                  ))}
+                  {matches.length === 0 && (
+                    <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-400">No matches. Adjust filters above.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mechanic legend */}
+            <div className="mt-6 bg-white rounded-lg border border-slate-200 p-4 text-xs">
+              <h4 className="font-bold text-slate-800 mb-2">Try these flows</h4>
+              <ol className="space-y-1.5 text-slate-600 list-decimal pl-4">
+                <li><b>Mechanic #1:</b> Add 2A + veteran to Coalition flags, then toggle <span className="bg-amber-500 text-white px-1.5 rounded font-bold">OR</span> ↔ <span className="bg-indigo-600 text-white px-1.5 rounded font-bold">AND</span> — watch the counter narrow when you switch to AND.</li>
+                <li><b>Mechanic #2:</b> In Donor events, click the green <span className="bg-emerald-600 text-white px-1.5 rounded font-bold">+</span> next to "maxed_out", then click the red <span className="bg-red-600 text-white px-1.5 rounded font-bold">−</span> next to "lapsed". Or type <code className="bg-slate-100 px-1 rounded">-lapsed</code> + Enter for the shortcut.</li>
+                <li><b>Mechanic #3:</b> Watch the count animate as you change filters. Color shifts blue → emerald → amber → red as the universe narrows. Capacity-tier breakdown updates live.</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
