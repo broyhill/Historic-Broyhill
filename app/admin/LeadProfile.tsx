@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { ReactNode, useCallback, useEffect, useState } from "react";
 
 // One lead's profile — opened by clicking a row in the Leads table.
 // Header: photo placeholder + identity. Left column: contact info, socials,
@@ -39,7 +39,7 @@ const inputCls = "w-full text-[13px] px-2 py-1.5 border border-line rounded bg-w
 function EditableModule({ title, empty, listKey, value, isList, render, saving, onSave }: {
   title: string; empty: string; listKey: string;
   value: unknown; isList: boolean;
-  render: () => React.ReactNode;
+  render: () => ReactNode;
   saving: boolean;
   onSave: (key: string, value: unknown) => Promise<void>;
 }) {
@@ -157,7 +157,7 @@ export default function LeadProfile({ leadId, onClose }: { leadId: string; onClo
                 <h4 className="text-[12px] font-semibold text-muted uppercase tracking-wide mb-1.5">Contact</h4>
                 <ul className="text-[13px] space-y-1">
                   <li><a href={`mailto:${l.email}`} className="text-info hover:underline">{l.email}</a></li>
-                  {l.phone && <li><a href={`tel:${l.phone}`} className="text-ink">{l.phone}</a></li>
+                  {l.phone && <li><a href={`tel:${l.phone}`} className="text-ink">{l.phone}</a></li>}
                   {l.companyLinkedin && <li><a href={l.companyLinkedin} target="_blank" rel="noopener noreferrer" className="text-info hover:underline">Company LinkedIn ↗</a></li>}
                   {l.leadSource && <li className="text-subtle">Source: {l.leadSource}</li>}
                   {l.estimatedValue != null && <li className="text-subtle">Est. value ${l.estimatedValue.toLocaleString()}</li>}
