@@ -6,6 +6,7 @@ import ReviewPanel from "./ReviewPanel";
 import AskPanel from "./AskPanel";
 import CampaignsPanel from "./CampaignsPanel";
 import TemplatesPanel from "./TemplatesPanel";
+import LandingPanel from "./LandingPanel";
 import PhotosPanel from "./PhotosPanel";
 import StockSearch from "./StockSearch";
 import StudioPanel from "./StudioPanel";
@@ -37,6 +38,7 @@ const icons: Record<Section, React.ReactNode> = {
   journeys: <path d="M12 2a10 10 0 0 1 10 10h-2a8 8 0 1 0-8 8v2A10 10 0 0 1 12 2zm1 4h-2v6l5.2 3.1 1-1.7-4.2-2.4z" />,
   examples: <path d="M3 5a2 2 0 0 1 2-2h4v8H3zM13 3h6a2 2 0 0 1 2 2v3h-8zM13 12h8v7a2 2 0 0 1-2 2h-6zM3 15h6v6H5a2 2 0 0 1-2-2z" />,
   templates: <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h5" />,
+  landing: <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 22V12h6v10" />,
   studio: <path d="M12 19l7-7 3 3-7 7-3-3zM18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5zM2 2l7.6 7.6" />,
   social: <path d="M18 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 22a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8.6 13.5l6.8 4M15.4 6.5l-6.8 4" />,
   video: <path d="M23 7l-7 5 7 5V7zM3 5h11a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" />,
@@ -70,6 +72,7 @@ const NAV_PRIMARY: { key: Section; label: string }[] = [
 ];
 
 const NAV_SECONDARY: { key: Section; label: string }[] = [
+  { key: "landing", label: "Landing pages" },
   { key: "templates", label: "Templates" },
   { key: "examples", label: "Examples" },
   { key: "studio", label: "Email studio" },
@@ -93,6 +96,7 @@ const TITLES: Record<Section, string> = {
   express: "Date requests",
   journeys: "Journeys",
   examples: "Examples",
+  landing: "Landing pages",
   templates: "Templates",
   studio: "Email studio",
   social: "Social posts",
@@ -235,6 +239,7 @@ export default function AdminConsole() {
           {section === "express" && <ExpressPanel spaces={SPACES} onChanged={refreshMetrics} />}
           {section === "journeys" && <JourneysPanel onChanged={refreshMetrics} />}
           {section === "examples" && <ExamplesPanel onUse={useExample} />}
+          {section === "landing" && <LandingPanel />}
           {section === "templates" && <TemplatesPanel prefill={textPrefill} onOpenStudio={(id) => { setStudioStarter(null); setStudioId(id); setSection("studio"); }} onOpenStarter={(id) => { setStudioId(null); setStudioStarter(id); setSection("studio"); }} />}
           {section === "studio" && <StudioPanel openId={studioId} openStarter={studioStarter} />}
           {section === "social" && <SocialPanel prefill={socialPrefill} />}
