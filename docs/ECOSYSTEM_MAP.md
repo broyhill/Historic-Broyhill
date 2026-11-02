@@ -31,11 +31,13 @@ talks to another spoke directly, and nothing stands alone.
    rulings. In BroyhillGOP doctrine this is E91 — the empty shelf that gets
    stocked here first.
 
-4. **Dataiku ML (E60)** — *the math muscle.* The optimization engine the
-   Brain computes with: LP solves (who to ask, how much, which channel,
-   fatigue), propensity models, funnel intelligence, cost ledger. Vendored at
-   `vendor/e60-dataiku/` — ECO_CANONICAL/E60 code + specs + tests, the Dataiku
-   platform-selection ruling, and the class-analytics requirements doc.
+4. **Dataiku ML (E60)** — *the math muscle, wired as a network.* Not one
+   solver — a mesh of different math models, one applied per ecosystem: LP
+   optimization (who to ask, how much, which channel, fatigue), propensity
+   models, funnel intelligence, journey sensing, cost ledger — each spoke
+   gets the model built for it. Vendored at `vendor/e60-dataiku/` —
+   ECO_CANONICAL/E60 code + specs + tests, the Dataiku platform-selection
+   ruling, and the class-analytics requirements doc.
 
 5. **CFO (E72)** — *the money steward.* Holds the budget, the spend caps,
    and the purse strings — but **controls nobody**: the cost accountant and
