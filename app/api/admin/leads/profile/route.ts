@@ -73,3 +73,35 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+// Inline edits from the profile modules. PATCH { id, customFields?, notes? }
+// merges the given keys into lead.customFields (null deletes a key) so the
+// enrichment modules stay revisable by hand.
+export async function PATCH(request: Request) {
+  try {
+    const body = await request.json().catch(() => ({}));
+    const id = typeof body.id === "string" ? body.id : "";
+    if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
+
+    const lead = await prisma.leadProfile.findUnique({ where: { id }, select: { id: true, customFields: true } });
+    if (!lead) return NextResponse.json({ error: "Lead not found" }, { status: 404 });
+
+    const base = (lead.customFields && typeof lead.customFields === "object" && !Array.isArray(lead.customFields))
+      ? { ...(lead.customFields as Record<string, unknown>) } : {};
+    if (body.customFields && typeof body.customFields === "object" && !Array.isArray(body.customFields)) {
+      for (const [k, v] of Object.entries(body.customFields as Record<string, unknown>)) {
+        if (v === null) delete base[k]; else base[k] = v;
+      }
+    }
+    await prisma.leadProfile.update({
+      where: { id },
+      data: {
+        customFields: base,
+        ...(typeof body.notes === "string" ? { notes: body.notes.slice(0, 5000) } : {}),
+      },
+    });
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
