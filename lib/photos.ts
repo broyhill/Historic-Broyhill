@@ -17,7 +17,7 @@ export const MAX_VIDEO_BYTES = 1024 * 1024 * 1024; // 1 GB: finished videos from
 // Pictures also go straight to storage now, so originals are kept at full size.
 export const MAX_PHOTO_BYTES = 40 * 1024 * 1024;
 export const IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
-export const SUGGESTED_FOLDERS = ["General", "General-Videos", "Music", "Sound Effects","Building & grounds", "Magnolia Room", "The Boardrooms", "The Dock", "The Loft", "Events", "Videos", "Logos"];
+export const SUGGESTED_FOLDERS = ["General", "General-Videos", "Music", "Sound Effects","Building & grounds", "Magnolia Room", "The Boardrooms", "The Dock", "The Loft", "Events", "Videos", "Logos", "Templates"];
 // Royalty-free stock only ever lands in these folders, so it never mixes with real venue photos.
 export const STOCK_FOLDERS = { photo: "Stock Photos", video: "Stock Videos", graphic: "Stock Graphics" } as const;
 

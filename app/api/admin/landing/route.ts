@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
-import { readFile } from "fs/promises";
-import path from "path";
+import catalogJson from "@/data/landing-templates/index.json";
 import { prisma } from "@/lib/prisma";
 import { brandContext } from "@/lib/brand-context";
 import { aiErrorMessage, anthropicEnabled, CLAUDE_MODEL, getClient, groqChat, groqEnabled, NOT_CONFIGURED } from "@/lib/ai";
@@ -15,13 +14,12 @@ import { aiErrorMessage, anthropicEnabled, CLAUDE_MODEL, getClient, groqChat, gr
 
 type Template = { slug: string; title: string; source: string; categories: string[]; audience: string };
 
+// Bundled via import (not fs.readFile) — Vercel serverless functions ship the
+// compiled bundle, not repo files, so a runtime readFile would find nothing.
 let catalog: Template[] | null = null;
 async function loadCatalog(): Promise<Template[]> {
-  if (!catalog) {
-    const raw = await readFile(path.join(process.cwd(), "data/landing-templates/index.json"), "utf8");
-    catalog = JSON.parse(raw);
-  }
-  return catalog!;
+  if (!catalog) catalog = catalogJson as Template[];
+  return catalog;
 }
 
 // Best-effort: pull the live template's title/headings so the model composes
