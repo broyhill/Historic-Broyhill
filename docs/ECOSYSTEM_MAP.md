@@ -43,12 +43,22 @@ talks to another spoke directly, and nothing stands alone.
    + SQL + the campaign-investment engine (orchestrator, automation, control
    panel) and architecture docs.
 
-6. **Engage / Iterable** — *sends.* The engagement engine: journeys,
+6. **Auditor (C/B/V)** — *cost/benefit/variance, standalone.* After anything
+   fires, the Auditor reconciles projected vs actual — what we predicted an
+   action would cost and return against what it really did — and feeds the
+   variance back so the next decision is smarter. Vendored at
+   `vendor/cbv-auditor/`: the E60/CBV engine (variance snapshotter, anomaly
+   detector, attribution resolver, Bayesian + Welford stats, throttle
+   controller), `ax41_reconcile.py`, the reconciliation skill, and the E87
+   observe-seam SQL. Standalone by design — it audits every other spoke,
+   including the CFO.
+
+7. **Engage / Iterable** — *sends.* The engagement engine: journeys,
    templates, suppression, propensity sync. Vendored at `vendor/bgop-engage/`
    + `vendor/iterable/` (clone map, E30 bridge, Nova teardown, peer design
    draft). Dormant until a channel provider is bound.
 
-7. **The hub itself** — *remembers.* Leads, profiles, scores, timelines,
+8. **The hub itself** — *remembers.* Leads, profiles, scores, timelines,
    photos, campaigns: `app/`, `lib/`, the root Prisma schema. This is the
    shared memory every spoke reads and writes — the reason a new spoke
    plugs in without rewiring the others.
