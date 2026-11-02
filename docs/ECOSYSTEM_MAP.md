@@ -52,12 +52,14 @@ talks to another spoke directly, and nothing stands alone.
    builder.* The engine that slices one big audience into living
    microsegments — hierarchy, intensity log, taxonomy extension — crowned by
    the **Living Pyramid crosswalk** (applied live 2026-08-03): the ladder
-   that walks a person from stranger up to true believer. **Cut off from
-   news intelligence:** the pyramid is permanent structure — news heat
-   (E42/E63) is a consumer that *lights* its rungs, never a feed into them;
-   a segment exists because people are what they are, not because something
-   is hot this week — wiring the crosswalk to the news cycle would let
-   today's headlines rewrite the ladder itself. Vendored at
+   stranger up to true believer. **Cut off from
+   news intelligence:** the news eco is a 24/7 scan of ~350 *political*
+   outlets built for a campaign heat map — the wrong signal for an event
+   center or a car dealership, and it would let headlines rewrite a ladder
+   that should be permanent structure. The right feed here is **lead-level
+   social monitoring**: each microsegment connects to the social-media
+   links of the leads in it and of their companies and employers, and the
+   hub watches those — a person lighting up is the signal, not a newsroom.
    `vendor/e59-microsegment/` — ECO_CANONICAL/E59 (intelligence engine,
    agent mesh, rule engine, hierarchy/intensity SQL, control panel) +
    pyramid/crosswalk docs.
