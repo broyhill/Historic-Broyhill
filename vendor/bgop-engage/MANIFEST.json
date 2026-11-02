@@ -1,0 +1,21 @@
+{
+  "product": "bgop_engage",
+  "title": "BGOP Engage",
+  "version": "0.1.0",
+  "date": "2026-07-24",
+  "vendor_subscribe": false,
+  "rejected_brands": ["Iterable", "Braze", "Marketo", "Salesforce Marketing Cloud"],
+  "send_gun": "E30",
+  "decision_sor": "E60",
+  "schema": "engage",
+  "migration": "database/migrations/062_BGOP_ENGAGE.sql",
+  "modules": [
+    {"id": "profiles", "path": "modules/profiles.py", "role": "engagement_profile"},
+    {"id": "propensities", "path": "modules/propensities.py", "role": "lp_coefficients"},
+    {"id": "catalog", "path": "modules/catalog.py", "role": "ask_event_catalog"},
+    {"id": "journeys", "path": "modules/journeys.py", "role": "journey_tiles"},
+    {"id": "campaigns", "path": "modules/campaigns.py", "role": "campaign_orchestrator"},
+    {"id": "data_feed", "path": "modules/data_feed.py", "role": "lp_send_time_hook"},
+    {"id": "webhooks", "path": "modules/webhooks.py", "role": "engagement_ingress"}
+  ]
+}

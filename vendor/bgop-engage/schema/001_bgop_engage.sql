@@ -1,0 +1,4 @@
+-- Package-local pointer only.
+-- Canonical apply path (discoverable, not dryrun):
+--   database/migrations/062_BGOP_ENGAGE.sql
+-- Apply on Hetzner only after Ed: I AUTHORIZE THIS ACTION
