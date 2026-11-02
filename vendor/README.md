@@ -13,6 +13,7 @@ counterpart to the agency spine already merged in `lib/wizard/`.
 - `iterable/migrations/` — `061_ITERABLE_COMPLETE_PLATFORM.sql`,
   `062_BGOP_ENGAGE.sql` (reference; not applied).
 - `iterable/ITERABLE_INTEGRATION_DESIGN_PEER_DRAFT.md` — peer-session design draft: endpoint directory, Prisma ledger model, FastAPI webhook router, Next.js dispatch route with credit-ledger charge/refund. Reference only — contains draft code, not wired.
-- `iterable/teardown/` — Nova propensity teardown + full capability inventory;
+- `e20-brain/` — the Brain: ECO_CANONICAL/E20 spec + the Python daemon (`brain_worker.py`, `registry_dispatcher.py`). Decides what fires.
+- `iterable/teardown/ — Nova propensity teardown + full capability inventory;
   the Nova propensity taxonomy already lives in the merged code at
   `lib/wizard/feeder/nova.ts`.
