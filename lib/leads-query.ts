@@ -9,9 +9,10 @@ export interface LeadFilters {
   // "no-name" / "no-company" surface leads missing that field (e.g. email-only
   // contacts). "has-company-linkedin" shows enriched ones.
   gap?: string | null;
+  business?: string | null;
 }
 
-export function buildLeadWhere({ q, track, status, gap }: LeadFilters): Prisma.LeadProfileWhereInput {
+export function buildLeadWhere({ q, track, status, gap, business }: LeadFilters): Prisma.LeadProfileWhereInput {
   const where: Prisma.LeadProfileWhereInput = {};
   const and: Prisma.LeadProfileWhereInput[] = [];
 
@@ -27,6 +28,7 @@ export function buildLeadWhere({ q, track, status, gap }: LeadFilters): Prisma.L
     });
   }
   if (track && track !== "ALL") where.primaryTrack = track;
+  if (business && business !== "ALL") where.businessId = business;
   if (status && status !== "ALL") where.leadStatus = status;
   if (gap === "no-name") and.push({ OR: [{ name: null }, { name: "" }] });
   else if (gap === "no-company") and.push({ OR: [{ company: null }, { company: "" }] });
@@ -57,4 +59,5 @@ export const LEAD_SELECT = {
   leadSource: true,
   estimatedValue: true,
   createdAt: true,
+  businessId: true,
 } satisfies Prisma.LeadProfileSelect;

@@ -12,12 +12,13 @@ export async function GET(request: Request) {
       track: searchParams.get("track"),
       status: searchParams.get("status"),
       gap: searchParams.get("gap"),
+      business: searchParams.get("business"),
     });
 
     // The rows the table shows, plus the distinct values that populate the
     // filter dropdowns (computed over the whole table, not just this page,
     // so the filters stay stable as you narrow the search).
-    const [leads, trackRows, statusRows] = await Promise.all([
+    const [leads, trackRows, statusRows, businesses] = await Promise.all([
       prisma.leadProfile.findMany({
         where,
         orderBy: { createdAt: "desc" },
@@ -26,6 +27,7 @@ export async function GET(request: Request) {
       }),
       prisma.leadProfile.findMany({ distinct: ["primaryTrack"], select: { primaryTrack: true }, orderBy: { primaryTrack: "asc" } }),
       prisma.leadProfile.findMany({ distinct: ["leadStatus"], select: { leadStatus: true }, orderBy: { leadStatus: "asc" } }),
+      prisma.businessProfile.findMany({ select: { id: true, businessName: true }, orderBy: { businessName: "asc" } }),
     ]);
 
     return NextResponse.json({
@@ -33,6 +35,7 @@ export async function GET(request: Request) {
       leads,
       tracks: trackRows.map((r) => r.primaryTrack).filter(Boolean),
       statuses: statusRows.map((r) => r.leadStatus).filter(Boolean),
+      businesses,
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
