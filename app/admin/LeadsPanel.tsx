@@ -49,6 +49,8 @@ export default function LeadsPanel() {
   const [track, setTrack] = useState("ALL");
   const [status, setStatus] = useState("ALL");
   const [gap, setGap] = useState("ALL");
+  const [business, setBusiness] = useState("ALL");
+  const [businesses, setBusinesses] = useState<{ id: string; businessName: string }[]>([]);
   const [sortKey, setSortKey] = useState<SortKey>("createdAt");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
@@ -236,8 +238,9 @@ export default function LeadsPanel() {
     if (track !== "ALL") p.set("track", track);
     if (status !== "ALL") p.set("status", status);
     if (gap !== "ALL") p.set("gap", gap);
+    if (business !== "ALL") p.set("business", business);
     return p.toString();
-  }, [debouncedQ, track, status, gap]);
+  }, [debouncedQ, track, status, gap, business]);
 
   useEffect(() => {
     let cancelled = false;
@@ -252,6 +255,7 @@ export default function LeadsPanel() {
         if (data.leads) setLeads(data.leads);
         if (data.tracks) setTracks(data.tracks);
         if (data.statuses) setStatuses(data.statuses);
+        if (data.businesses) setBusinesses(data.businesses);
       })
       .catch((e) => console.error(e))
       .finally(() => { if (!cancelled) setLoading(false); });
@@ -354,6 +358,12 @@ export default function LeadsPanel() {
           <option value="ALL">All statuses</option>
           {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
+        {businesses.length > 1 && (
+          <select value={business} onChange={(e) => setBusiness(e.target.value)} className="ins-input rounded-md px-3 py-2.5 text-xs" title="Scope to one brand">
+            <option value="ALL">All brands</option>
+            {businesses.map((b) => <option key={b.id} value={b.id}>{b.businessName}</option>)}
+          </select>
+        )}
         <select value={gap} onChange={(e) => setGap(e.target.value)} className="ins-input rounded-md px-3 py-2.5 text-xs" title="Find incomplete leads">
           <option value="ALL">All leads</option>
           <option value="no-name">Missing name</option>
