@@ -53,6 +53,32 @@ Hard rules:
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 
+// Landing-page audit — the Larven /tools pattern: a free, unauthenticated check
+// that demos the reader. Concrete pass/fail checks on the fetched HTML; score
+// is the share passing. No invented findings — each check is observable.
+function auditPage(html: string, finalUrl: string, brand: BrandKit) {
+  const count = (re: RegExp) => (html.match(re) || []).length;
+  const h1s = count(/<h1[\s>]/gi);
+  const ctaWords = /(book|schedule|call|contact|quote|buy|shop|sign ?up|get started|rsvp|reserve|subscribe|donate|apply|join|free (quote|estimate|consult))/i;
+  const linkText = Array.from(html.matchAll(/<(a|button)[^>]*>([\s\S]{0,160}?)<\/(a|button)>/gi)).map((m) => m[2].replace(/<[^>]+>/g, " ")).join(" ");
+  const imgs = count(/<img[\s>]/gi);
+  const withAlt = count(/<img[^>]+alt=["'][^"']+["']/gi);
+  const checks: { name: string; pass: boolean; detail: string }[] = [
+    { name: "Page title", pass: /<title[^>]*>[^<]{4,}/i.test(html), detail: "The title searchers see before they ever click." },
+    { name: "Meta description", pass: /<meta[^>]+name=["']description["'][^>]+content=["'][^"']{20,}/i.test(html), detail: "Your one-sentence pitch in the search result." },
+    { name: "One clear headline", pass: h1s === 1, detail: h1s === 0 ? "No <h1> found — the page doesn't say what it is." : `${h1s} H1s — the page competes with itself.` },
+    { name: "Mobile-ready", pass: /<meta[^>]+name=["']viewport["']/i.test(html), detail: "No viewport tag means phones get the desktop squeeze." },
+    { name: "A next step", pass: ctaWords.test(linkText), detail: "A button or link that asks for the action — book, call, get a quote." },
+    { name: "Way to reach you", pass: Boolean(brand.phone || brand.email), detail: "Phone or email visible without hunting." },
+    { name: "Social proof", pass: Object.values(brand.socials).some(Boolean), detail: "Linked socials tell visitors a real business is behind this." },
+    { name: "Images carry alt text", pass: imgs === 0 || withAlt / imgs >= 0.5, detail: imgs ? `${withAlt}/${imgs} images describe themselves to search and screen readers.` : "No images to check." },
+    { name: "Runs on HTTPS", pass: finalUrl.startsWith("https://"), detail: "Browsers flag plain-HTTP pages as not secure." },
+    { name: "A visible identity", pass: Boolean(brand.logoUrl || brand.name), detail: "Logo or business name up top — people check who you are in the first seconds." },
+  ];
+  const score = Math.round((checks.filter((c) => c.pass).length / checks.length) * 100);
+  return { score, checks };
+}
+
 function skeletonPage(brand: BrandKit): string {
   const name = esc(brand.name || "Your business");
   const tag = esc(brand.tagline || "Built for you.");
@@ -110,6 +136,11 @@ export async function POST(request: Request) {
     const html = (await res.text()).slice(0, 2_000_000);
     const brand = brandFromHtml(html, res.url || url);
     const found = [brand.logoUrl && "logo", brand.name && "name", brand.address.line1 && "address", brand.phone && "phone", brand.email && "email", Object.values(brand.socials).some(Boolean) && "social links"].filter(Boolean);
+
+    // Free-tool mode: audit the page — concrete checks, no AI needed.
+    if (b?.audit) {
+      return NextResponse.json({ success: true, brand, found, audit: auditPage(html, res.url || url, brand) });
+    }
 
     // Second pass (page:true): skip the plan, compose their first branded page.
     if (b?.page) {

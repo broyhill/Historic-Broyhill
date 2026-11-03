@@ -52,15 +52,29 @@ export default function LaunchFlow() {
       setData(d);
       timers.current.push(setTimeout(() => setStage("reveal"), 1200));
       // Second pass: the "first ad" beat — compose their branded page in the background.
-      setPageLoading(true);
-      fetch("/api/launch", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ website: site.trim(), page: true }),
-      }).then((r) => r.json()).then((pd) => { if (pd?.page) setPage(pd.page); })
-        .catch(() => {}).finally(() => setPageLoading(false));
+      composePage();
     } catch (e: any) {
       timers.current.push(setTimeout(() => { setError(e.message || "Could not read that site."); setStage("enter"); }, 800));
     }
+  };
+
+  const composePage = () => {
+    setPageLoading(true);
+    fetch("/api/launch", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ website: site.trim(), page: true }),
+    }).then((r) => r.json()).then((pd) => { if (pd?.page) setPage(pd.page); })
+      .catch(() => {}).finally(() => setPageLoading(false));
+  };
+
+  const downloadPage = () => {
+    if (!page) return;
+    const blob = new Blob([page], { type: "text/html" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${(data?.brand?.name || "landing-page").toLowerCase().replace(/[^a-z0-9]+/g, "-")}-landing-page.html`;
+    a.click();
+    URL.revokeObjectURL(a.href);
   };
 
   const claim = async () => {
@@ -244,7 +258,15 @@ export default function LaunchFlow() {
           </div>
 
           {/* Their first page — drafted in THEIR brand while they read the plan */}
-          <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.3em]" style={{ color: GOLD }}>Your first page</p>
+          <div className="mt-6 flex items-center justify-between">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.3em]" style={{ color: GOLD }}>Your first page</p>
+            {page && (
+              <div className="flex gap-2">
+                <button onClick={composePage} disabled={pageLoading} className="rounded-full border border-[#c2a15a]/50 bg-[#c2a15a]/10 px-4 py-1.5 text-xs font-semibold transition hover:bg-[#c2a15a]/25 disabled:opacity-50" style={{ color: GOLD }}>✦ Recreate</button>
+                <button onClick={downloadPage} className="rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-white/20">↓ Download</button>
+              </div>
+            )}
+          </div>
           <div className="mt-3 overflow-hidden rounded-xl border border-white/15">
             {page ? (
               <iframe title="Your first landing page, drafted in your brand" srcDoc={page} sandbox="" className="h-[560px] w-full bg-white" />
