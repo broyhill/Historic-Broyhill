@@ -233,7 +233,7 @@ export default function LaunchFlow() {
           </ol>
 
           <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.3em]" style={{ color: GOLD }}>Sixteen campaign options, one orchestrator</p>
-          <p className="mt-2 text-xs text-white/50">Every cannon we fire. Gold = this plan uses it.</p>
+          <p className="mt-2 text-xs text-white/50">Every cannon we fire. Gold = this plan uses it. No monthly test cap — the machine keeps testing until it finds winners and switches off losers. Outcomes, not quotas.</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {data!.channels.map((c) => {
               const inPlan = plan.plan.some((s) => s.channel === c);
