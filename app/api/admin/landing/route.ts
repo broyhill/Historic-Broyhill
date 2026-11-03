@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 import catalogJson from "@/data/landing-templates/index.json";
 import { prisma } from "@/lib/prisma";
 import { brandContext } from "@/lib/brand-context";
-import { aiErrorMessage, anthropicEnabled, CLAUDE_MODEL, getClient, groqChat, groqEnabled, NOT_CONFIGURED } from "@/lib/ai";
+import { aiErrorMessage, anthropicEnabled, CLAUDE_MODEL, freeEnabled, getClient, groqChat, NOT_CONFIGURED } from "@/lib/ai";
 
 // AI landing-page composer. The pick-list is data/landing-templates/index.json
 // (1,342 Base44/XSellNet templates, audience-tagged for venue use). Compose
@@ -80,7 +80,7 @@ export async function POST(request: Request) {
   try { body = await request.json(); } catch { body = null; }
   const slug = body?.slug;
   if (!slug) return NextResponse.json({ error: "Pick a template to compose from." }, { status: 400 });
-  if (!anthropicEnabled() && !groqEnabled()) {
+  if (!anthropicEnabled() && !freeEnabled()) {
     return NextResponse.json({ error: NOT_CONFIGURED }, { status: 500 });
   }
 
@@ -127,10 +127,10 @@ Compose the venue landing page now — full HTML document.`;
         });
         html = res.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim();
       } catch (e) {
-        if (!groqEnabled()) throw e;
+        if (!freeEnabled()) throw e;
       }
     }
-    if (!html && groqEnabled()) {
+    if (!html && freeEnabled()) {
       const res = await groqChat({ messages: [{ role: "system", content: system }, { role: "user", content: user }], max_tokens: 8000 });
       html = (res?.content ?? "").trim();
     }
