@@ -232,11 +232,15 @@ export default function LaunchFlow() {
             ))}
           </ol>
 
-          <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.3em]" style={{ color: GOLD }}>Sixteen channels, one orchestrator</p>
+          <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.3em]" style={{ color: GOLD }}>Sixteen campaign options, one orchestrator</p>
+          <p className="mt-2 text-xs text-white/50">Every cannon we fire. Gold = this plan uses it.</p>
           <div className="mt-3 flex flex-wrap gap-2">
-            {data!.channels.map((c) => (
-              <span key={c} className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-white/70">{c}</span>
-            ))}
+            {data!.channels.map((c) => {
+              const inPlan = plan.plan.some((s) => s.channel === c);
+              return (
+                <span key={c} className={`rounded-full border px-3 py-1 text-xs ${inPlan ? "border-[#c2a15a]/60 bg-[#c2a15a]/15 font-semibold" : "border-white/15 bg-white/5 text-white/60"}`} style={inPlan ? { color: GOLD } : undefined}>{c}</span>
+              );
+            })}
           </div>
 
           {/* Their first page — drafted in THEIR brand while they read the plan */}
