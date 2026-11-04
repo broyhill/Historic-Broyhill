@@ -81,6 +81,18 @@ const NAV_STUDIOS: { key: Section; label: string }[] = [
   { key: "video", label: "Video" },
 ];
 
+// Planned studios shown in the rail as a visible roadmap — no panel exists yet,
+// so they render dimmed with a "soon" tag instead of a nav button.
+const PLANNED_STUDIOS: string[] = [
+  "Text studio",
+  "Landing page studio",
+  "Ad studio",
+  "Mailer studio",
+  "Podcast studio",
+  "Call studio",
+  "Proposal studio",
+];
+
 const NAV_TOOLS: { key: Section; label: string }[] = [
   { key: "landing", label: "Landing pages" },
   { key: "templates", label: "Templates" },
@@ -205,7 +217,21 @@ export default function AdminConsole() {
           {/* All sections visible — no collapsing, per Ed. */}
           <div className="mt-5">
             <p className="ins-navlabel px-3 pb-1 text-[12px] select-none">Studios</p>
-            <div className="space-y-0.5 mt-1">{NAV_STUDIOS.map((n) => navButton(n.key, n.label))}</div>
+            <div className="space-y-0.5 mt-1">
+              {NAV_STUDIOS.map((n) => navButton(n.key, n.label))}
+              {PLANNED_STUDIOS.map((label) => (
+                <div
+                  key={label}
+                  className="w-full flex items-center gap-3 px-3 min-h-[40px] rounded-md text-[14px] opacity-45"
+                  aria-disabled="true"
+                >
+                  <span className="ins-navdot h-1.5 w-1.5 rounded-full bg-transparent shrink-0" aria-hidden="true" />
+                  <span className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
+                  <span className="flex-1 text-left">{label}</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wide text-white/50">soon</span>
+                </div>
+              ))}
+            </div>
           </div>
           <div className="mt-4">
             <p className="ins-navlabel px-3 pb-1 text-[12px] select-none">More tools</p>
