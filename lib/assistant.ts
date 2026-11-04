@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { buildLeadWhere } from "@/lib/leads-query";
-import { CLAUDE_MODEL, aiErrorMessage, anthropicEnabled, claudeJson, getClient, groqChat, groqEnabled, NOT_CONFIGURED, type GroqMessage, type GroqTool } from "@/lib/ai";
+import { CLAUDE_MODEL, aiErrorMessage, anthropicEnabled, claudeJson, freeEnabled, getClient, groqChat, NOT_CONFIGURED, type GroqMessage, type GroqTool } from "@/lib/ai";
 import { CONSOLE_MAP, VENUE_FACTS, WRITING_RULES } from "@/lib/platform-briefing";
 
 // Staff assistant for the admin console. It can look things up and stage work,
@@ -281,7 +281,8 @@ const GROQ_TOOLS: GroqTool[] = TOOLS.map((t) => ({
   function: { name: t.name, description: t.description, parameters: t.input_schema as Record<string, unknown> },
 }));
 
-async function runWithGroq(history: History): Promise<AssistantResult> {
+// Runs against whichever free OpenAI-compatible provider is configured (groqChat picks it).
+async function runWithFreeProvider(history: History): Promise<AssistantResult> {
   const messages: GroqMessage[] = [{ role: "system", content: SYSTEM }, ...history.map((m) => ({ role: m.role, content: m.content }))];
   const pending: PendingAction[] = [];
   const actions: string[] = [];
@@ -309,16 +310,17 @@ async function runWithGroq(history: History): Promise<AssistantResult> {
   return { answer: answer || "I couldn't finish that. Try asking in smaller steps.", pending, actions };
 }
 
-// Claude when configured; Groq when Claude is not configured or its call fails.
+// Claude when configured; a free provider (Groq, then Gemini) when Claude is
+// not configured or its call fails.
 export async function runAssistant(history: History): Promise<AssistantResult> {
   if (anthropicEnabled()) {
     try {
       return await runWithClaude(history);
     } catch (e) {
-      if (!groqEnabled()) throw e;
-      console.warn("Claude failed, falling back to Groq:", aiErrorMessage(e));
+      if (!freeEnabled()) throw e;
+      console.warn("Claude failed, falling back to a free provider:", aiErrorMessage(e));
     }
   }
-  if (groqEnabled()) return runWithGroq(history);
+  if (freeEnabled()) return runWithFreeProvider(history);
   throw new Error(NOT_CONFIGURED);
 }
