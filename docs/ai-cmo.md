@@ -69,6 +69,40 @@ Their sidebar shape, for reference: Home · Ads Autopilot · Create · Atlas ·
 Library · Explore · Marketing (overview, calendar, landing page, Meta Ads,
 TikTok Ads, Creative Analytics, history) · Social · CRM · Products.
 
+## The CMO as the Wizard-of-Oz brain — centerpiece
+
+The CMO isn't a feature among features; it's the brain every subsystem
+reports through — the wizard behind the curtain, Ed the man in front of it.
+Everything the platform knows flows up to it; everything it decides flows
+down through one queue Ed governs.
+
+```
+                    ┌──────── Ed ────────┐
+                    │ Today / Needs-you  │  ← the only surface he runs
+                    │ approve · redirect │     the machine through
+                    └────────┬───────────┘
+                             ▼
+        ╔══════════  WIZARD-OF-OZ BRAIN (CMO)  ══════════╗
+        ║  annual plan · weekly justification ·          ║
+        ║  brand memory + rules · budget caps ·          ║
+        ║  audit log of every action                     ║
+        ╚═══╤═════╤═════╤═════╤═════╤═════╤═════════════╝
+            ▼     ▼     ▼     ▼     ▼     ▼
+        eyes:  eyes:  eyes:  hands:  hands:  memory:
+        comp-  review life-  studios  connect- capture +
+        etitor watcher events + photo  ions → leads/events/
+        watcher watcher watcher lib +   Meta     occupancy
+        (ads,  (Google, scan    image-  TikTok  (the venue
+        offers, (Wedding- (30-mi gen             spine)
+        inven- Wire etc) announcements)
+        tory)
+```
+
+That's exactly the job the existing wizard machinery was built for —
+journeys/tick, campaigns, killswitch, suppressions, control-plane under
+`app/api/wizard/` are the levers; the CMO is the brain that pulls them, and
+the approval queue is the curtain gap where Ed stays in charge.
+
 ## Where it sits in our platform (revised)
 
 ```
