@@ -29,7 +29,24 @@ four bigger systems:
    "maintain competitors' product offering and monitor their complete ad
    plan": they watch what the competitor sells, what they push, for how long.
 
-4. **Annual plan + weekly justification** — the Marketing calendar holds the
+5. **Review monitoring** — watch the venue's reviews (Google, Facebook,
+   WeddingWire/The Knot, Yelp). New reviews land in the Needs-you queue with
+   a drafted reply; rating trend rides on Today. Reviews also feed creative —
+   real quotes are our best "why I love" copy — and a bad-review spike changes
+   the weekly plan before it becomes a reputation problem.
+
+6. **Tripwire measurement across every touch** — the funnel is a chain, not a
+   click: ad → landing page visit → inquiry → tour request → tour → booking.
+   Each link is a tripwire carrying a touch ID (`?utm`/`?from` on landing,
+   link tokens in emails, tagged short codes in texts, the proposal token we
+   already issue). `/api/capture` already tags the inbound side; extend it so
+   every channel emits the same touch record (channel, campaign, creative,
+   landing page, competitor-inspired?). Then the weekly report can say
+   *which wire tripped*: "the Dec-weddings landing page → text follow-up →
+   tour" chain produced 2 of 3 bookings; the email-only chain produced none —
+   and the CMO shifts weight accordingly.
+
+7. **Annual plan + weekly justification** — the Marketing calendar holds the
    year's promotions; Atlas (the in-app CMO chat) adds/edits promos, writes
    weekly what changed, and the AI CMO reports each budget/creative action
    it took against that plan — the account is auditable week over week, not
@@ -70,6 +87,8 @@ Mapping, with what exists vs what to build:
 | Market analysis | Venue-market benchmarks: occupancy, inquiry rates, seasonal wedding/corp demand across our compset | To build |
 | Competitor monitoring | Saved competitors list → weekly pull of their live ads + offers → feed card in Today | To build |
 | Clone/remix | "Use this" button on a competitor ad → Ad studio drafts our version on real photos | To build |
+| Review monitoring | Watcher on Google/FB/WeddingWire/The Knot → drafted reply in the queue; rating trend on Today | To build |
+| Tripwire measurement | One touch record per link (landing, email link, text code, inquiry, tour, booking) via `/api/capture` + proposal tokens | Extends existing |
 | Annual plan | Marketing calendar model: seasons, holidays, venue pushes; CMO drafts it, Ed approves | To build |
 | Weekly justification | Weekly CMO report card vs plan ("week 6 of 52: spent $280 → 9 tour requests → 2 bookings; on plan") | To build |
 | Brand memory | `BrandMemory` table — lasting facts/rules applied to every generation | To build |
@@ -134,3 +153,6 @@ format next week. On plan / behind plan + why." That paragraph is the
 3. Meta connection live (env creds + token exchange).
 4. Ad studio v1: compose ad sets (incl. competitor-remix) from venue catalog.
 5. Reallocate rules behind the daily cap; brand-memory table.
+6. Review watcher + drafted replies into the queue.
+7. Tripwire touch records across landing/email/text → capture → attribution
+   into the weekly report.
