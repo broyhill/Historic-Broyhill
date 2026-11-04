@@ -73,15 +73,19 @@ const NAV_PRIMARY: { key: Section; label: string }[] = [
   { key: "history", label: "Sent" },
 ];
 
-const NAV_SECONDARY: { key: Section; label: string }[] = [
-  { key: "landing", label: "Landing pages" },
-  { key: "templates", label: "Templates" },
-  { key: "examples", label: "Examples" },
+// Creative studios grouped as one lineup in the rail.
+const NAV_STUDIOS: { key: Section; label: string }[] = [
   { key: "studio", label: "Email studio" },
   { key: "social", label: "Social posts" },
   { key: "video", label: "Video" },
   { key: "photos", label: "Photo library" },
   { key: "stock", label: "Free media" },
+];
+
+const NAV_TOOLS: { key: Section; label: string }[] = [
+  { key: "landing", label: "Landing pages" },
+  { key: "templates", label: "Templates" },
+  { key: "examples", label: "Examples" },
   { key: "ask", label: "Ask" },
   { key: "brands", label: "Brands" },
   { key: "brand", label: "Brand setup" },
@@ -197,17 +201,15 @@ export default function AdminConsole() {
             </a>
             {NAV_PRIMARY.slice(1).map((n) => navButton(n.key, n.label))}
           </div>
-          <details
-            key={NAV_SECONDARY.some((n) => n.key === section) ? "open" : "closed"}
-            open={NAV_SECONDARY.some((n) => n.key === section)}
-            className="mt-5"
-          >
-            <summary className="ins-navlabel px-3 pb-1 text-[12px] cursor-pointer list-none flex items-center justify-between select-none">
-              More tools
-              <span aria-hidden="true" className="text-[10px]">▾</span>
-            </summary>
-            <div className="space-y-0.5 mt-1">{NAV_SECONDARY.map((n) => navButton(n.key, n.label))}</div>
-          </details>
+          {/* All sections visible — no collapsing, per Ed. */}
+          <div className="mt-5">
+            <p className="ins-navlabel px-3 pb-1 text-[12px] select-none">Studios</p>
+            <div className="space-y-0.5 mt-1">{NAV_STUDIOS.map((n) => navButton(n.key, n.label))}</div>
+          </div>
+          <div className="mt-4">
+            <p className="ins-navlabel px-3 pb-1 text-[12px] select-none">More tools</p>
+            <div className="space-y-0.5 mt-1">{NAV_TOOLS.map((n) => navButton(n.key, n.label))}</div>
+          </div>
         </nav>
         <div className="p-3 border-t border-white/10">
           <button onClick={signOut} className="ins-navitem w-full flex items-center gap-3 px-3 min-h-[44px] rounded-md text-[14px]">
