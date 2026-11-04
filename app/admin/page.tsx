@@ -24,6 +24,7 @@ import EventsPanel from "./EventsPanel";
 import AvailabilityPanel from "./AvailabilityPanel";
 import ExpressPanel from "./ExpressPanel";
 import JourneysPanel from "./JourneysPanel";
+import PlannedStudioPanel from "./PlannedStudioPanel";
 import { SPACES } from "@/lib/spaces";
 
 // --- Nav icons (inline so there's no icon dependency) ---
@@ -49,6 +50,13 @@ const icons: Record<Section, React.ReactNode> = {
   brand: <path d="M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 14.3 7.2 16.9l.9-5.4L4.2 7.7l5.4-.8z" />,
   brands: <path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h2m-2 4h2m4-4h2m-2 4h2M9 17h6v4H9z" />,
   settings: <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />,
+  textstudio: <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />,
+  lpstudio: <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 22V12h6v10" />,
+  adstudio: <path d="M3 11l18-7-4 18-6-6-8-5zM11 16l10-12" />,
+  mailer: <path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM22 6l-10 7L2 6" />,
+  podcast: <path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zM19 10v1a7 7 0 0 1-14 0v-1M12 18v4M8 22h8" />,
+  call: <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z" />,
+  proposal: <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8" />,
 };
 
 function NavIcon({ section }: { section: Section }) {
@@ -73,24 +81,19 @@ const NAV_PRIMARY: { key: Section; label: string }[] = [
   { key: "history", label: "Sent" },
 ];
 
-// Creative studios grouped as one lineup in the rail — creation tools only;
-// media sources (Photo library, Free media) live with the other utilities.
+// Every studio listed flat on the rail — each is a real row opening its panel
+// (planned ones open their build-order card, nothing is a dead label).
 const NAV_STUDIOS: { key: Section; label: string }[] = [
   { key: "studio", label: "Email studio" },
   { key: "social", label: "Social posts" },
   { key: "video", label: "Video" },
-];
-
-// Planned studios shown in the rail as a visible roadmap — no panel exists yet,
-// so they render dimmed with a "soon" tag instead of a nav button.
-const PLANNED_STUDIOS: string[] = [
-  "Text studio",
-  "Landing page studio",
-  "Ad studio",
-  "Mailer studio",
-  "Podcast studio",
-  "Call studio",
-  "Proposal studio",
+  { key: "textstudio", label: "Text studio" },
+  { key: "lpstudio", label: "Landing page studio" },
+  { key: "adstudio", label: "Ad studio" },
+  { key: "mailer", label: "Mailer studio" },
+  { key: "podcast", label: "Podcast studio" },
+  { key: "call", label: "Call studio" },
+  { key: "proposal", label: "Proposal studio" },
 ];
 
 const NAV_TOOLS: { key: Section; label: string }[] = [
@@ -127,6 +130,13 @@ const TITLES: Record<Section, string> = {
   brand: "Brand setup",
   brands: "Brands",
   settings: "Venue & account",
+  textstudio: "Text studio",
+  lpstudio: "Landing page studio",
+  adstudio: "Ad studio",
+  mailer: "Mailer studio",
+  podcast: "Podcast studio",
+  call: "Call studio",
+  proposal: "Proposal studio",
 };
 
 export default function AdminConsole() {
@@ -219,18 +229,6 @@ export default function AdminConsole() {
             <p className="ins-navlabel px-3 pb-1 text-[12px] select-none">Studios</p>
             <div className="space-y-0.5 mt-1">
               {NAV_STUDIOS.map((n) => navButton(n.key, n.label))}
-              {PLANNED_STUDIOS.map((label) => (
-                <div
-                  key={label}
-                  className="w-full flex items-center gap-3 px-3 min-h-[40px] rounded-md text-[14px] opacity-45"
-                  aria-disabled="true"
-                >
-                  <span className="ins-navdot h-1.5 w-1.5 rounded-full bg-transparent shrink-0" aria-hidden="true" />
-                  <span className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
-                  <span className="flex-1 text-left">{label}</span>
-                  <span className="text-[10px] font-semibold uppercase tracking-wide text-white/50">soon</span>
-                </div>
-              ))}
             </div>
           </div>
           <div className="mt-4">
@@ -286,6 +284,13 @@ export default function AdminConsole() {
           {section === "brands" && <BrandsPanel />}
           {section === "brand" && <BrandPanel />}
           {section === "settings" && <SettingsPanel />}
+          {section === "textstudio" && <PlannedStudioPanel studio="textstudio" />}
+          {section === "lpstudio" && <PlannedStudioPanel studio="lpstudio" />}
+          {section === "adstudio" && <PlannedStudioPanel studio="adstudio" />}
+          {section === "mailer" && <PlannedStudioPanel studio="mailer" />}
+          {section === "podcast" && <PlannedStudioPanel studio="podcast" />}
+          {section === "call" && <PlannedStudioPanel studio="call" />}
+          {section === "proposal" && <PlannedStudioPanel studio="proposal" />}
         </main>
       </div>
     </div>
