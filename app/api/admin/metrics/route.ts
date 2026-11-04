@@ -3,10 +3,13 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
-    const [totalLeads, pendingCount, publishedCount, vipCount] = await Promise.all([
+    const [totalLeads, pendingCount, publishedCount, vipCount, expressPending, tentativeEvents, activeJourneys] = await Promise.all([
       prisma.leadProfile.count(),
       prisma.aiContentPipeline.count({ where: { status: "PENDING_REVIEW" } }),
       prisma.aiContentPipeline.count({ where: { status: "PUBLISHED" } }),
+      prisma.expressBookRequest.count({ where: { status: "PENDING" } }),
+      prisma.venueEvent.count({ where: { status: "TENTATIVE" } }),
+      prisma.journey.count({ where: { status: "ACTIVE" } }),
       prisma.leadProfile.count({
         where: {
           OR: [
@@ -28,7 +31,10 @@ export async function GET() {
         pendingReview: pendingCount,
         publishedBroadcasts: publishedCount,
         vipLeads: vipCount,
-        reviewRate: `${reviewRate}%`
+        reviewRate: `${reviewRate}%`,
+        expressPending,
+        tentativeEvents,
+        activeJourneys
       }
     });
   } catch (error: any) {
