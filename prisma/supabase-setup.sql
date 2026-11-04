@@ -157,3 +157,18 @@ INSERT INTO "BusinessProfile" ("id","businessName","industry","marketingTracks")
 VALUES ('broyhill-01','Historic Broyhill','Event Venue & Class A Office Leasing',
         ARRAY['VIP','Standard Event','Office Leasing'])
 ON CONFLICT ("id") DO NOTHING;
+
+-- Knowledge base the wizard brain reads from: editable folders of
+-- competitors, benchmarks, ad snapshots, microsegments, venue facts, brand memory.
+CREATE TABLE IF NOT EXISTS "KnowledgeEntry" (
+    "id" TEXT NOT NULL,
+    "folder" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "data" JSONB NOT NULL,
+    "note" TEXT,
+    "enabled" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "KnowledgeEntry_pkey" PRIMARY KEY ("id")
+);
+CREATE INDEX IF NOT EXISTS "KnowledgeEntry_folder_idx" ON "KnowledgeEntry"("folder");
