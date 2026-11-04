@@ -102,8 +102,12 @@ async function compatChat(provider: FreeProvider, body: {
   };
 }
 
+// Configured free providers in preference order.
+export const freeProviders = (): FreeProvider[] =>
+  ["groq", "gemini"].filter((p) => (p === "groq" ? groqEnabled() : geminiEnabled())) as FreeProvider[];
+
 // OpenAI-compatible chat against whichever free provider is configured.
-// `provider` defaults to the first configured free provider.
+// `provider` pins one; omitted, providers are tried in order until one answers.
 export async function groqChat(body: {
   messages: GroqMessage[];
   tools?: GroqTool[];
@@ -111,8 +115,18 @@ export async function groqChat(body: {
   response_format?: { type: "json_object" };
   temperature?: number;
 }, provider?: FreeProvider): Promise<{ content: string; tool_calls: GroqToolCall[]; finish_reason: string }> {
-  const p = provider ?? freeProvider() ?? "groq";
-  return compatChat(p, body);
+  if (provider) return compatChat(provider, body);
+  const providers = freeProviders();
+  let lastErr: unknown = new Error(NOT_CONFIGURED);
+  for (const p of providers) {
+    try {
+      return await compatChat(p, body);
+    } catch (e) {
+      lastErr = e;
+      console.warn(`${p} chat failed, trying next provider:`, aiErrorMessage(e));
+    }
+  }
+  throw lastErr;
 }
 
 function extractJson(text: string): unknown {
@@ -128,24 +142,33 @@ function extractJson(text: string): unknown {
 async function freeJson<T extends z.ZodTypeAny>(opts: { system: string; user: string; schema: T; maxTokens?: number }): Promise<z.infer<T> | null> {
   const schemaText = JSON.stringify(z.toJSONSchema(opts.schema));
   const system = `${opts.system}\n\nRespond with a single JSON object and nothing else. It must match this JSON Schema exactly:\n${schemaText}`;
-  const providers: FreeProvider[] = ["groq", "gemini"].filter((p) => (p === "groq" ? groqEnabled() : geminiEnabled())) as FreeProvider[];
-  for (const provider of providers) {
+  let lastErr: unknown = null;
+  for (const provider of freeProviders()) {
     for (let attempt = 0; attempt < 2; attempt++) {
+      let out;
       try {
-        const out = await compatChat(provider, {
+        out = await compatChat(provider, {
           messages: [{ role: "system", content: system }, { role: "user", content: opts.user }],
           max_tokens: opts.maxTokens ?? 2000,
           response_format: { type: "json_object" },
         });
-        const parsed = opts.schema.safeParse(extractJson(out.content));
-        if (parsed.success) return parsed.data;
-        console.warn(`${provider} json did not match schema`, parsed.error.issues.slice(0, 3));
       } catch (e) {
+        lastErr = e;
         console.warn(`${provider} json call failed:`, aiErrorMessage(e));
         break; // move to the next free provider
       }
+      try {
+        const parsed = opts.schema.safeParse(extractJson(out.content));
+        if (parsed.success) return parsed.data;
+        console.warn(`${provider} json did not match schema`, parsed.error.issues.slice(0, 3));
+      } catch {
+        console.warn(`${provider} returned unparseable output`);
+      }
     }
   }
+  // Surface the real provider failure (bad key, quota, rate limit) to callers;
+  // null is reserved for valid responses that failed schema validation.
+  if (lastErr) throw lastErr;
   return null;
 }
 
