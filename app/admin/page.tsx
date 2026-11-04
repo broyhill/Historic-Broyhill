@@ -73,19 +73,20 @@ const NAV_PRIMARY: { key: Section; label: string }[] = [
   { key: "history", label: "Sent" },
 ];
 
-// Creative studios grouped as one lineup in the rail.
+// Creative studios grouped as one lineup in the rail — creation tools only;
+// media sources (Photo library, Free media) live with the other utilities.
 const NAV_STUDIOS: { key: Section; label: string }[] = [
   { key: "studio", label: "Email studio" },
   { key: "social", label: "Social posts" },
   { key: "video", label: "Video" },
-  { key: "photos", label: "Photo library" },
-  { key: "stock", label: "Free media" },
 ];
 
 const NAV_TOOLS: { key: Section; label: string }[] = [
   { key: "landing", label: "Landing pages" },
   { key: "templates", label: "Templates" },
   { key: "examples", label: "Examples" },
+  { key: "photos", label: "Photo library" },
+  { key: "stock", label: "Free media" },
   { key: "ask", label: "Ask" },
   { key: "brands", label: "Brands" },
   { key: "brand", label: "Brand setup" },
