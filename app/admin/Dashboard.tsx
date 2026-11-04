@@ -13,7 +13,7 @@ export interface Metrics {
   activeJourneys?: number;
 }
 
-export type Section = "dashboard" | "leads" | "queue" | "history" | "campaigns" | "events" | "availability" | "express" | "journeys" | "examples" | "templates" | "brand" | "studio" | "social" | "video" | "photos" | "stock" | "landing" | "brands" | "ask" | "settings";
+export type Section = "dashboard" | "leads" | "queue" | "history" | "campaigns" | "events" | "availability" | "express" | "journeys" | "examples" | "templates" | "brand" | "studio" | "social" | "video" | "photos" | "stock" | "landing" | "brands" | "ask" | "settings" | "textstudio" | "lpstudio" | "adstudio" | "mailer" | "podcast" | "call" | "proposal";
 
 function greeting() {
   const h = new Date().getHours();
