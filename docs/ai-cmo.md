@@ -98,6 +98,14 @@ down through one queue Ed governs.
         tory)
 ```
 
+**The grounding rule (the part Ed asked about):** the brain responds *from the
+knowledge base*, never from the model's memory. Every plan card, drafted ad,
+review reply and chat answer is composed against a knowledge store — verified
+venue facts, brand memory, the approved annual plan, and the latest watcher
+pulls. Anything not in the store comes back flagged `[CONFIRM:]` instead of
+being invented. This is what keeps the machine honest: same doctrine that
+caught "fiction" UI, enforced on output, not just nav.
+
 That's exactly the job the existing wizard machinery was built for —
 journeys/tick, campaigns, killswitch, suppressions, control-plane under
 `app/api/wizard/` are the levers; the CMO is the brain that pulls them, and
