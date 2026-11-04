@@ -46,7 +46,18 @@ four bigger systems:
    tour" chain produced 2 of 3 bookings; the email-only chain produced none —
    and the CMO shifts weight accordingly.
 
-7. **Annual plan + weekly justification** — the Marketing calendar holds the
+7. **Local life-events watcher (the 30-mile wire)** — a venue's warmest leads
+   announce themselves publicly: engagement and wedding announcements in the
+   Winston-Salem Journal, Davie Enterprise-Record, High Point Enterprise and
+   other papers inside the ~30-mile draw, plus corporate relocations and
+   nonprofit gala news in the business briefs. A periodic scan dedupes these
+   into the Leads queue ("engaged couple, announced <date>, <town>, source
+   link") so a congrats/tour-invite journey fires while they're still venue-
+   hunting — weeks before they'd search for us. Only published names and
+   public notices; paywalled or private data is out. Larven has nothing like
+   this — it's the local edge.
+
+8. **Annual plan + weekly justification** — the Marketing calendar holds the
    year's promotions; Atlas (the in-app CMO chat) adds/edits promos, writes
    weekly what changed, and the AI CMO reports each budget/creative action
    it took against that plan — the account is auditable week over week, not
@@ -89,6 +100,7 @@ Mapping, with what exists vs what to build:
 | Clone/remix | "Use this" button on a competitor ad → Ad studio drafts our version on real photos | To build |
 | Review monitoring | Watcher on Google/FB/WeddingWire/The Knot → drafted reply in the queue; rating trend on Today | To build |
 | Tripwire measurement | One touch record per link (landing, email link, text code, inquiry, tour, booking) via `/api/capture` + proposal tokens | Extends existing |
+| Local life-events watcher | Scan engagement/wedding announcements + business briefs inside ~30 mi → warm leads into Leads queue | To build |
 | Annual plan | Marketing calendar model: seasons, holidays, venue pushes; CMO drafts it, Ed approves | To build |
 | Weekly justification | Weekly CMO report card vs plan ("week 6 of 52: spent $280 → 9 tour requests → 2 bookings; on plan") | To build |
 | Brand memory | `BrandMemory` table — lasting facts/rules applied to every generation | To build |
@@ -156,3 +168,5 @@ format next week. On plan / behind plan + why." That paragraph is the
 6. Review watcher + drafted replies into the queue.
 7. Tripwire touch records across landing/email/text → capture → attribution
    into the weekly report.
+8. Life-events watcher: engagement/wedding announcements + local business
+   briefs inside the 30-mile draw → Leads queue.
