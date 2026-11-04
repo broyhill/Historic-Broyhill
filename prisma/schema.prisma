@@ -201,3 +201,16 @@ model JourneyRun {
   @@index([status, nextRunAt])
   @@index([leadId])
 }
+
+model KnowledgeEntry {
+  id        String   @id @default(uuid())
+  folder    String
+  title     String
+  data      Json
+  note      String?
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([folder])
+}
