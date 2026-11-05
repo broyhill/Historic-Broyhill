@@ -16,7 +16,15 @@ export async function GET(req: NextRequest) {
   const isChannel = key === "email" || key === "texting";
   const channel = key === "texting" ? "SMS" : "EMAIL";
 
-  const [log, ctl, findings, statusCounts, channelSent, channelLatest] = await Promise.all([
+  // Marketing Library folders each ecosystem reads — surfaced in the panel.
+  const LIBRARY_FOLDERS: Record<string, string[]> = {
+    competitors: ["competitors", "ad-snapshots"],
+    market: ["benchmarks", "microsegments"],
+    news: ["watch-sources"],
+  };
+  const libFolders = LIBRARY_FOLDERS[key] ?? [];
+
+  const [log, ctl, findings, statusCounts, channelSent, channelLatest, libraryRows, connections] = await Promise.all([
     prisma.knowledgeEntry.findFirst({ where: { folder: "watch-log", title: key } }),
     prisma.knowledgeEntry.findFirst({ where: { folder: "watch-control", title: key } }),
     source
@@ -45,6 +53,10 @@ export async function GET(req: NextRequest) {
           select: { id: true, status: true, suggestedDraft: true, publishedAt: true },
         })
       : Promise.resolve([] as any[]),
+    libFolders.length
+      ? prisma.knowledgeEntry.findMany({ where: { folder: { in: libFolders } }, orderBy: { createdAt: "asc" } })
+      : Promise.resolve([] as any[]),
+    key === "monitoring" ? prisma.vendorConnection.findMany() : Promise.resolve([] as any[]),
   ]);
 
   const counts: Record<string, number> = {};
@@ -59,6 +71,8 @@ export async function GET(req: NextRequest) {
     findings: isChannel
       ? (channelLatest as any[]).map((f) => ({ ...f, createdAt: f.publishedAt }))
       : findings,
+    library: libraryRows,
+    connections,
   });
 }
 
