@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en" data-sidenav-size="default" data-layout-mode="light" data-topbar-color="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E41 Campaign Builder — Journey Control Panel</title>
+<!--
+  E41 CONTROL PANEL
+  Ed requirement 2026-07-28: toggle buttons off/on/timer, connecting back to E20.
+
+  Every toggle calls PUT /api/e41/control/{journey_id} which:
+    1. writes e41.control_state.mode
+    2. writes brain.event_queue  ('e41.control_mode_changed')  <- THE E20 REPORT-BACK
+    3. writes e41.control_audit  (who, when, why, was E20 notified)
+
+  The E20 column is not decoration. If the report-back fails the toggle still
+  stands, and the panel shows it unacknowledged so the gap is visible.
+
+  Inspinia classes only — matches frontend/inspinia/commander-portal/.
+-->
+<link href="assets/css/vendors.min.css" rel="stylesheet">
+<link href="assets/css/app.min.css" rel="stylesheet">
+<link href="assets/css/icons.min.css" rel="stylesheet">
+<style>
+  .seg-toggle{display:inline-flex;border:1px solid var(--bs-border-color);border-radius:.375rem;overflow:hidden}
+  .seg-toggle button{border:0;background:transparent;padding:.35rem .85rem;font-size:.8125rem;font-weight:600;
+                     color:var(--bs-secondary-color);transition:background .12s,color .12s;cursor:pointer}
+  .seg-toggle button+button{border-left:1px solid var(--bs-border-color)}
+  .seg-toggle button:hover:not(.active){background:var(--bs-tertiary-bg)}
+  .seg-toggle button.active[data-mode="off"]{background:var(--bs-secondary);color:#fff}
+  .seg-toggle button.active[data-mode="on"]{background:var(--bs-success);color:#fff}
+  .seg-toggle button.active[data-mode="timer"]{background:var(--bs-warning);color:#111}
+  .seg-toggle button:disabled{opacity:.4;cursor:not-allowed}
+  .e20-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:.4rem}
+  .e20-ok{background:var(--bs-success)} .e20-stale{background:var(--bs-warning)} .e20-none{background:var(--bs-danger)}
+  .dark-banner{border-left:4px solid var(--bs-warning)}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.75rem}
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header class="app-topbar">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <div class="d-flex align-items-center gap-2">
+          <button class="topbar-button" id="menu-toggle"><i class="ti ti-menu-2 fs-22"></i></button>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <h5 class="text-white mb-0 me-3">E41 — JOURNEY CONTROL</h5>
+          <span class="badge bg-warning" id="dark-badge">PROPOSALS DARK</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="page-content"><div class="container-fluid">
+
+    <!-- ── DARK-MODE BANNER ─────────────────────────────────────────────── -->
+    <div class="alert alert-warning dark-banner d-flex align-items-start mb-4" id="darkBanner">
+      <i class="ti ti-alert-triangle fs-20 me-2 mt-1"></i>
+      <div>
+        <strong>PROPOSALS_ENABLED = False.</strong>
+        Journeys walk, entry sets resolve, and every step is logged — but nothing is written to
+        <span class="mono">brain.weapon_queue</span> and no weapon fires.
+        Requires R4 ruled and Ed's exact phrase to change.
+      </div>
+    </div>
+
+    <!-- ── KPI ROW ──────────────────────────────────────────────────────── -->
+    <div class="row">
+      <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body">
+        <p class="text-muted mb-1 text-uppercase fw-semibold fs-12">Journeys</p>
+        <h3 class="mb-0 fw-bold" id="kpi-total">—</h3>
+        <span class="text-muted fs-12" id="kpi-approved">— wizard-approved</span>
+      </div></div></div>
+      <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body">
+        <p class="text-muted mb-1 text-uppercase fw-semibold fs-12">Running</p>
+        <h3 class="mb-0 fw-bold text-success" id="kpi-on">—</h3>
+        <span class="text-muted fs-12">mode = on</span>
+      </div></div></div>
+      <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body">
+        <p class="text-muted mb-1 text-uppercase fw-semibold fs-12">Scheduled</p>
+        <h3 class="mb-0 fw-bold text-warning" id="kpi-timer">—</h3>
+        <span class="text-muted fs-12">mode = timer</span>
+      </div></div></div>
+      <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body">
+        <p class="text-muted mb-1 text-uppercase fw-semibold fs-12">E20 unacknowledged</p>
+        <h3 class="mb-0 fw-bold" id="kpi-e20">—</h3>
+        <span class="text-muted fs-12">toggles the Brain never saw</span>
+      </div></div></div>
+    </div>
+
+    <!-- ── JOURNEY TABLE ────────────────────────────────────────────────── -->
+    <div class="card border-0 shadow-sm mt-2">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0"><i class="ti ti-route me-2"></i>Journeys</h5>
+        <button class="btn btn-sm btn-light" id="refresh"><i class="ti ti-refresh me-1"></i>Refresh</button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Journey</th>
+              <th>Candidate</th>
+              <th class="text-center">Wizard</th>
+              <th style="width:220px">Control</th>
+              <th>Schedule</th>
+              <th class="text-center">E20</th>
+              <th class="text-end">Last run</th>
+            </tr>
+          </thead>
+          <tbody id="rows">
+            <tr><td colspan="7" class="text-center text-muted py-4">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── AUDIT ────────────────────────────────────────────────────────── -->
+    <div class="card border-0 shadow-sm mt-3">
+      <div class="card-header"><h5 class="card-title mb-0"><i class="ti ti-history me-2"></i>Control audit — every toggle</h5></div>
+      <div class="table-responsive" style="max-height:280px;overflow-y:auto">
+        <table class="table table-sm mb-0">
+          <thead class="table-light"><tr>
+            <th>When</th><th>Journey</th><th>Change</th><th>By</th><th>Reason</th><th class="text-center">E20 notified</th>
+          </tr></thead>
+          <tbody id="audit"><tr><td colspan="6" class="text-muted p-3">—</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div></div>
+</div>
+
+<!-- ── TIMER MODAL ───────────────────────────────────────────────────────── -->
+<div class="modal fade" id="timerModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">Schedule journey</h5>
+      <button class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <p class="text-muted fs-13" id="timerJourneyName"></p>
+      <label class="form-label fw-semibold">Cron expression</label>
+      <input class="form-control mono" id="cronInput" placeholder="0 9 * * 1-5" value="0 9 * * 1-5">
+      <div class="form-text">Weekdays 9:00 AM. Timezone: America/New_York.</div>
+      <label class="form-label fw-semibold mt-3">Reason <span class="text-muted fw-normal">(audit)</span></label>
+      <input class="form-control" id="timerReason" placeholder="why this schedule">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+      <button class="btn btn-warning" id="timerConfirm">Set timer</button>
+    </div>
+  </div></div>
+</div>
+
+<script src="assets/js/vendors.min.js"></script>
+<script>
+const API = '/api/e41';
+let JOURNEYS = [];
+let pendingTimer = null;
+
+async function load(){
+  try{
+    const r = await fetch(`${API}/journeys`);
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    const d = await r.json();
+    JOURNEYS = d.journeys || [];
+    document.getElementById('dark-badge').textContent =
+      d.proposals_enabled ? 'PROPOSALS LIVE' : 'PROPOSALS DARK';
+    document.getElementById('dark-badge').className =
+      'badge ' + (d.proposals_enabled ? 'bg-success' : 'bg-warning');
+    document.getElementById('darkBanner').style.display = d.proposals_enabled ? 'none' : '';
+    render(); loadAudit();
+  }catch(e){
+    document.getElementById('rows').innerHTML =
+      `<tr><td colspan="7" class="text-danger p-4">Cannot reach ${API}/journeys — ${e.message}</td></tr>`;
+  }
+}
+
+function e20Cell(j){
+  if(!j.e20_last_reported_at) return '<span class="e20-dot e20-none"></span><span class="fs-12 text-danger">never</span>';
+  const stale = j.e20_last_reported_mode !== j.mode;
+  return stale
+    ? '<span class="e20-dot e20-stale"></span><span class="fs-12 text-warning">stale</span>'
+    : '<span class="e20-dot e20-ok"></span><span class="fs-12 text-success">ack</span>';
+}
+
+function render(){
+  const tb = document.getElementById('rows');
+  if(!JOURNEYS.length){ tb.innerHTML='<tr><td colspan="7" class="text-center text-muted py-4">No journeys defined.</td></tr>'; return; }
+  tb.innerHTML = JOURNEYS.map(j=>{
+    const locked = !j.wizard_approved;
+    const btn = m => `<button data-mode="${m}" class="${j.mode===m?'active':''}"
+        ${locked?'disabled':''} onclick="setMode('${j.journey_id}','${m}')">${m.toUpperCase()}</button>`;
+    return `<tr>
+      <td><div class="fw-semibold">${j.display_name}</div><div class="mono text-muted">${j.journey_code}</div></td>
+      <td>${j.candidate_name || '<span class="text-muted">platform</span>'}</td>
+      <td class="text-center">${j.wizard_approved
+          ? '<i class="ti ti-circle-check text-success fs-18" title="E68 approved"></i>'
+          : '<i class="ti ti-lock text-danger fs-18" title="Wizard approval required — Tier 1"></i>'}</td>
+      <td><div class="seg-toggle">${btn('off')}${btn('on')}${btn('timer')}</div></td>
+      <td class="mono">${j.mode==='timer' ? (j.timer_cron||'—') : '<span class="text-muted">—</span>'}</td>
+      <td class="text-center">${e20Cell(j)}</td>
+      <td class="text-end fs-12 text-muted">${j.last_run_at ? new Date(j.last_run_at).toLocaleString() : 'never'}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function setMode(id, mode){
+  const j = JOURNEYS.find(x=>x.journey_id===id);
+  if(mode==='timer'){
+    pendingTimer = id;
+    document.getElementById('timerJourneyName').textContent = j.display_name;
+    document.getElementById('cronInput').value = j.timer_cron || '0 9 * * 1-5';
+    new bootstrap.Modal(document.getElementById('timerModal')).show();
+    return;
+  }
+  const reason = prompt(`Reason for switching "${j.display_name}" to ${mode.toUpperCase()}?`, '');
+  if(reason===null) return;                    // cancelled — no toggle, no audit row
+  await put(id, {mode, reason});
+}
+
+async function put(id, body){
+  try{
+    const r = await fetch(`${API}/control/${id}`, {
+      method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)
+    });
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.detail || `HTTP ${r.status}`);
+    if(!d.e20_notified) alert('Toggle applied, but E20 was NOT notified. The Brain does not know this journey changed state.');
+    load();
+  }catch(e){ alert('Toggle failed: '+e.message); }
+}
+
+document.getElementById('timerConfirm').onclick = async ()=>{
+  const cron = document.getElementById('cronInput').value.trim();
+  if(!cron){ alert('Cron expression required for timer mode.'); return; }
+  bootstrap.Modal.getInstance(document.getElementById('timerModal')).hide();
+  await put(pendingTimer, {mode:'timer', timer_cron:cron,
+                           reason:document.getElementById('timerReason').value||'scheduled'});
+};
+
+async function loadAudit(){
+  try{
+    const r = await fetch(`${API}/control/audit?limit=25`);
+    const d = await r.json();
+    document.getElementById('audit').innerHTML = (d.audit||[]).map(a=>`<tr>
+      <td class="fs-12">${new Date(a.changed_at).toLocaleString()}</td>
+      <td class="mono fs-12">${a.journey_code||a.journey_id.slice(0,8)}</td>
+      <td><span class="badge bg-light text-dark">${a.from_mode||'—'}</span>
+          <i class="ti ti-arrow-right mx-1 text-muted"></i>
+          <span class="badge bg-primary">${a.to_mode}</span></td>
+      <td class="fs-12">${a.changed_by}</td>
+      <td class="fs-12 text-muted">${a.change_reason||'—'}</td>
+      <td class="text-center">${a.e20_notified
+          ? '<i class="ti ti-check text-success"></i>'
+          : '<i class="ti ti-x text-danger" title="Brain never told"></i>'}</td>
+    </tr>`).join('') || '<tr><td colspan="6" class="text-muted p-3">No changes recorded.</td></tr>';
+  }catch(e){ /* audit is non-critical */ }
+}
+
+function kpis(){
+  const on=JOURNEYS.filter(j=>j.mode==='on').length;
+  const tm=JOURNEYS.filter(j=>j.mode==='timer').length;
+  const un=JOURNEYS.filter(j=>!j.e20_last_reported_at || j.e20_last_reported_mode!==j.mode).length;
+  document.getElementById('kpi-total').textContent=JOURNEYS.length;
+  document.getElementById('kpi-approved').textContent=`${JOURNEYS.filter(j=>j.wizard_approved).length} wizard-approved`;
+  document.getElementById('kpi-on').textContent=on;
+  document.getElementById('kpi-timer').textContent=tm;
+  const k=document.getElementById('kpi-e20');
+  k.textContent=un; k.className='mb-0 fw-bold '+(un?'text-danger':'text-success');
+}
+const _render=render; render=function(){ _render(); kpis(); };
+
+document.getElementById('refresh').onclick = load;
+load();
+setInterval(load, 30000);
+</script>
+</body>
+</html>

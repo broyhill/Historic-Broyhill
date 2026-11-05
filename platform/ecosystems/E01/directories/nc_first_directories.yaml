@@ -1,0 +1,73 @@
+# E01 — NC First directories (DonorAtlas §4 adapted)
+# Keys: cluster_id INTEGER, ein, committee_sboe_id. Never donor_id / org_id mush.
+
+version: 1
+lane: E01
+
+donor_directory:
+  label: NC First donor directory
+  spine: gold
+  bind: core.donor_profile
+  person_key: cluster_id
+  gold_rule: >
+    Person exists because they gave as an Individual on NCBOE and/or to a
+    FEC candidate (cand_id). Profile is the tattoo wearer, not a new table.
+  filters:
+    - state: NC
+    - county: nc_counties
+    - zip5
+    - employer
+    - lifetime_total
+    - last_gift_date
+    - office_tier
+    - office_class
+  sort:
+    - lifetime_total
+    - last_gift_date
+    - txn_count
+    - zip5
+  view: e01.v_nc_first_donor_directory
+
+organization_directory:
+  label: NC First organization directory (tattoo index)
+  spine: tattoo
+  notes: >
+    Campaigns, PACs, party committees, charities. Not a second person spine.
+    You cannot text a committee.
+  keys:
+    - ein
+    - committee_sboe_id
+    - fec_cmte_id
+  bind:
+    - raw.ncboe_donations (committee fields; SELECT only)
+    - raw.fec_donations (committee rows; tattoo)
+  view: e01.v_nc_first_org_tattoo
+  do_not: create_org_id_pk
+
+preferred_partners:
+  label: NC First operating partners (roster, not a scrape)
+  store: yaml_only
+  partners:
+    - id: ncrdc
+      role: NC Republican National Committeeman context / Ed
+    - id: ncgop
+      role: State party
+    - id: ncboe
+      role: State disclosure source
+    - id: fec
+      role: Federal disclosure source
+    - id: winred
+      label: WinRed
+      role: Federal online rail (display / receipt — not rebuilt)
+    - id: anedot
+      label: Anedot
+      role: State/local rail (display / receipt)
+    - id: d365
+      label: Microsoft Dynamics 365
+      role: CRM already registered — do not rebuild Salesforce
+    - id: e84
+      role: Document search door
+    - id: fec_counsel
+      role: FEC / NCBOE compliance counsel
+    - id: 10dlc
+      role: 10DLC / TCPA vendor
