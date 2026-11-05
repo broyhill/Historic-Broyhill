@@ -26,6 +26,8 @@ import ExpressPanel from "./ExpressPanel";
 import JourneysPanel from "./JourneysPanel";
 import EcosystemPanel, { ECOSYSTEMS } from "./EcosystemPanel";
 import PlannedStudioPanel from "./PlannedStudioPanel";
+import LibraryPanel from "./LibraryPanel";
+import ConnectionsPanel from "./ConnectionsPanel";
 import { SPACES } from "@/lib/spaces";
 
 // --- Nav icons (inline so there's no icon dependency) ---
@@ -58,6 +60,7 @@ const icons: Partial<Record<Section, React.ReactNode>> = {
   podcast: <path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zM19 10v1a7 7 0 0 1-14 0v-1M12 18v4M8 22h8" />,
   call: <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z" />,
   proposal: <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8" />,
+  connections: <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />,
 };
 
 function NavIcon({ section }: { section: Section }) {
@@ -108,6 +111,8 @@ const NAV_TOOLS: { key: Section; label: string }[] = [
   { key: "stock", label: "Free media" },
   { key: "ask", label: "Ask" },
   { key: "brands", label: "Brands" },
+  { key: "library", label: "Marketing Library" },
+  { key: "connections", label: "Connections" },
   { key: "brand", label: "Brand setup" },
   { key: "settings", label: "Venue & account" },
 ];
@@ -141,6 +146,8 @@ const TITLES: Partial<Record<Section, string>> = {
   podcast: "Podcast studio",
   call: "Call studio",
   proposal: "Proposal studio",
+  library: "Marketing Library",
+  connections: "Connections",
 };
 
 for (const e of ECOSYSTEMS) TITLES[("eco-" + e.key) as Section] = e.title;
@@ -301,6 +308,8 @@ export default function AdminConsole() {
           {section === "podcast" && <PlannedStudioPanel studio="podcast" />}
           {section === "call" && <PlannedStudioPanel studio="call" />}
           {section === "proposal" && <PlannedStudioPanel studio="proposal" />}
+          {section === "library" && <LibraryPanel />}
+          {section === "connections" && <ConnectionsPanel />}
           {ECOSYSTEMS.map((e) =>
             section === ("eco-" + e.key) ? <EcosystemPanel key={e.key} eco={e} /> : null
           )}
