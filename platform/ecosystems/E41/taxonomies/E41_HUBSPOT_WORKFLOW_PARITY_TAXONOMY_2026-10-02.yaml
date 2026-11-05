@@ -1,0 +1,130 @@
+# E41 — HubSpot AI Campaign Wizard / Workflow parity taxonomy
+# Source of truth for the SQL seeds in DRYRUN_E41_WIZARD_WORKFLOW_SCHEDULER_2026-10-02.sql
+# and the compiler in ECO_CANONICAL/E41/code/e41_wizard_workflow.py.
+# Vocabulary: donor group (never "microsegment"). States: saved/previewed/approved/authorized are never "live".
+version: 1
+date: 2026-10-02
+author: claude
+
+wizard_steps:                      # HubSpot AI Campaign Wizard -> BGOP
+  1:
+    name: Strategy & Objective Q&A
+    store: wizard.wizard_session.strategy_qa
+    engine: StrategyAdvisor.suggest
+    params:
+      target_group:  {keys: [filter, size, status], status: verified, source: core.donor_profile count over a whitelisted filter}
+      primary_offer: {keys: [text, ask_tier, status], status: configured}
+      optimal_mix:   {keys: [weapons, status, reason], status: recommended, rule: weapons ranked by reachable unsuppressed share}
+  2:
+    name: Multi-Channel Brief
+    store: wizard.wizard_session.brief
+  3:
+    name: Ecosystem Studio
+    store: wizard.channel_variation
+    per_channel: {EMAIL: E30 Email Studio, SOCIAL: E19 Social Studio, POSTCARD: E33 Print Studio Canvas, SMS: E31, RVM: E17, PHONE: E32, PUSH: E67}
+    studio_status: [pending, studio_ready, editing, previewed, approved, rejected]
+  4:
+    name: Automation Workflow & Deployment
+    store: wizard.wizard_session.workflow_dsl
+    engine: compile_session -> e41.journey_definition + journey_tile + entry_source + control_state(off)
+    buttons:
+      Save as Draft: state=DRAFT_SAVED
+      Approve & Publish Workflow: state=AUTHORIZATION_REQUIRED   # Ed phrase still required; control_state stays off
+
+e68_state_model: [NOT_STARTED, INTENT_CAPTURED, AUDIENCE_SELECTED, COMPOSING, DRAFT_SAVED, PREVIEWED, CANDIDATE_SELECTED,
+                  COMPLIANCE_REVIEW, DRY_RUN_READY, AUTHORIZATION_REQUIRED, AUTHORIZED, LAUNCH_PROOF_REQUIRED]
+
+enrollment_triggers:               # HubSpot "enrollment trigger" -> e41.entry_source + brain.triggers
+  event_based:   {entry_kind: brain_trigger,      source: brain.triggers.condition_event_code, examples: [w_wizard_workflow_published, d_donation_received, h_heat_gear2_up, b_bill_crossover_passed]}
+  list_based:    {entry_kind: segment_membership, source: donor group = query over tattoos (core.donor_profile); e59.donor_segment_assignment is only a materialization}
+  manual:        {entry_kind: manual_list,        source: filter_json.cluster_ids}
+  api:           {entry_kind: api_call}
+  re_enrollment: {default: false, enforced_by: "UNIQUE (e41.journey_position.journey_id, cluster_id)"}
+
+actions:                           # HubSpot workflow actions -> e41.action_catalog (tile_kind + executor)
+  SEND_EMAIL:       {hubspot: Send email,                     tile: weapon,  weapon: EMAIL,    eco: E30, executor: EXEC_E30_SEND}
+  SEND_SMS:         {hubspot: Send SMS,                       tile: weapon,  weapon: SMS,      eco: E31, executor: EXEC_E31_SEND}
+  SEND_RVM:         {hubspot: none,                           tile: weapon,  weapon: RVM,      eco: E17, executor: EXEC_E17_SEND}
+  SEND_POSTCARD:    {hubspot: Send direct mail (integration), tile: weapon,  weapon: POSTCARD, eco: E33, executor: EXEC_E33_SEND}
+  SEND_SOCIAL:      {hubspot: Social post / ad audience,      tile: weapon,  weapon: SOCIAL,   eco: E19, executor: EXEC_E19_POST}
+  SEND_PUSH:        {hubspot: App push,                       tile: weapon,  weapon: PUSH,     eco: E67, executor: EXEC_E67_PUSH}
+  QUEUE_CALL:       {hubspot: Create task,                    tile: weapon,  weapon: PHONE,    eco: E32, executor: EXEC_E32_QUEUE}
+  WAIT:             {hubspot: Delay,                          tile: wait,    params: [seconds]}
+  WAIT_UNTIL_EVENT: {hubspot: Delay until event,              tile: wait,    params: [seconds, event], resume: Scheduler.resume_on_event}
+  BRANCH_IF:        {hubspot: If/then branch,                 tile: split,   edges: [yes, no], params: [predicate, ref, window_seconds]}
+  BRANCH_VALUE:     {hubspot: Value-equals branch,            tile: split,   params: [attribute, values]}
+  FILTER:           {hubspot: Re-check enrollment criteria,   tile: filter,  on_false: exit filter_failed}
+  WEBHOOK:          {hubspot: Trigger a webhook,              tile: webhook, eco: E55, executor: EXEC_E55_WEBHOOK}
+  GOAL_EXIT:        {hubspot: Goal met,                       tile: exit,    reason: goal_met, emits: w_journey_goal_met}
+  EXIT:             {hubspot: Unenroll,                       tile: exit,    emits: w_journey_exited}
+
+predicates:                        # what a branch may ask; answered from E20's ledger, never vendor callbacks
+  EMAIL_OPENED:     {hubspot: Email opened,    source: journey.weapon_journey.engaged_at,   event: email.opened}
+  EMAIL_CLICKED:    {hubspot: Email clicked,   source: brain.event_queue,                   event: email.clicked}
+  EMAIL_REPLIED:    {hubspot: Email replied,   source: journey.weapon_journey.responded_at, event: email.replied}
+  SMS_CLICKED:      {hubspot: SMS clicked,     source: brain.event_queue,                   event: sms.clicked}
+  MAIL_RESPONDED:   {hubspot: Mail responded,  source: journey.weapon_journey.responded_at, event: mail.responded}
+  DONATED:          {hubspot: Deal won / goal, source: journey.weapon_journey.donated_at,   event: d_donation_received}
+  HAS_EMAIL:        {source: core.donor_profile.personal_email}
+  HAS_CELL:         {source: core.donor_profile.cell_phone}
+  HAS_ADDRESS:      {source: core.donor_profile.street_line_1}
+  EMAIL_SUPPRESSED: {source: core.donor_profile.s_email_unsubscribed_flag}
+  ATTR_EQUALS:      {source: core.donor_profile.<whitelisted column>}
+  dark_mode_rule: a predicate on a send that E20 never dispatched evaluates FALSE (HubSpot "No" branch)
+
+lifecycle_triggers_added:          # brain.triggers, family workflow, continues T-W-1xx (101-114 exist)
+  T-W-115: w_wizard_workflow_published
+  T-W-116: w_journey_enrolled
+  T-W-117: w_journey_goal_met
+  T-W-118: w_journey_exited
+
+scheduler:                         # e41_wizard_workflow.Scheduler (the §H "scheduler" the 07-28 engine deferred)
+  state_table: e41.journey_position
+  position_states: [active, waiting, completed, exited, suppressed, failed]
+  due_view: e41.v_journey_position_due
+  hop_semantics: one tile per advance() per position; max_hops 64
+  dag_to_tree: converging branches are expanded into one subtree copy per parent (journey_tile is a tree)
+  smart_send: hold each send until donor local peak hour (core.donor_profile.timezone_utc_offset); E06 observed peaks replace the constant later
+  dark_default: e41_journey_engine.PROPOSALS_ENABLED=False -> step_log written, brain.weapon_queue untouched
+
+# ---- part 2 (Ed authorized 2026-10-02): 16 cannons + policy + omni-channel ----
+weapons:                           # e41.weapon_registry — W-code = outcome.weapon_slo key (live)
+  EMAIL:              {w: W01, eco: E30, executor: EXEC_E30_EMAIL_SEND,         token: email,     reach: personal_email}
+  SMS:                {w: W02, eco: E31, executor: EXEC_E31_SMS_SEND,           token: sms,       reach: cell_phone}
+  MMS:                {w: W03, eco: E74, executor: EXEC_E74_MMS_SEND,           token: mms,       reach: cell_phone}
+  RVM:                {w: W04, eco: E17, executor: EXEC_E17_RVM_DROP,           token: rvm,       reach: cell_phone}
+  POSTCARD:           {w: W05, eco: E33, executor: EXEC_E33_DIRECT_MAIL,        token: mail,      reach: street_line_1, ruling: EXEC_E16_DIRECT_MAIL mis-ecoed}
+  SOCIAL:             {w: W06, eco: E19, executor: EXEC_E19_SOCIAL_POST,        token: social,    audience: true}
+  VOLUNTEER:          {w: W07, eco: E71, executor: EXEC_E71_VOLUNTEER_DEPLOY,   token: volunteer, reach: street_line_1}
+  TV_RADIO:           {w: W08, eco: E16, executor: EXEC_E16_TV_RADIO_SPOT,      token: tv,        audience: true}
+  BROADCAST:          {w: W09, eco: E46, executor: EXEC_E46_BROADCAST_STREAM,   token: broadcast, audience: true}
+  TOWNHALL:           {w: W10, eco: E34, executor: EXEC_E34_TOWNHALL_INVITE,    token: event,     reach: personal_email}
+  PUSH:               {w: W11, eco: E67, executor: EXEC_E67_PUSH_SEND,          token: push,      reach: cell_phone}
+  MESSENGER:          {w: W12, eco: E69, executor: EXEC_E69_MESSENGER_SEND,     token: messenger, reach: personal_email}
+  DIGITAL_AD:         {w: W13, eco: E70, executor: EXEC_E70_DIGITAL_AD_AUDIENCE,token: ad,        audience: true}
+  CANDIDATE_PERSONAL: {w: W14, eco: E75, executor: EXEC_E75_CANDIDATE_PERSONAL, token: personal,  reach: cell_phone, rule: CM always CC}
+  MANAGER_PERSONAL:   {w: W15, eco: E76, executor: EXEC_E76_MANAGER_PERSONAL,   token: manager,   reach: cell_phone}
+  PHONE:              {w: W16, eco: E32, executor: EXEC_E32_PHONE_CALL,         token: phone,     reach: cell_phone, ruling: EXEC_E18_PHONE_CALL mis-ecoed}
+  PREFERRED:          {resolver: Scheduler._resolve_preferred, order: [group primary_channel, group secondary_channel, tile candidates, policy preferred_candidates, fallback], gates: [in registry, reach column not null, not suppressed]}
+
+journey_policy:                    # e41.journey_policy — HubSpot workflow Settings tab
+  goal:         {goal_predicate: DONATED, unenroll_on_goal: true, unenroll_siblings: false}
+  re_enrollment: {values: [never, after_exit, after_days], default: never}
+  timing:       {quiet_hours_start: 21, quiet_hours_end: 8, allowed_weekdays: [1,2,3,4,5,6,7], local: core.donor_profile.timezone_utc_offset, honor_blackout: e10.blackout}
+  fatigue:      {max_touches_per_day: 1, max_touches_total: 6}
+  suppression:  {honor_suppression: true, sources: [brain.suppression_list, core.donor_profile.s_*_flag, e41.journey_suppression, e59.donor_segment_assignment.do_not_contact], suppressed_action: [skip_tile, exit_journey]}
+  ab:           {ab_experiment_id: e22.experiments}
+
+donor_group_entry:
+  materialization: e59.donor_segment_assignment (microsegment_key column name kept as-is)
+  launch_context:  e59.wizard_launch_context -> import_launch_context (ask ladder, subject lines, pre_loaded_cluster_ids)
+  channel_preference: e59.microsegment_faction_crosswalk.primary_channel/secondary_channel
+
+reporting_views: [e41.v_journey_enrollment_history, e41.v_journey_performance, e41.v_journey_branch_performance]
+
+rulings_2026_10_02:
+  G1: {retire: [EXEC_E16_DIRECT_MAIL, EXEC_E18_PHONE_CALL], dryrun: DRYRUN_E20_RETIRE_MISECOED_EXECUTORS_E16_E18_2026-10-02.sql}
+  G2: {EXEC_E30_EMAIL_SEND event_class: outreach.email_ready, dryrun: DRYRUN_E30_EXECUTOR_EVENT_CLASS_FIX_2026-10-02.sql}
+  G3: {floor: journey_policy, ceiling: e10.fatigue_policy, counted_across: all journeys, breach: hold (wait_event fatigue.window_rolled)}
+  G4: {order: [group primary, group secondary, tile candidates, policy candidates, fallback], filter_each: [registry, reach, suppression, PER_CHANNEL ceiling], terminal: no_eligible_channel}
+  G5: {interface: StudioCannonAdapter, key: W-code, executor_source: e41.weapon_registry, socket: /api/v2/actions/execute, gate: ops.gate_r4_studio_gate_state, e84_role: library only}

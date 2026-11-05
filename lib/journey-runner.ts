@@ -3,6 +3,7 @@ import { ensureJourneyTables } from "@/lib/journeys-db";
 import { stepsSchema, type JourneyStep } from "@/lib/journeys";
 import { CAMPAIGN_TEMPLATES, TEXT_TEMPLATES } from "@/lib/campaign-templates";
 import type { Resend } from "resend";
+import { sendEmail, sendSms } from "@/lib/send";
 import { tripwireHtml } from "@/lib/tripwires";
 
 // The journeys runner. Moves every RUNNING JourneyRun forward through its steps:
@@ -52,33 +53,33 @@ async function deliver(opts: {
   });
 
   if (approvalMode !== "AUTO") return { stagedId: staged.id, status: "STAGED" };
-  if (channel !== "EMAIL") {
-    // No SMS sender exists yet; AUTO sms stays staged rather than dropping the message.
-    return { stagedId: staged.id, status: "STAGED" };
-  }
 
   const lines = draft.split("\n");
   const si = lines.findIndex((l) => /^\s*subject:/i.test(l));
   const subject = si >= 0 ? lines[si].replace(/^\s*subject:\s*/i, "").trim() : "A note from Historic Broyhill";
   const body = lines.filter((_, i) => i !== si).join("\n").trim();
 
-  if (liveDelivery && resend) {
-    const { data, error } = await resend.emails.send(
-      {
-        from: process.env.EMAIL_FROM || "Historic Broyhill <onboarding@resend.dev>",
-        to: recipientEmail, subject, text: body,
-        html: tripwireHtml(body, leadId, staged.id),
-      },
-      { idempotencyKey: `journey-${staged.id}` },
-    );
-    if (error || !data) throw new Error(error?.message || "Resend returned no message ID");
+  if (channel === "SMS" && liveDelivery) {
+    const lead = await prisma.leadProfile.findUnique({ where: { id: leadId }, select: { phone: true } });
+    if (!lead?.phone) return { stagedId: staged.id, status: "STAGED" }; // no number — leave for a human
+    const result = await sendSms({ to: lead.phone, body });
+    if (!result.sent) throw new Error(result.reason);
     await prisma.aiContentPipeline.update({
       where: { id: staged.id },
-      data: { status: "PUBLISHED", publishedAt: new Date(), metrics: { leadId, recipientEmail, source: "journey", resendId: data.id, deliveryStatus: "SENT" } },
+      data: { status: "PUBLISHED", publishedAt: new Date(), metrics: { leadId, recipientPhone: lead.phone, source: "journey", provider: result.provider, providerId: result.id, deliveryStatus: "SENT" } },
     });
     return { stagedId: staged.id, status: "SENT" };
   }
-  // No Resend key (or development): mark as a dry-run publish so the step still advances.
+  if (liveDelivery && channel === "EMAIL") {
+    const result = await sendEmail({ to: recipientEmail, subject, text: body, html: tripwireHtml(body, leadId, staged.id) });
+    if (!result.sent) throw new Error(result.reason);
+    await prisma.aiContentPipeline.update({
+      where: { id: staged.id },
+      data: { status: "PUBLISHED", publishedAt: new Date(), metrics: { leadId, recipientEmail, source: "journey", provider: result.provider, providerId: result.id, deliveryStatus: "SENT" } },
+    });
+    return { stagedId: staged.id, status: "SENT" };
+  }
+  // No provider key (or development): mark as a dry-run publish so the step still advances.
   await prisma.aiContentPipeline.update({
     where: { id: staged.id },
     data: { status: "PUBLISHED", publishedAt: new Date(), metrics: { leadId, recipientEmail, source: "journey", deliveryStatus: "DRY_RUN" } },
@@ -110,7 +111,7 @@ export async function enrollLead(leadId: string, trigger: string): Promise<numbe
  */
 export async function runDueSteps(opts: { resend?: Resend | null; limit?: number } = {}) {
   await ensureJourneyTables();
-  const liveDelivery = Boolean(opts.resend) && process.env.NODE_ENV !== "development";
+  const liveDelivery = (Boolean(opts.resend) || Boolean(process.env.SENDGRID_API_KEY) || Boolean(process.env.TWILIO_ACCOUNT_SID)) && process.env.NODE_ENV !== "development";
   const due = await prisma.journeyRun.findMany({
     where: { status: "RUNNING", OR: [{ nextRunAt: null }, { nextRunAt: { lte: new Date() } }] },
     orderBy: { startedAt: "asc" },

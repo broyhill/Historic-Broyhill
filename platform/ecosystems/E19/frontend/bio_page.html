@@ -1,0 +1,159 @@
+<!--
+ecosystems/E19_social/bio/templates/bio_page.html
+
+Public bio page template. Mobile-first.
+
+Inspinia conventions:
+- Same color tokens as candidate silo branding (theme_overrides layered on top)
+- Lucide-react icons referenced by name (icon_name field on bio_links)
+- Self-contained HTML (no external JS frameworks for the public page —
+  fast load, AMP-friendly, works on terrible mobile networks)
+
+Render context:
+  page: BioPageData (candidate_id, page_title, page_subtitle, profile_photo_url, theme_overrides, links[])
+  branding: dict (primary_color, secondary_color, font_family, logo_light_url, logo_dark_url)
+  slug: str
+  qr_token: str | None
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>{{ page.page_title|e }}</title>
+
+  <!-- Open Graph for social sharing -->
+  <meta property="og:title" content="{{ page.page_title|e }}">
+  {% if page.page_subtitle %}<meta property="og:description" content="{{ page.page_subtitle|e }}">{% endif %}
+  {% if page.profile_photo_url %}<meta property="og:image" content="{{ page.profile_photo_url|e }}">{% endif %}
+  <meta property="og:type" content="profile">
+
+  <link rel="icon" href="{{ branding.favicon_url|default('/favicon.ico')|e }}">
+
+  <!-- Theme tokens: silo brand kit + per-page overrides (page wins) -->
+  <style>
+    :root {
+      --primary:        {{ page.theme_overrides.primary_color|default(branding.primary_color)|default('#1A2238')|e }};
+      --secondary:      {{ page.theme_overrides.secondary_color|default(branding.secondary_color)|default('#9DAAF2')|e }};
+      --bg:             {{ page.theme_overrides.background|default(branding.background)|default('#FAFAFA')|e }};
+      --card-bg:        {{ page.theme_overrides.card_bg|default('#FFFFFF')|e }};
+      --text:           {{ page.theme_overrides.text_color|default('#1F2937')|e }};
+      --text-muted:     {{ page.theme_overrides.text_muted|default('#6B7280')|e }};
+      --link-radius:    {{ page.theme_overrides.link_radius|default('12px')|e }};
+      --font-stack:     {{ page.theme_overrides.font_family|default(branding.font_family)|default('-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif')|e }};
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-stack);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 48px;
+      -webkit-font-smoothing: antialiased;
+    }
+    .bio-container {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .profile-photo {
+      width: 112px;
+      height: 112px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--primary);
+      margin-bottom: 16px;
+    }
+    .profile-photo-placeholder {
+      width: 112px; height: 112px; border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 40px; font-weight: 700;
+      margin-bottom: 16px;
+    }
+    h1.page-title {
+      font-size: 22px; font-weight: 700;
+      margin: 0 0 6px; text-align: center; color: var(--text);
+    }
+    p.page-subtitle {
+      font-size: 14px; color: var(--text-muted);
+      margin: 0 0 28px; text-align: center; line-height: 1.5;
+      max-width: 380px;
+    }
+    .link-list {
+      width: 100%;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    a.bio-link {
+      display: flex; align-items: center; gap: 12px;
+      padding: 16px 20px;
+      background: var(--card-bg);
+      color: var(--text);
+      text-decoration: none;
+      border-radius: var(--link-radius);
+      border: 1px solid rgba(0,0,0,0.06);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      font-weight: 600;
+      font-size: 15px;
+      transition: transform .08s ease, box-shadow .08s ease;
+    }
+    a.bio-link:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.08); }
+    a.bio-link:active { transform: translateY(0); }
+    a.bio-link.primary {
+      background: var(--primary); color: #fff; border-color: var(--primary);
+    }
+    a.bio-link.primary:hover { background: color-mix(in srgb, var(--primary) 90%, white); }
+    .link-icon {
+      width: 22px; height: 22px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .link-label { flex-grow: 1; }
+    footer {
+      margin-top: 40px; font-size: 11px; color: var(--text-muted);
+      text-align: center; max-width: 380px; line-height: 1.5;
+    }
+    footer a { color: var(--text-muted); text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <main class="bio-container">
+    {% if page.profile_photo_url %}
+      <img class="profile-photo" src="{{ page.profile_photo_url|e }}" alt="{{ page.page_title|e }}">
+    {% else %}
+      <div class="profile-photo-placeholder">{{ page.page_title|first|upper|e }}</div>
+    {% endif %}
+
+    <h1 class="page-title">{{ page.page_title|e }}</h1>
+    {% if page.page_subtitle %}
+      <p class="page-subtitle">{{ page.page_subtitle|e }}</p>
+    {% endif %}
+
+    <nav class="link-list">
+      {% for link in page.links %}
+        <a class="bio-link {% if link.link_type == 'donate' %}primary{% endif %}"
+           href="/bio/{{ slug|e }}/click/{{ link.link_slug|e }}{% if qr_token %}?q={{ qr_token|e }}{% endif %}"
+           data-link-type="{{ link.link_type|e }}">
+          <span class="link-icon" aria-hidden="true">{{ icon_for(link.icon_name)|safe }}</span>
+          <span class="link-label">{{ link.display_label|e }}</span>
+        </a>
+      {% endfor %}
+    </nav>
+
+    <footer>
+      {{ branding.disclaimer_short|default('')|e }}
+      {% if branding.privacy_url %}
+        <br><a href="{{ branding.privacy_url|e }}">Privacy</a>
+      {% endif %}
+    </footer>
+  </main>
+</body>
+</html>

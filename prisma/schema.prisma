@@ -201,3 +201,27 @@ model JourneyRun {
   @@index([status, nextRunAt])
   @@index([leadId])
 }
+
+model KnowledgeEntry {
+  id        String   @id @default(uuid())
+  folder    String
+  title     String
+  data      Json
+  note      String?
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([folder])
+}
+
+model VendorConnection {
+  id        String   @id @default(uuid())
+  vendor    String   // meta | tiktok | shopify | wordpress
+  status    String   @default("CONNECTED")
+  meta      Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([vendor])
+}

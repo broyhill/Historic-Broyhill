@@ -1,0 +1,283 @@
+# E01 — NC First taxonomies (DonorAtlas §1 adapted)
+# Authority: Ed Broyhill. Not a parallel catalog to e13.issue_taxonomy.
+# Issue universe remains THOUSANDS (local district pressure). These are families.
+# Spine GOLD: NCBOE Individual + FEC cand_id. PAC/party/charity = tattoo only.
+
+version: 1
+lane: E01
+adapted_from: ECO_CANONICAL/E01/docs/DONORATLAS_BREAKDOWN_utm_medium_paid_2026-09-04.pdf
+adapted_from_sha256: 31041950f804930f1fdc7dc20bc3e767ed3d8a0540d6c8d1d54b8cfcd9f91c60
+person_key: cluster_id
+person_key_type: INTEGER
+state: NC
+
+entities:
+  - id: individual_donor
+    label: Individual donor
+    spine: gold
+    notes: Human who gave to a named candidate. Weapon fires to this person.
+  - id: nc_candidate
+    label: NC candidate (named office + jurisdiction)
+    spine: gold_target
+    silo_key: tier.office_class.jurisdiction.candidate
+  - id: pac
+    label: PAC
+    spine: tattoo
+  - id: super_pac
+    label: Super PAC / independent expenditure
+    spine: tattoo
+  - id: party_committee
+    label: Party committee (RNC, NCGOP, county GOP, caucus)
+    spine: tattoo
+    notes: NCBOE 'Cont to Other Comm' is NOT spine GOLD.
+  - id: charity_501c3
+    label: 501(c)(3)
+    spine: tattoo
+    key: ein
+  - id: advocacy_501c4
+    label: 501(c)(4)
+    spine: tattoo
+    key: ein
+  - id: foundation
+    label: Foundation / grantor
+    spine: tattoo
+  - id: corporation
+    label: Corporate entity / employer
+    spine: tattoo
+  - id: joint_fundraising
+    label: Joint fundraising committee
+    spine: tattoo
+
+contribution_categories:
+  - id: ncboe_individual
+    label: NC state/local political contribution (NCBOE)
+    gold_filter: "transction_type = 'Individual'"
+    table: raw.ncboe_donations
+    sacred: read_only
+  - id: fec_candidate
+    label: Federal contribution attached to a candidate
+    gold_filter: "cand_id IS NOT NULL"
+    table: raw.fec_donations
+  - id: fec_unattached
+    label: FEC row with no cand_id
+    gold_filter: excluded_from_spine
+    spine: tattoo
+  - id: irs_990
+    label: Philanthropic / Form 990
+    spine: tattoo
+  - id: board_membership
+    label: Board seat / officer
+    spine: tattoo
+
+# GOP NC First issue FAMILIES — not the dump's progressive default set.
+# Local district issues still attach under these families. Do not shrink to 51 stubs.
+issue_families:
+  - id: taxes_spending
+    label: Taxes and spending
+  - id: education_school_choice
+    label: Education and school choice
+  - id: energy
+    label: Energy (coal, natural gas, grid, nuclear)
+  - id: agriculture
+    label: Agriculture and rural economy
+  - id: second_amendment
+    label: Second Amendment
+  - id: immigration
+    label: Immigration and border
+  - id: election_integrity
+    label: Election integrity
+  - id: healthcare
+    label: Healthcare / CON / rural hospitals
+  - id: transportation
+    label: Transportation (I-77, ports, I-95, transit)
+  - id: coastal_recovery
+    label: Coastal storms and recovery
+  - id: life
+    label: Life
+  - id: religious_liberty
+    label: Religious liberty
+  - id: public_safety
+    label: Sheriff / DA / public safety
+  - id: jobs_workforce
+    label: Jobs and workforce
+  - id: local_district
+    label: Local district pressure (unenumerated — thousands)
+    notes: Ring 1 donors are geographically hyper-specific. Do not drop local.
+
+party_alignment:
+  - id: republican
+    default_for_nc_first: true
+  - id: democrat
+  - id: unaffiliated
+  - id: libertarian
+  - id: unknown
+
+affiliation_roles:
+  - Board Member
+  - C-Suite
+  - Employee
+  - Matching-gift employer
+  - Subsidiary
+  - Parent organization
+  - Bundler
+  - County GOP officer
+  - Church / association member
+
+office_tiers:
+  - id: federal
+    offices: [president, us_senate, us_house]
+    nc_us_house_districts: 14
+  - id: state
+    executive:
+      - governor
+      - lieutenant_governor
+      - attorney_general
+      - state_auditor
+      - state_treasurer
+      - secretary_of_state
+      - superintendent_of_public_instruction
+      - commissioner_of_agriculture
+      - commissioner_of_insurance
+      - commissioner_of_labor
+    legislative:
+      nc_senate_districts: 50
+      nc_house_districts: 120
+    judicial:
+      - nc_supreme_court
+      - nc_court_of_appeals
+      - superior_court
+      - district_court
+  - id: county
+    counties: 100
+    offices:
+      - sheriff
+      - county_commissioner
+      - district_attorney
+      - register_of_deeds
+      - clerk_of_superior_court
+      - school_board
+    notes: Sheriff ≠ Commissioner. Never collapse to local.
+  - id: municipal
+    offices: [mayor, city_council, town_board]
+
+# 100 NC counties — NC First geography bound.
+nc_counties:
+  - Alamance
+  - Alexander
+  - Alleghany
+  - Anson
+  - Ashe
+  - Avery
+  - Beaufort
+  - Bertie
+  - Bladen
+  - Brunswick
+  - Buncombe
+  - Burke
+  - Cabarrus
+  - Caldwell
+  - Camden
+  - Carteret
+  - Caswell
+  - Catawba
+  - Chatham
+  - Cherokee
+  - Chowan
+  - Clay
+  - Cleveland
+  - Columbus
+  - Craven
+  - Cumberland
+  - Currituck
+  - Dare
+  - Davidson
+  - Davie
+  - Duplin
+  - Durham
+  - Edgecombe
+  - Forsyth
+  - Franklin
+  - Gaston
+  - Gates
+  - Graham
+  - Granville
+  - Greene
+  - Guilford
+  - Halifax
+  - Harnett
+  - Haywood
+  - Henderson
+  - Hertford
+  - Hoke
+  - Hyde
+  - Iredell
+  - Jackson
+  - Johnston
+  - Jones
+  - Lee
+  - Lenoir
+  - Lincoln
+  - McDowell
+  - Macon
+  - Madison
+  - Martin
+  - Mecklenburg
+  - Mitchell
+  - Montgomery
+  - Moore
+  - Nash
+  - New Hanover
+  - Northampton
+  - Onslow
+  - Orange
+  - Pamlico
+  - Pasquotank
+  - Pender
+  - Perquimans
+  - Person
+  - Pitt
+  - Polk
+  - Randolph
+  - Richmond
+  - Robeson
+  - Rockingham
+  - Rowan
+  - Rutherford
+  - Sampson
+  - Scotland
+  - Stanly
+  - Stokes
+  - Surry
+  - Swain
+  - Transylvania
+  - Tyrrell
+  - Union
+  - Vance
+  - Wake
+  - Warren
+  - Washington
+  - Watauga
+  - Wayne
+  - Wilkes
+  - Wilson
+  - Yadkin
+  - Yancey
+
+# Existing E01 brain.triggers (extend only). proposed = not inserted.
+triggers:
+  existing:
+    - donor.grade_changed
+    - donor.score_recalculated
+    - donor.upgrade_opportunity
+    - donor.lapsed_detected
+    - donor.maxout_approaching
+    - donor.vip_threshold_crossed
+    - donor.first_gift
+    - donor.recurring_started
+  proposed_nc_first:
+    - donor.ncboe_new_filing
+    - donor.fec_cand_id_gift
+    - donor.county_silo_entered
+    - donor.maxout_nc_cycle
+  catalog: brain.triggers
+  do_not_create: parallel_trigger_table

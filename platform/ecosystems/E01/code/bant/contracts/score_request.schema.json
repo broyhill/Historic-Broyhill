@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/broyhill/BroyhillGOP/bant/score_request.schema.json",
+  "title": "BANT Score Request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["silo_id", "cluster_id"],
+  "properties": {
+    "silo_id": { "type": "string", "minLength": 1 },
+    "cluster_id": { "type": "integer", "exclusiveMinimum": 0 },
+    "jurisdiction_key": { "type": ["string", "null"] },
+    "features": {
+      "type": ["object", "null"],
+      "additionalProperties": {
+        "type": ["number", "boolean"]
+      }
+    },
+    "persist": { "type": "boolean", "default": false }
+  }
+}

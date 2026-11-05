@@ -1,0 +1,1703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BroyhillGOP - Contact Directory Setup</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+        }
+        
+        * { box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--gray-100);
+            min-height: 100vh;
+            margin: 0;
+        }
+        
+        /* Header */
+        .app-header {
+            background: white;
+            border-bottom: 1px solid var(--gray-200);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+        
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .logo-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--gray-800);
+        }
+        
+        .logo-text span { color: var(--danger); }
+        
+        .header-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .header-user img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+        }
+        
+        /* Main Container */
+        .main-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+        
+        /* Progress Bar */
+        .progress-container {
+            margin-bottom: 40px;
+        }
+        
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin-bottom: 8px;
+        }
+        
+        .progress-steps::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gray-200);
+            z-index: 0;
+        }
+        
+        .progress-line {
+            position: absolute;
+            top: 15px;
+            left: 0;
+            height: 2px;
+            background: var(--primary);
+            z-index: 1;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 2;
+        }
+        
+        .step-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid var(--gray-300);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-400);
+            transition: all 0.3s ease;
+        }
+        
+        .progress-step.active .step-circle {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+        
+        .progress-step.completed .step-circle {
+            border-color: var(--success);
+            background: var(--success);
+            color: white;
+        }
+        
+        .step-label {
+            font-size: 0.7rem;
+            color: var(--gray-400);
+            margin-top: 6px;
+            text-align: center;
+            max-width: 70px;
+        }
+        
+        .progress-step.active .step-label,
+        .progress-step.completed .step-label {
+            color: var(--gray-700);
+        }
+        
+        /* Card */
+        .step-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+            padding: 40px;
+        }
+        
+        .step-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        
+        .step-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 28px;
+            color: white;
+        }
+        
+        .step-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin-bottom: 8px;
+        }
+        
+        .step-subtitle {
+            color: var(--gray-500);
+            font-size: 0.95rem;
+        }
+        
+        /* Source Selection */
+        .source-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .source-option {
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .source-option:hover {
+            border-color: var(--primary);
+            background: var(--gray-50);
+        }
+        
+        .source-option.selected {
+            border-color: var(--primary);
+            background: rgba(59, 130, 246, 0.05);
+        }
+        
+        .source-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            font-size: 24px;
+        }
+        
+        .source-icon.apple { background: #000; color: white; }
+        .source-icon.google { background: #ea4335; color: white; }
+        .source-icon.outlook { background: #0078d4; color: white; }
+        .source-icon.csv { background: var(--success); color: white; }
+        
+        .source-name {
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 4px;
+        }
+        
+        .source-desc {
+            font-size: 0.8rem;
+            color: var(--gray-500);
+        }
+        
+        /* OAuth Connect */
+        .oauth-box {
+            border: 2px dashed var(--gray-300);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .oauth-box.connected {
+            border-style: solid;
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.05);
+        }
+        
+        .connect-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: var(--gray-800);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .connect-btn:hover { background: var(--gray-900); }
+        .connect-btn.google { background: #ea4335; }
+        .connect-btn.google:hover { background: #d33426; }
+        .connect-btn.outlook { background: #0078d4; }
+        .connect-btn.outlook:hover { background: #006abc; }
+        
+        .connected-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: var(--success);
+            font-weight: 600;
+        }
+        
+        /* Contact Selection */
+        .contacts-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .select-all {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .contact-count {
+            background: var(--primary);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .contacts-list {
+            max-height: 350px;
+            overflow-y: auto;
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+        }
+        
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--gray-100);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .contact-item:hover { background: var(--gray-50); }
+        .contact-item:last-child { border-bottom: none; }
+        
+        .contact-item.selected { background: rgba(59, 130, 246, 0.05); }
+        
+        .contact-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+        
+        .contact-info { flex: 1; }
+        .contact-name { font-weight: 500; color: var(--gray-800); }
+        .contact-detail { font-size: 0.8rem; color: var(--gray-500); }
+        
+        .contact-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--gray-300);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .contact-item.selected .contact-checkbox {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+        
+        /* Relationship Tagging */
+        .tag-section {
+            margin-bottom: 24px;
+        }
+        
+        .tag-section-title {
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .tag-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        
+        .tag-option {
+            padding: 10px 16px;
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+        
+        .tag-option:hover {
+            border-color: var(--primary);
+            background: var(--gray-50);
+        }
+        
+        .tag-option.selected {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+        
+        /* Contact Row for Tagging */
+        .tag-contact-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: var(--gray-50);
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .tag-contact-info {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .tag-select {
+            padding: 8px 12px;
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            font-size: 0.875rem;
+            min-width: 180px;
+        }
+        
+        /* Communication Preferences */
+        .pref-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .pref-table th {
+            text-align: left;
+            padding: 12px;
+            background: var(--gray-50);
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            text-transform: uppercase;
+        }
+        
+        .pref-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--gray-100);
+        }
+        
+        .pref-table tr:last-child td { border-bottom: none; }
+        
+        .pref-relationship {
+            font-weight: 500;
+            color: var(--gray-800);
+        }
+        
+        .pref-radio-group {
+            display: flex;
+            gap: 16px;
+        }
+        
+        .pref-radio {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+        
+        /* Review Summary */
+        .review-section {
+            background: var(--gray-50);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        
+        .review-title {
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .review-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        
+        .review-item {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .review-label { color: var(--gray-500); font-size: 0.875rem; }
+        .review-value { font-weight: 600; color: var(--gray-800); }
+        
+        /* Success State */
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--success);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 40px;
+            color: white;
+        }
+        
+        .success-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin: 32px 0;
+        }
+        
+        .stat-box {
+            text-align: center;
+            padding: 20px;
+            background: var(--gray-50);
+            border-radius: 12px;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+            margin-top: 4px;
+        }
+        
+        /* Buttons */
+        .btn-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid var(--gray-200);
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-secondary {
+            background: white;
+            border: 1px solid var(--gray-300);
+            color: var(--gray-700);
+        }
+        
+        .btn-secondary:hover { background: var(--gray-50); }
+        
+        .btn-primary {
+            background: var(--primary);
+            border: none;
+            color: white;
+        }
+        
+        .btn-primary:hover { background: var(--primary-dark); }
+        
+        .btn-success {
+            background: var(--success);
+            border: none;
+            color: white;
+        }
+        
+        .btn-success:hover { background: #0ea271; }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* File Upload */
+        .file-upload {
+            border: 2px dashed var(--gray-300);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .file-upload:hover {
+            border-color: var(--primary);
+            background: var(--gray-50);
+        }
+        
+        .file-upload.has-file {
+            border-style: solid;
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.05);
+        }
+        
+        .file-icon {
+            font-size: 48px;
+            color: var(--gray-400);
+            margin-bottom: 16px;
+        }
+        
+        .file-upload.has-file .file-icon { color: var(--success); }
+        
+        /* Search Box */
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: var(--gray-100);
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .search-box i { color: var(--gray-400); }
+        
+        .search-box input {
+            border: none;
+            background: transparent;
+            outline: none;
+            flex: 1;
+            font-size: 0.95rem;
+        }
+        
+        /* Group Selection */
+        .group-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .group-chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: var(--gray-100);
+            border-radius: 20px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .group-chip:hover { background: var(--gray-200); }
+        
+        .group-chip.selected {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .group-count {
+            background: rgba(0,0,0,0.1);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+        }
+        
+        .group-chip.selected .group-count {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        /* AI Suggestion */
+        .ai-suggestion {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .ai-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .ai-text {
+            flex: 1;
+            font-size: 0.875rem;
+            color: var(--gray-700);
+        }
+        
+        .ai-btn {
+            padding: 6px 12px;
+            background: white;
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        
+        .ai-btn:hover { background: var(--gray-50); }
+        
+        /* Hide all steps except active */
+        .step-content { display: none; }
+        .step-content.active { display: block; }
+        
+        /* Privacy Notice */
+        .privacy-notice {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 16px;
+            background: rgba(59, 130, 246, 0.05);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 8px;
+            margin-top: 24px;
+        }
+        
+        .privacy-notice i {
+            color: var(--primary);
+            font-size: 20px;
+            margin-top: 2px;
+        }
+        
+        .privacy-notice p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: var(--gray-600);
+            line-height: 1.5;
+        }
+        
+        /* Bulk Actions */
+        .bulk-actions {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .bulk-btn {
+            padding: 8px 16px;
+            background: var(--gray-100);
+            border: 1px solid var(--gray-200);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .bulk-btn:hover {
+            background: var(--gray-200);
+        }
+        
+        /* Scrollbar */
+        .contacts-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .contacts-list::-webkit-scrollbar-track {
+            background: var(--gray-100);
+        }
+        
+        .contacts-list::-webkit-scrollbar-thumb {
+            background: var(--gray-300);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="app-header">
+    <a href="#" class="logo">
+        <div class="logo-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="5" width="6" height="6" fill="white"/>
+                <rect x="3" y="13" width="6" height="6" fill="white"/>
+                <rect x="13" y="5" width="6" height="14" fill="white"/>
+            </svg>
+        </div>
+        <span class="logo-text">Broyhill<span>GOP</span></span>
+    </a>
+    <div class="header-user">
+        <span style="color: var(--gray-600); font-size: 0.9rem;">Welcome, Candidate</span>
+        <img src="https://ui-avatars.com/api/?name=John+Smith&background=3b82f6&color=fff" alt="User">
+    </div>
+</header>
+
+<!-- Main Container -->
+<div class="main-container">
+    
+    <!-- Progress Bar -->
+    <div class="progress-container">
+        <div class="progress-steps">
+            <div class="progress-line" id="progressLine" style="width: 0%;"></div>
+            <div class="progress-step active" data-step="1">
+                <div class="step-circle">1</div>
+                <div class="step-label">Welcome</div>
+            </div>
+            <div class="progress-step" data-step="2">
+                <div class="step-circle">2</div>
+                <div class="step-label">Source</div>
+            </div>
+            <div class="progress-step" data-step="3">
+                <div class="step-circle">3</div>
+                <div class="step-label">Connect</div>
+            </div>
+            <div class="progress-step" data-step="4">
+                <div class="step-circle">4</div>
+                <div class="step-label">Select</div>
+            </div>
+            <div class="progress-step" data-step="5">
+                <div class="step-circle">5</div>
+                <div class="step-label">Tag</div>
+            </div>
+            <div class="progress-step" data-step="6">
+                <div class="step-circle">6</div>
+                <div class="step-label">Preferences</div>
+            </div>
+            <div class="progress-step" data-step="7">
+                <div class="step-circle">7</div>
+                <div class="step-label">Review</div>
+            </div>
+            <div class="progress-step" data-step="8">
+                <div class="step-circle">8</div>
+                <div class="step-label">Complete</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Step 1: Welcome -->
+    <div class="step-card step-content active" id="step1">
+        <div class="step-header">
+            <div class="step-icon">
+                <i class="ti ti-address-book"></i>
+            </div>
+            <h1 class="step-title">Let's Import Your Contacts</h1>
+            <p class="step-subtitle">Connect your personal contacts to streamline outreach and track relationships with donors, volunteers, and supporters.</p>
+        </div>
+        
+        <div style="text-align: left; margin-bottom: 24px;">
+            <h3 style="font-size: 1rem; color: var(--gray-700); margin-bottom: 16px;">What you'll be able to do:</h3>
+            <div style="display: grid; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 32px; height: 32px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--success);"><i class="ti ti-check"></i></div>
+                    <span style="color: var(--gray-700);">Import contacts from iPhone, Google, Outlook, or CSV</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 32px; height: 32px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--success);"><i class="ti ti-check"></i></div>
+                    <span style="color: var(--gray-700);">Tag relationships (Family, Friends, Business, etc.)</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 32px; height: 32px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--success);"><i class="ti ti-check"></i></div>
+                    <span style="color: var(--gray-700);">Call, text, or email directly from the platform</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 32px; height: 32px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--success);"><i class="ti ti-check"></i></div>
+                    <span style="color: var(--gray-700);">See when contacts are also Donors or Volunteers</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="privacy-notice">
+            <i class="ti ti-shield-lock"></i>
+            <p><strong>Your privacy matters.</strong> Your personal contacts remain private to you. They are never shared with other candidates or exported to donor/volunteer databases. You control your data.</p>
+        </div>
+        
+        <div class="btn-row">
+            <div></div>
+            <button class="btn btn-primary" onclick="nextStep()">
+                Get Started <i class="ti ti-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Step 2: Choose Source -->
+    <div class="step-card step-content" id="step2">
+        <div class="step-header">
+            <div class="step-icon">
+                <i class="ti ti-plug"></i>
+            </div>
+            <h1 class="step-title">Choose Your Contact Source</h1>
+            <p class="step-subtitle">Select where you'd like to import contacts from</p>
+        </div>
+        
+        <div class="source-grid">
+            <div class="source-option" onclick="selectSource(this, 'icloud')">
+                <div class="source-icon apple"><i class="ti ti-brand-apple"></i></div>
+                <div class="source-name">iPhone / iCloud</div>
+                <div class="source-desc">Sync from your Apple account</div>
+            </div>
+            <div class="source-option" onclick="selectSource(this, 'google')">
+                <div class="source-icon google"><i class="ti ti-brand-google"></i></div>
+                <div class="source-name">Google Contacts</div>
+                <div class="source-desc">Import from Gmail / Google</div>
+            </div>
+            <div class="source-option" onclick="selectSource(this, 'outlook')">
+                <div class="source-icon outlook"><i class="ti ti-brand-windows"></i></div>
+                <div class="source-name">Outlook</div>
+                <div class="source-desc">Sync from Microsoft account</div>
+            </div>
+            <div class="source-option" onclick="selectSource(this, 'csv')">
+                <div class="source-icon csv"><i class="ti ti-file-spreadsheet"></i></div>
+                <div class="source-name">CSV File</div>
+                <div class="source-desc">Upload a spreadsheet</div>
+            </div>
+        </div>
+        
+        <div class="btn-row">
+            <button class="btn btn-secondary" onclick="prevStep()">
+                <i class="ti ti-arrow-left"></i> Back
+            </button>
+            <button class="btn btn-primary" id="step2Next" disabled onclick="nextStep()">
+                Continue <i class="ti ti-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Step 3: Connect & Authorize -->
+    <div class="step-card step-content" id="step3">
+        <div class="step-header">
+            <div class="step-icon" id="step3Icon">
+                <i class="ti ti-brand-apple"></i>
+            </div>
+            <h1 class="step-title" id="step3Title">Connect to iCloud</h1>
+            <p class="step-subtitle" id="step3Subtitle">Authorize access to your contacts</p>
+        </div>
+        
+        <!-- OAuth Box (for iCloud, Google, Outlook) -->
+        <div class="oauth-box" id="oauthBox">
+            <div id="oauthContent">
+                <p style="color: var(--gray-600); margin-bottom: 20px;">Click below to securely connect your account. We only request read access to your contacts.</p>
+                <button class="connect-btn" id="connectBtn" onclick="simulateConnect()">
+                    <i class="ti ti-brand-apple"></i> Sign in with Apple
+                </button>
+            </div>
+        </div>
+        
+        <!-- CSV Upload Box (hidden by default) -->
+        <div class="file-upload" id="csvUpload" style="display: none;" onclick="simulateFileUpload()">
+            <div class="file-icon"><i class="ti ti-cloud-upload"></i></div>
+            <p style="color: var(--gray-700); font-weight: 500; margin-bottom: 8px;">Drag & drop your CSV file here</p>
+            <p style="color: var(--gray-500); font-size: 0.875rem;">or click to browse</p>
+        </div>
+        
+        <div style="margin-top: 24px; padding: 16px; background: var(--gray-50); border-radius: 8px;">
+            <p style="margin: 0; font-size: 0.85rem; color: var(--gray-600);">
+                <i class="ti ti-info-circle" style="margin-right: 6px;"></i>
+                <strong>Permissions requested:</strong> Read-only access to contact names, phone numbers, emails, and addresses. We never modify your contacts.
+            </p>
+        </div>
+        
+        <div class="btn-row">
+            <button class="btn btn-secondary" onclick="prevStep()">
+                <i class="ti ti-arrow-left"></i> Back
+            </button>
+            <button class="btn btn-primary" id="step3Next" disabled onclick="nextStep()">
+                Continue <i class="ti ti-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Step 4: Select Contacts -->
+    <div class="step-card step-content" id="step4">
+        <div class="step-header">
+            <div class="step-icon">
+                <i class="ti ti-users"></i>
+            </div>
+            <h1 class="step-title">Select Contacts to Import</h1>
+            <p class="step-subtitle">Choose which contacts you want to add to your directory</p>
+        </div>
+        
+        <div class="search-box">
+            <i class="ti ti-search"></i>
+            <input type="text" placeholder="Search contacts..." id="contactSearch" onkeyup="filterContacts()">
+        </div>
+        
+        <div class="group-list">
+            <div class="group-chip selected" onclick="toggleGroup(this)">
+                <span>All Contacts</span>
+                <span class="group-count">847</span>
+            </div>
+            <div class="group-chip" onclick="toggleGroup(this)">
+                <span>Family</span>
+                <span class="group-count">24</span>
+            </div>
+            <div class="group-chip" onclick="toggleGroup(this)">
+                <span>Work</span>
+                <span class="group-count">156</span>
+            </div>
+            <div class="group-chip" onclick="toggleGroup(this)">
+                <span>Church</span>
+                <span class="group-count">89</span>
+            </div>
+            <div class="group-chip" onclick="toggleGroup(this)">
+                <span>Neighbors</span>
+                <span class="group-count">32</span>
+            </div>
+        </div>
+        
+        <div class="contacts-header">
+            <label class="select-all">
+                <input type="checkbox" id="selectAllContacts" onchange="toggleAllContacts()" checked>
+                <span style="color: var(--gray-700); font-weight: 500;">Select All</span>
+            </label>
+            <span class="contact-count"><span id="selectedCount">847</span> selected</span>
+        </div>
+        
+        <div class="contacts-list" id="contactsList">
+            <!-- Contacts will be populated by JS -->
+        </div>
+        
+        <div class="btn-row">
+            <button class="btn btn-secondary" onclick="prevStep()">
+                <i class="ti ti-arrow-left"></i> Back
+            </button>
+            <button class="btn btn-primary" onclick="nextStep()">
+                Continue <i class="ti ti-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Step 5: Tag Relationships -->
+    <div class="step-card step-content" id="step5">
+        <div class="step-header">
+            <div class="step-icon">
+                <i class="ti ti-tags"></i>
+            </div>
+            <h1 class="step-title">Tag Relationships</h1>
+            <p class="step-subtitle">Help us understand your connection to each contact</p>
+        </div>
+        
+        <div class="ai-suggestion">
+            <div class="ai-icon"><i class="ti ti-sparkles"></i></div>
+            <div class="ai-text">
+                <strong>AI Assistant:</strong> We've auto-detected 24 family members based on shared last names and existing tags. Want us to apply these suggestions?
+            </div>
+            <button class="ai-btn" onclick="applyAISuggestions()">Apply All</button>
+        </div>
+        
+        <div class="bulk-actions">
+            <button class="bulk-btn" onclick="bulkTag('family')"><i class="ti ti-users"></i> Tag as Family</button>
+            <button class="bulk-btn" onclick="bulkTag('friend')"><i class="ti ti-heart"></i> Tag as Friend</button>
+            <button class="bulk-btn" onclick="bulkTag('business')"><i class="ti ti-briefcase"></i> Tag as Business</button>
+            <button class="bulk-btn" onclick="bulkTag('church')"><i class="ti ti-building-church"></i> Tag as Church</button>
+        </div>
+        
+        <div id="tagContactsList">
+            <!-- Contact tagging rows populated by JS -->
+        </div>
+        
+        <div style="text-align: center; margin-top: 16px;">
+            <button class="btn btn-secondary" onclick="loadMoreContacts()">Load More (showing 10 of 847)</button>
+        </div>
+        
+        <div class="btn-row">
+            <button class="btn btn-secondary" onclick="prevStep()">
+                <i class="ti ti-arrow-left"></i> Back
+            </button>
+            <button class="btn btn-primary" onclick="nextStep()">
+                Continue <i class="ti ti-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Step 6: Communication Preferences -->
+    <div class="step-card step-content" id="step6">
+        <div class="step-header">
+            <div class="step-icon">
+                <i class="ti ti-settings"></i>
+            </div>
+            <h1 class="step-title">Communication Preferences</h1>
+            <p class="step-subtitle">Choose how you want to contact each relationship type</p>
+        </div>
+        
+        <p style="color: var(--gray-600); margin-bottom: 24px; font-size: 0.95rem;">
+            <strong>Platform</strong> = Calls/texts/emails are logged and tracked in your activity history.<br>
+            <strong>Native</strong> = Uses your phone's default apps (not tracked).<br>
+            <strong>Ask Each Time</strong> = You'll choose when you make contact.
+        </p>
+        
+        <table class="pref-table">
+            <thead>
+                <tr>
+                    <th>Relationship</th>
+                    <th>Default Method</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="pref-relationship">Family - Immediate</td>
+                    <td>
+                        <div class="pref-radio-group">
+                            <label class="pref-radio"><input type="radio" name="pref-fam-imm" value="platform"> Platform</label>
+                            <label class="pref-radio"><input type="radio" name="pref-fam-imm" value="native" checked> Native</label>
+                            <label class="pref-radio"><input type="radio" name="pref-fam-imm" value="ask"> Ask</label>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="pref-relationship">Family - Extended</td>
+                    <td>
+                        <div class="pref-radio-group">
+                            <label class="pref-radio"><input type="radio" name="pref-fam-ext" value="platform"> Platform</label>
+                            <label class="pref-radio"><input type="radio" name="pref-fam-ext" value="native" checked> Native</label>
+                            <label class="pref-radio"><input type="radio" name="pref-fam-ext" value="ask"> Ask</label>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="pref-relationship">Friend - Close</td>
+                    <td>
+                        <div class="pref-radio-group">
+                            <label class="pref-radio"><input type="radio" name="pref-fr-close" value="platform"> Platform</label>
+                            <label class="pref-radio"><input type="radio" name="pref-fr-close" value="native" checked> Native</label>
+                            <label class="pref-radio"><input type="radio" name="pref-fr-close" value="ask"> Ask</label>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="pref-relationship">Friend - Acquaintance</td>
+                    <td>
+                        <div class="pref-radio-group">
+                            <label class="pref-radio"><input type="radio" name="pref-fr-acq" value="platform"> Platform</label>
+                            <label class="pref-radio"><input type="radio" name="pref-fr-acq" value="native"> Native</label>
+                            <label class="pref-radio"><input type="radio" name="pref-fr-acq" value="ask" checked> Ask</label>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="pref-relationship">Business Associate</td>
+                    <td>
+                        <div class="pref-radio-group">
+                            <label class="pref-radio"><input type="radio" name="pref-business" value="platform" checked> Platform</label>
+                            <label class="pref-radio"><input type="radio" name="pref-business" value="native"> Native</label>
+                            <label class="pref-radio"><input type="radio" name="pref-business" value="ask"> Ask</label>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="pref-relationship">Church / Organization</td>
+                    <td>
+                        <div class="pref-radio-group">
+                            <label class="pref-radio"><input type="radio" name="pref-church" value="platform" checked> Platform</label>
+                            <label class="pref-radio"><input type="radio" name="pref-church" value="native"> Native</label>
+                            <label class="pref-radio"><input type="radio" name="pref-church" value="ask"> Ask</label>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="pref-relationship">Neighbor</td>
+                    <td>
+                        <div class="pref-radio-group">
+                            <label class="pref-radio"><input type="radio" name="pref-neighbor" value="platform"> Platform</label>
+                            <label class="pref-radio"><input type="radio" name="pref-neighbor" value="native"> Native</label>
+                            <label class="pref-radio"><input type="radio" name="pref-neighbor" value="ask" checked> Ask</label>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="pref-relationship">Other / Untagged</td>
+                    <td>
+                        <div class="pref-radio-group">
+                            <label class="pref-radio"><input type="radio" name="pref-other" value="platform"> Platform</label>
+                            <label class="pref-radio"><input type="radio" name="pref-other" value="native"> Native</label>
+                            <label class="pref-radio"><input type="radio" name="pref-other" value="ask" checked> Ask</label>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="privacy-notice" style="margin-top: 24px;">
+            <i class="ti ti-info-circle"></i>
+            <p>You can change these defaults anytime in Settings, or override per-contact when making a call/text/email.</p>
+        </div>
+        
+        <div class="btn-row">
+            <button class="btn btn-secondary" onclick="prevStep()">
+                <i class="ti ti-arrow-left"></i> Back
+            </button>
+            <button class="btn btn-primary" onclick="nextStep()">
+                Continue <i class="ti ti-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Step 7: Review & Confirm -->
+    <div class="step-card step-content" id="step7">
+        <div class="step-header">
+            <div class="step-icon">
+                <i class="ti ti-list-check"></i>
+            </div>
+            <h1 class="step-title">Review & Confirm</h1>
+            <p class="step-subtitle">Make sure everything looks right before importing</p>
+        </div>
+        
+        <div class="review-section">
+            <div class="review-title"><i class="ti ti-plug"></i> Source</div>
+            <div class="review-grid">
+                <div class="review-item">
+                    <span class="review-label">Connected Account</span>
+                    <span class="review-value" id="reviewSource">iCloud (<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="600a0f080e2009030c0f15044e030f0d">[email&#160;protected]</a>)</span>
+                </div>
+                <div class="review-item">
+                    <span class="review-label">Sync Type</span>
+                    <span class="review-value">Two-way sync enabled</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="review-section">
+            <div class="review-title"><i class="ti ti-users"></i> Contacts</div>
+            <div class="review-grid">
+                <div class="review-item">
+                    <span class="review-label">Total Selected</span>
+                    <span class="review-value">847 contacts</span>
+                </div>
+                <div class="review-item">
+                    <span class="review-label">With Phone Numbers</span>
+                    <span class="review-value">812 (96%)</span>
+                </div>
+                <div class="review-item">
+                    <span class="review-label">With Email</span>
+                    <span class="review-value">634 (75%)</span>
+                </div>
+                <div class="review-item">
+                    <span class="review-label">With Address</span>
+                    <span class="review-value">421 (50%)</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="review-section">
+            <div class="review-title"><i class="ti ti-tags"></i> Relationships Tagged</div>
+            <div class="review-grid">
+                <div class="review-item">
+                    <span class="review-label">Family</span>
+                    <span class="review-value">24</span>
+                </div>
+                <div class="review-item">
+                    <span class="review-label">Friends</span>
+                    <span class="review-value">156</span>
+                </div>
+                <div class="review-item">
+                    <span class="review-label">Business</span>
+                    <span class="review-value">89</span>
+                </div>
+                <div class="review-item">
+                    <span class="review-label">Church/Org</span>
+                    <span class="review-value">112</span>
+                </div>
+                <div class="review-item">
+                    <span class="review-label">Neighbors</span>
+                    <span class="review-value">32</span>
+                </div>
+                <div class="review-item">
+                    <span class="review-label">Other/Untagged</span>
+                    <span class="review-value">434</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="review-section">
+            <div class="review-title"><i class="ti ti-link"></i> Cross-References Found</div>
+            <div class="review-grid">
+                <div class="review-item">
+                    <span class="review-label">Existing Donors</span>
+                    <span class="review-value" style="color: var(--success);">43 matches</span>
+                </div>
+                <div class="review-item">
+                    <span class="review-label">Existing Volunteers</span>
+                    <span class="review-value" style="color: var(--success);">18 matches</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="privacy-notice">
+            <i class="ti ti-shield-check"></i>
+            <p><strong>Ready to import!</strong> Your contacts will be added to your private Contact Directory. They will not be added to the donor or volunteer databases unless you explicitly promote them.</p>
+        </div>
+        
+        <div class="btn-row">
+            <button class="btn btn-secondary" onclick="prevStep()">
+                <i class="ti ti-arrow-left"></i> Back
+            </button>
+            <button class="btn btn-success" onclick="completeImport()">
+                <i class="ti ti-check"></i> Import 847 Contacts
+            </button>
+        </div>
+    </div>
+    
+    <!-- Step 8: Complete -->
+    <div class="step-card step-content" id="step8">
+        <div class="step-header">
+            <div class="success-icon">
+                <i class="ti ti-check"></i>
+            </div>
+            <h1 class="step-title">Import Complete!</h1>
+            <p class="step-subtitle">Your contacts are now ready to use</p>
+        </div>
+        
+        <div class="success-stats">
+            <div class="stat-box">
+                <div class="stat-value">847</div>
+                <div class="stat-label">Contacts Imported</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value">43</div>
+                <div class="stat-label">Donor Matches</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value">18</div>
+                <div class="stat-label">Volunteer Matches</div>
+            </div>
+        </div>
+        
+        <div style="background: var(--gray-50); border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+            <h3 style="font-size: 1rem; color: var(--gray-800); margin-bottom: 16px;">What's Next?</h3>
+            <div style="display: grid; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 32px; height: 32px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white;"><i class="ti ti-address-book"></i></div>
+                    <span style="color: var(--gray-700);">Browse your Contact Directory</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 32px; height: 32px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white;"><i class="ti ti-phone"></i></div>
+                    <span style="color: var(--gray-700);">Start making calls to supporters</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 32px; height: 32px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white;"><i class="ti ti-user-plus"></i></div>
+                    <span style="color: var(--gray-700);">Add contacts to Donors or Volunteers</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="btn-row" style="justify-content: center; border: none; padding-top: 0;">
+            <button class="btn btn-primary" onclick="goToDirectory()" style="padding: 14px 32px;">
+                <i class="ti ti-address-book"></i> Go to Contact Directory
+            </button>
+        </div>
+    </div>
+    
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    let currentStep = 1;
+    let selectedSource = null;
+    let isConnected = false;
+    
+    // Sample contacts data
+    const sampleContacts = [
+        { name: 'Sarah Smith', initials: 'SS', detail: '(919) 555-0101 • sarah@email.com', selected: true },
+        { name: 'Michael Johnson', initials: 'MJ', detail: '(919) 555-0102 • michael.j@work.com', selected: true },
+        { name: 'Jennifer Williams', initials: 'JW', detail: '(919) 555-0103', selected: true },
+        { name: 'David Brown', initials: 'DB', detail: '(919) 555-0104 • david.b@email.com', selected: true },
+        { name: 'Emily Davis', initials: 'ED', detail: '(919) 555-0105 • emily@church.org', selected: true },
+        { name: 'Robert Miller', initials: 'RM', detail: '(919) 555-0106', selected: true },
+        { name: 'Jessica Wilson', initials: 'JW', detail: '(919) 555-0107 • jwilson@company.com', selected: true },
+        { name: 'Christopher Moore', initials: 'CM', detail: '(919) 555-0108 • chris.moore@email.com', selected: true },
+        { name: 'Amanda Taylor', initials: 'AT', detail: '(919) 555-0109', selected: true },
+        { name: 'Daniel Anderson', initials: 'DA', detail: '(919) 555-0110 • dan@business.com', selected: true },
+        { name: 'Michelle Thomas', initials: 'MT', detail: '(919) 555-0111 • michelle.t@email.com', selected: true },
+        { name: 'James Jackson', initials: 'JJ', detail: '(919) 555-0112', selected: true },
+    ];
+    
+    // Populate contacts list
+    function populateContacts() {
+        const list = document.getElementById('contactsList');
+        list.innerHTML = sampleContacts.map((c, i) => `
+            <div class="contact-item ${c.selected ? 'selected' : ''}" onclick="toggleContact(${i})">
+                <div class="contact-checkbox">${c.selected ? '<i class="ti ti-check"></i>' : ''}</div>
+                <div class="contact-avatar">${c.initials}</div>
+                <div class="contact-info">
+                    <div class="contact-name">${c.name}</div>
+                    <div class="contact-detail">${c.detail}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    // Populate tag contacts list
+    function populateTagContacts() {
+        const list = document.getElementById('tagContactsList');
+        list.innerHTML = sampleContacts.slice(0, 10).map((c, i) => `
+            <div class="tag-contact-row">
+                <div class="tag-contact-info">
+                    <div class="contact-avatar">${c.initials}</div>
+                    <div>
+                        <div class="contact-name">${c.name}</div>
+                        <div class="contact-detail">${c.detail}</div>
+                    </div>
+                </div>
+                <select class="tag-select">
+                    <option value="">Select relationship...</option>
+                    <option value="fam-imm">Family - Immediate</option>
+                    <option value="fam-ext">Family - Extended</option>
+                    <option value="spouse">Spouse/Partner</option>
+                    <option value="friend-close">Friend - Close</option>
+                    <option value="friend-acq">Friend - Acquaintance</option>
+                    <option value="business">Business Associate</option>
+                    <option value="colleague">Former Colleague</option>
+                    <option value="neighbor">Neighbor</option>
+                    <option value="church">Church/Organization</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+        `).join('');
+    }
+    
+    // Toggle contact selection
+    function toggleContact(index) {
+        sampleContacts[index].selected = !sampleContacts[index].selected;
+        populateContacts();
+        updateSelectedCount();
+    }
+    
+    // Toggle all contacts
+    function toggleAllContacts() {
+        const checked = document.getElementById('selectAllContacts').checked;
+        sampleContacts.forEach(c => c.selected = checked);
+        populateContacts();
+        updateSelectedCount();
+    }
+    
+    // Update selected count
+    function updateSelectedCount() {
+        const count = sampleContacts.filter(c => c.selected).length;
+        document.getElementById('selectedCount').textContent = count;
+    }
+    
+    // Filter contacts
+    function filterContacts() {
+        const search = document.getElementById('contactSearch').value.toLowerCase();
+        const items = document.querySelectorAll('.contact-item');
+        items.forEach((item, i) => {
+            const name = sampleContacts[i].name.toLowerCase();
+            item.style.display = name.includes(search) ? 'flex' : 'none';
+        });
+    }
+    
+    // Toggle group chip
+    function toggleGroup(el) {
+        document.querySelectorAll('.group-chip').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+    }
+    
+    // Select source
+    function selectSource(el, source) {
+        document.querySelectorAll('.source-option').forEach(s => s.classList.remove('selected'));
+        el.classList.add('selected');
+        selectedSource = source;
+        document.getElementById('step2Next').disabled = false;
+    }
+    
+    // Update step 3 based on source
+    function updateStep3() {
+        const icon = document.getElementById('step3Icon');
+        const title = document.getElementById('step3Title');
+        const subtitle = document.getElementById('step3Subtitle');
+        const oauthBox = document.getElementById('oauthBox');
+        const csvUpload = document.getElementById('csvUpload');
+        const connectBtn = document.getElementById('connectBtn');
+        
+        oauthBox.style.display = 'block';
+        csvUpload.style.display = 'none';
+        oauthBox.classList.remove('connected');
+        document.getElementById('oauthContent').innerHTML = '';
+        
+        switch(selectedSource) {
+            case 'icloud':
+                icon.innerHTML = '<i class="ti ti-brand-apple"></i>';
+                title.textContent = 'Connect to iCloud';
+                subtitle.textContent = 'Sign in with your Apple ID to sync contacts';
+                document.getElementById('oauthContent').innerHTML = `
+                    <p style="color: var(--gray-600); margin-bottom: 20px;">Click below to securely connect your Apple account. We only request read access to your contacts.</p>
+                    <button class="connect-btn" onclick="simulateConnect()">
+                        <i class="ti ti-brand-apple"></i> Sign in with Apple
+                    </button>
+                `;
+                break;
+            case 'google':
+                icon.innerHTML = '<i class="ti ti-brand-google"></i>';
+                title.textContent = 'Connect to Google';
+                subtitle.textContent = 'Sign in with your Google account to import contacts';
+                document.getElementById('oauthContent').innerHTML = `
+                    <p style="color: var(--gray-600); margin-bottom: 20px;">Click below to securely connect your Google account. We only request read access to your contacts.</p>
+                    <button class="connect-btn google" onclick="simulateConnect()">
+                        <i class="ti ti-brand-google"></i> Sign in with Google
+                    </button>
+                `;
+                break;
+            case 'outlook':
+                icon.innerHTML = '<i class="ti ti-brand-windows"></i>';
+                title.textContent = 'Connect to Outlook';
+                subtitle.textContent = 'Sign in with your Microsoft account to import contacts';
+                document.getElementById('oauthContent').innerHTML = `
+                    <p style="color: var(--gray-600); margin-bottom: 20px;">Click below to securely connect your Microsoft account. We only request read access to your contacts.</p>
+                    <button class="connect-btn outlook" onclick="simulateConnect()">
+                        <i class="ti ti-brand-windows"></i> Sign in with Microsoft
+                    </button>
+                `;
+                break;
+            case 'csv':
+                icon.innerHTML = '<i class="ti ti-file-spreadsheet"></i>';
+                title.textContent = 'Upload CSV File';
+                subtitle.textContent = 'Upload a spreadsheet with your contacts';
+                oauthBox.style.display = 'none';
+                csvUpload.style.display = 'block';
+                break;
+        }
+        
+        isConnected = false;
+        document.getElementById('step3Next').disabled = true;
+    }
+    
+    // Simulate OAuth connection
+    function simulateConnect() {
+        const oauthBox = document.getElementById('oauthBox');
+        const oauthContent = document.getElementById('oauthContent');
+        
+        oauthContent.innerHTML = `
+            <div style="color: var(--gray-500);">
+                <i class="ti ti-loader" style="animation: spin 1s linear infinite; display: inline-block;"></i>
+                Connecting...
+            </div>
+        `;
+        
+        setTimeout(() => {
+            oauthBox.classList.add('connected');
+            oauthContent.innerHTML = `
+                <div class="connected-status">
+                    <i class="ti ti-circle-check" style="font-size: 24px;"></i>
+                    <span>Connected successfully!</span>
+                </div>
+                <p style="color: var(--gray-600); margin-top: 12px; margin-bottom: 0;">847 contacts found</p>
+            `;
+            isConnected = true;
+            document.getElementById('step3Next').disabled = false;
+        }, 1500);
+    }
+    
+    // Simulate file upload
+    function simulateFileUpload() {
+        const csvUpload = document.getElementById('csvUpload');
+        csvUpload.classList.add('has-file');
+        csvUpload.innerHTML = `
+            <div class="file-icon"><i class="ti ti-file-check"></i></div>
+            <p style="color: var(--gray-700); font-weight: 500; margin-bottom: 8px;">contacts_export.csv</p>
+            <p style="color: var(--success); font-size: 0.875rem;">847 contacts detected</p>
+        `;
+        isConnected = true;
+        document.getElementById('step3Next').disabled = false;
+    }
+    
+    // Apply AI suggestions
+    function applyAISuggestions() {
+        const selects = document.querySelectorAll('.tag-select');
+        selects[0].value = 'spouse';
+        selects[1].value = 'business';
+        selects[2].value = 'friend-close';
+        selects[3].value = 'church';
+        alert('AI suggestions applied! 24 family members tagged.');
+    }
+    
+    // Bulk tag
+    function bulkTag(type) {
+        const selects = document.querySelectorAll('.tag-select');
+        selects.forEach(s => {
+            if (!s.value) {
+                switch(type) {
+                    case 'family': s.value = 'fam-ext'; break;
+                    case 'friend': s.value = 'friend-acq'; break;
+                    case 'business': s.value = 'business'; break;
+                    case 'church': s.value = 'church'; break;
+                }
+            }
+        });
+    }
+    
+    // Load more contacts
+    function loadMoreContacts() {
+        alert('Loading more contacts... (In production, this would paginate through all 847 contacts)');
+    }
+    
+    // Complete import
+    function completeImport() {
+        const btn = document.querySelector('#step7 .btn-success');
+        btn.innerHTML = '<i class="ti ti-loader" style="animation: spin 1s linear infinite;"></i> Importing...';
+        btn.disabled = true;
+        
+        setTimeout(() => {
+            nextStep();
+        }, 2000);
+    }
+    
+    // Go to directory
+    function goToDirectory() {
+        alert('Navigating to Contact Directory... (In production, this redirects to /contacts)');
+    }
+    
+    // Update progress bar
+    function updateProgress() {
+        const steps = document.querySelectorAll('.progress-step');
+        const progressLine = document.getElementById('progressLine');
+        
+        steps.forEach((step, i) => {
+            const stepNum = i + 1;
+            step.classList.remove('active', 'completed');
+            
+            if (stepNum < currentStep) {
+                step.classList.add('completed');
+                step.querySelector('.step-circle').innerHTML = '<i class="ti ti-check"></i>';
+            } else if (stepNum === currentStep) {
+                step.classList.add('active');
+                step.querySelector('.step-circle').textContent = stepNum;
+            } else {
+                step.querySelector('.step-circle').textContent = stepNum;
+            }
+        });
+        
+        const progress = ((currentStep - 1) / 7) * 100;
+        progressLine.style.width = progress + '%';
+    }
+    
+    // Show step
+    function showStep(step) {
+        document.querySelectorAll('.step-content').forEach(s => s.classList.remove('active'));
+        document.getElementById('step' + step).classList.add('active');
+        
+        // Special handling for steps
+        if (step === 3 && selectedSource) {
+            updateStep3();
+        }
+        if (step === 4) {
+            populateContacts();
+        }
+        if (step === 5) {
+            populateTagContacts();
+        }
+    }
+    
+    // Next step
+    function nextStep() {
+        if (currentStep < 8) {
+            currentStep++;
+            updateProgress();
+            showStep(currentStep);
+            window.scrollTo(0, 0);
+        }
+    }
+    
+    // Previous step
+    function prevStep() {
+        if (currentStep > 1) {
+            currentStep--;
+            updateProgress();
+            showStep(currentStep);
+            window.scrollTo(0, 0);
+        }
+    }
+    
+    // Add CSS animation for spinner
+    const style = document.createElement('style');
