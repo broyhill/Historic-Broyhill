@@ -10,6 +10,19 @@ async function library(folder: string) {
   return prisma.knowledgeEntry.findMany({ where: { folder, enabled: true } });
 }
 
+async function watcherEnabled(key: string) {
+  const ctl = await prisma.knowledgeEntry.findFirst({ where: { folder: "watch-control", title: key } });
+  if (!ctl) return true; // default on
+  return (ctl.data as any).enabled !== false;
+}
+
+async function logRun(watcher: string, result: { pulled: number; note?: string }) {
+  const existing = await prisma.knowledgeEntry.findFirst({ where: { folder: "watch-log", title: watcher } });
+  const data = { ...result, at: new Date().toISOString() };
+  if (existing) await prisma.knowledgeEntry.update({ where: { id: existing.id }, data: { data } });
+  else await prisma.knowledgeEntry.create({ data: { folder: "watch-log", title: watcher, data } });
+}
+
 async function fileFinding(kind: string, title: string, draft: string, metrics: Record<string, unknown>) {
   const existing = await prisma.aiContentPipeline.findFirst({
     where: { status: "PENDING_REVIEW", metrics: { path: ["watcherDedupe"], equals: String(metrics.watcherDedupe) } },
@@ -29,9 +42,14 @@ async function fileFinding(kind: string, title: string, draft: string, metrics: 
 
 export async function runWatchers() {
   const results: Record<string, { pulled: number; note?: string }> = {};
+  const enabled = {
+    competitors: await watcherEnabled("competitors"),
+    reviews: await watcherEnabled("reviews"),
+    news: await watcherEnabled("news"),
+  };
 
   // --- Competitor ads (Meta Ad Library) ---
-  const competitors = await library("competitors");
+  const competitors = enabled.competitors ? await library("competitors") : [];
   const meta = await prisma.vendorConnection.findUnique({ where: { vendor: "meta" } });
   const metaToken = (meta?.meta as any)?.accessToken;
   let pulled = 0;
@@ -65,11 +83,14 @@ export async function runWatchers() {
     }
     results.competitors = { pulled };
   }
+  if (!enabled.competitors) results.competitors = { pulled: 0, note: "disabled in admin" };
 
   // --- Reviews (Google Places) ---
   const placeKey = process.env.GOOGLE_PLACES_API_KEY;
   const placeId = process.env.GOOGLE_PLACE_ID;
-  if (!placeKey || !placeId) {
+  if (!enabled.reviews) {
+    results.reviews = { pulled: 0, note: "disabled in admin" };
+  } else if (!placeKey || !placeId) {
     results.reviews = { pulled: 0, note: "GOOGLE_PLACES_API_KEY / GOOGLE_PLACE_ID not set" };
   } else {
     try {
@@ -96,7 +117,7 @@ export async function runWatchers() {
   }
 
   // --- Local paper life-events scan (RSS feeds in the watch-sources folder) ---
-  const sources = await library("watch-sources");
+  const sources = enabled.news ? await library("watch-sources") : [];
   let news = 0;
   for (const s of sources) {
     const url = (s.data as any).url || s.title;
@@ -120,7 +141,10 @@ export async function runWatchers() {
       /* feed down — skip */
     }
   }
-  results.news = { pulled: news, note: sources.length === 0 ? 'add RSS feeds to the "watch-sources" folder in Marketing Library' : undefined };
+  results.news = { pulled: news, note: !enabled.news ? "disabled in admin" : sources.length === 0 ? 'add RSS feeds to the "watch-sources" folder in Marketing Library' : undefined };
 
+  for (const [watcher, result] of Object.entries(results)) {
+    await logRun(watcher, result).catch(() => {});
+  }
   return results;
 }
