@@ -338,7 +338,7 @@ function SettingsPanel() {
           {row("Phone", <a href="tel:+13367931191" className="text-accent hover:underline">336-793-1191</a>)}
           {row("Email", <a href="mailto:Info@Broyhill.net" className="text-accent hover:underline">Info@Broyhill.net</a>)}
           {row("Bookings", <a href="https://broyhill.skedda.com" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">broyhill.skedda.com ↗</a>)}
-          {row("Website", <a href="https://www.broyhill.net" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">www.broyhill.net ↗</a>)}
+          {row("Website", <a href="https://historic-broyhill.vercel.app" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">historic-broyhill.vercel.app ↗</a>)}
         </div>
       </section>
     </div>
