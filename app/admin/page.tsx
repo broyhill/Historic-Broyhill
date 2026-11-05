@@ -263,19 +263,31 @@ export default function AdminConsole() {
 
       {/* Main */}
       <div className="lg:pl-64">
-        <header className="sticky top-0 z-20 flex items-center gap-3 px-4 md:px-8 h-16 bg-canvas/95 backdrop-blur-sm border-b border-line">
-          <button onClick={() => setNavOpen(true)} className="lg:hidden h-11 w-11 -ml-2 grid place-items-center text-muted hover:text-ink" aria-label="Open navigation">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" className="h-5 w-5"><path d="M3 12h18M3 6h18M3 18h18" /></svg>
+        <header className="sticky top-0 z-20 flex items-center gap-3 px-4 md:px-6 h-14 bg-canvas/95 backdrop-blur-sm border-b border-line">
+          <button onClick={() => setNavOpen(true)} className="h-9 w-9 -ml-1 grid place-items-center rounded-md bg-accent text-white lg:hidden" aria-label="Open navigation">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" className="h-4 w-4"><path d="M3 12h18M3 6h18M3 18h18" /></svg>
           </button>
-          <div className="flex-1">
-            <h2 className="text-[22px] text-ink leading-none">{TITLES[section]}</h2>
-          </div>
-          <a href="/" className="h-11 px-3 inline-flex items-center gap-2 border border-line bg-white rounded-md text-[13px] text-muted hover:text-ink hover:border-faint">
-            &larr; Website
-          </a>
-          <button onClick={refreshMetrics} className="h-11 px-3 inline-flex items-center gap-2 border border-line bg-white rounded-md text-[13px] text-muted hover:text-ink hover:border-faint" aria-label="Refresh counts">
+          <form onSubmit={(e) => { e.preventDefault(); const q = (e.currentTarget.elements.namedItem("topnav-q") as HTMLInputElement).value.trim(); if (q) { go("ask"); setAskSeed(q); } }} className="flex items-center gap-2 min-w-0">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" className="h-4 w-4 text-muted shrink-0"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+            <input name="topnav-q" type="search" placeholder="Ask the back office…" aria-label="Ask the back office"
+              className="w-44 sm:w-64 h-9 bg-transparent text-[14px] text-ink placeholder:text-faint focus:outline-none" />
+          </form>
+          <div className="flex-1" />
+          <span className="hidden md:block text-[13px] text-muted whitespace-nowrap">Welcome to Historic Broyhill back office.</span>
+          <button onClick={() => go("queue")} className="relative h-9 w-9 grid place-items-center text-muted hover:text-ink" aria-label="Review queue">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px]"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM22 6l-10 7L2 6" /></svg>
+            {(metrics?.pendingReview ?? 0) > 0 && <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded bg-amber-500 text-white text-[10px] font-bold leading-4 text-center">{metrics?.pendingReview}</span>}
+          </button>
+          <button onClick={() => go("express")} className="relative h-9 w-9 grid place-items-center text-muted hover:text-ink" aria-label="Date requests">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px]"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0" /></svg>
+            {(metrics?.expressPending ?? 0) > 0 && <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded bg-accent text-white text-[10px] font-bold leading-4 text-center">{metrics?.expressPending}</span>}
+          </button>
+          <button onClick={signOut} className="h-9 px-3 inline-flex items-center gap-2 text-[13px] text-muted hover:text-ink" aria-label="Log out">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="h-[16px] w-[16px]"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" /></svg>
+            <span className="hidden sm:inline">Log out</span>
+          </button>
+          <button onClick={refreshMetrics} className="h-9 w-9 grid place-items-center text-muted hover:text-ink" aria-label="Refresh counts">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" /></svg>
-            Refresh
           </button>
         </header>
 
