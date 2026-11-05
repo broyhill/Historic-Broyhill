@@ -73,7 +73,6 @@ export default function StudioPanel({ openId, openStarter }: { openId?: string |
   const [dirty, setDirty] = useState(false);
   const [direction, setDirection] = useState("");
   const [alts, setAlts] = useState<{ name: string; design: { blocks: Block[]; brand: Brand } }[] | null>(null);
-  const [strip, setStrip] = useState<"ideas" | "templates">("ideas");
   const [past, setPast] = useState<{ snap: { blocks: Block[]; brand: Brand }; label: string }[]>([]);
   const [future, setFuture] = useState<{ snap: { blocks: Block[]; brand: Brand }; label: string }[]>([]);
   const [log, setLog] = useState<{ id: number; text: string; kind: "you" | "claude" | "done" | "skip" }[]>([]);
@@ -96,6 +95,7 @@ export default function StudioPanel({ openId, openStarter }: { openId?: string |
     setId(null); setName(st.name); setSubject(st.subject); setPreviewText(st.previewText); setCategory(st.category); setKind(st.kind);
     setBlocks(st.design.blocks); setBrand(st.design.brand); setOpen(null); setReview(null); setSuggest(null); setAlts(null); setPast([]); setFuture([]); setLog([]); setDirty(true);
     setNotice(`"${st.name}" is loaded. Click any part of the email to change it, then Save as template to keep your own copy.`);
+    setStep(2);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openStarter]);
   // Clicking a cell in the preview opens that block's editor on the right.
@@ -187,6 +187,7 @@ export default function StudioPanel({ openId, openStarter }: { openId?: string |
     addLog([{ text: `Draft: ${goal}`, kind: "you" }, { text: "Added a heading, text and a button. Read it, edit it, and add a link to the button.", kind: "claude" }]);
     setNotice("Claude's draft was added. Read it, edit it, and add a link to the button.");
   });
+  void draft; // used by the step-1 brief and the Ask-Devin card
 
   const rewrite = (b: Block, instruction: string) => run(`rw-${b.id}`, async () => {
     if (b.type !== "heading" && b.type !== "text") return;
@@ -201,7 +202,7 @@ export default function StudioPanel({ openId, openStarter }: { openId?: string |
       setPhotos(lib);
     }
     const r = await ai({ action: "redesign", direction, like, photos: (lib || []).slice(0, 40).map((p) => ({ url: p.url, name: p.name })) });
-    setAlts(r.alternatives); setStrip("ideas");
+    setAlts(r.alternatives);
   });
 
   const useAlt = (a: { name: string; design: { blocks: Block[]; brand: Brand } }) => {
@@ -248,28 +249,122 @@ export default function StudioPanel({ openId, openStarter }: { openId?: string |
     if (photos === null) call("/api/admin/photos").then((d) => setPhotos((d.photos || []).filter((p: Photo) => /\.(jpe?g|png|gif|webp)$/i.test(p.name)))).catch((e) => { setPhotos([]); setError(e.message); });
   };
 
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [feedLimit, setFeedLimit] = useState(12);
+
+  const steps = [
+    { n: 1, label: "Create" },
+    { n: 2, label: "Compose" },
+    { n: 3, label: "Approve" },
+  ];
+
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <select className={`${inputCls} !w-auto`} value={id ?? ""} onChange={(e) => (e.target.value ? openDesign(e.target.value) : startNew())}>
-          <option value="">New design</option>
-          {saved.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-        </select>
-        <input className={`${inputCls} !w-64`} placeholder="Name this design" value={name} onChange={(e) => { setName(e.target.value); setDirty(true); }} />
-        <select className={`${inputCls} !w-auto`} value={category} onChange={(e) => { setCategory(e.target.value); setDirty(true); }}>
-          <option value="">No category</option>{tset.categories.map((c) => <option key={c}>{c}</option>)}
-        </select>
-        <select className={`${inputCls} !w-auto`} value={kind} onChange={(e) => { setKind(e.target.value); setDirty(true); }}>
-          <option value="">No type</option>{tset.kinds.map((k) => <option key={k}>{k}</option>)}
-        </select>
-        <button className={btnGhost} disabled={busy !== null || blocks.length === 0} onClick={copyPrompt}>Copy prompt</button>
-        <button className={btnGhost} disabled={blocks.length === 0} onClick={downloadHtml}>Download HTML</button>
+      {/* Step bar */}
+      <div className="flex items-center gap-1">
+        {steps.map((s, i) => (
+          <React.Fragment key={s.n}>
+            {i > 0 && <span className="h-px w-6 bg-line mx-1" />}
+            <button
+              onClick={() => setStep(s.n as 1 | 2 | 3)}
+              aria-current={step === s.n ? "step" : undefined}
+              className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-[13px] font-semibold ${step === s.n ? "bg-accent text-white" : "text-muted hover:text-ink"}`}
+            >
+              <span className={`h-5 w-5 rounded-full grid place-items-center text-[11px] ${step === s.n ? "bg-white/20 text-white" : "bg-line text-muted"}`}>{s.n}</span>
+              {s.label}
+            </button>
+          </React.Fragment>
+        ))}
       </div>
+
       {notice && <p className="text-[13px] text-success">{notice}</p>}
       {error && <p className="text-[13px] text-danger">{error}</p>}
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(360px,1fr)]">
-        {/* Stage: the live preview, with Claude's alternative designs underneath */}
+      {/* Step 1 — Create the brief */}
+      {step === 1 && (
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="ibox">
+            <div className="ibox-title"><h4 className="text-[15px] font-semibold text-ink">New email — brief</h4></div>
+            <div className="ibox-content space-y-3">
+              <label className="block"><span className={lbl}>Name this design</span>
+                <input className={inputCls} placeholder="e.g. Spring open house invite" value={name} onChange={(e) => { setName(e.target.value); setDirty(true); }} /></label>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block"><span className={lbl}>Category</span>
+                  <select className={inputCls} value={category} onChange={(e) => { setCategory(e.target.value); setDirty(true); }}>
+                    <option value="">No category</option>{tset.categories.map((c) => <option key={c}>{c}</option>)}
+                  </select></label>
+                <label className="block"><span className={lbl}>Type</span>
+                  <select className={inputCls} value={kind} onChange={(e) => { setKind(e.target.value); setDirty(true); }}>
+                    <option value="">No type</option>{tset.kinds.map((k) => <option key={k}>{k}</option>)}
+                  </select></label>
+              </div>
+              <label className="block"><span className={lbl}>What is this email for?</span>
+                <textarea className={inputCls} rows={4} placeholder="e.g. Invite past wedding clients to a spring open house — warm tone, mention the Magnolia Room" value={goal} onChange={(e) => setGoal(e.target.value)} /></label>
+              <div className="flex flex-wrap gap-2">
+                <button className={btnPrimary} disabled={busy !== null || !goal.trim()} onClick={() => run("draft", async () => {
+                  const { draft: d } = await ai({ action: "draft", goal });
+                  const added: Block[] = [
+                    { id: newId(), type: "heading", text: d.heading, align: "left" },
+                    ...d.paragraphs.map((p: string): Block => ({ id: newId(), type: "text", text: p, align: "left" })),
+                    { id: newId(), type: "button", label: d.buttonLabel, link: "", align: "center" },
+                  ];
+                  setBlocks(added); setDirty(true); setAiCount((c) => c + 1);
+                  addLog([{ text: `Draft: ${goal}`, kind: "you" }, { text: "Drafted a heading, text and a button.", kind: "claude" }]);
+                  setStep(2);
+                })}>{busy === "draft" ? "Writing…" : "Create with AI →"}</button>
+                <button className={btnGhost} onClick={() => { setBlocks([]); setDirty(false); setStep(2); }}>Blank canvas →</button>
+              </div>
+            </div>
+          </div>
+          <div className="ibox">
+            <div className="ibox-title"><h4 className="text-[15px] font-semibold text-ink">Or open a saved design</h4></div>
+            <div className="ibox-content">
+              <select className={inputCls} value={id ?? ""} onChange={(e) => { if (e.target.value) { openDesign(e.target.value); setStep(2); } else startNew(); }}>
+                <option value="">Pick a saved template…</option>
+                {saved.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+              <p className="mt-2 text-[12.5px] text-subtle">Saved designs open straight into Compose (step 2).</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Step 2 — Compose: variations left, canvas center, inspector right, template feed below */}
+      {step === 2 && (
+      <>
+      <div className="grid gap-4 xl:grid-cols-[220px_minmax(0,1.5fr)_minmax(360px,1fr)]">
+        {/* Left pane — AI variations */}
+        <div className="space-y-2 min-w-0">
+          <div className="flex items-center justify-between">
+            <p className="text-[13px] font-semibold text-ink">Variations</p>
+            <button className={btnGhost} disabled={busy !== null || blocks.length === 0} onClick={() => redesign()}>{busy === "redesign" ? "…" : "+ 3 more"}</button>
+          </div>
+          <div className="space-y-3 max-h-[680px] overflow-y-auto pr-1">
+            <div className="space-y-1">
+              <div className="rounded-lg ring-2 ring-accent">
+                <Thumb design={design} title="Current" />
+              </div>
+              <div className="text-[12.5px] font-semibold text-accent">Your design</div>
+            </div>
+            {alts?.map((a, k) => (
+              <button key={k} className="block w-full text-left space-y-1 group" onClick={() => useAlt(a)}>
+                <div className="rounded-lg group-hover:ring-2 group-hover:ring-accent transition">
+                  <Thumb design={a.design} title={a.name} />
+                </div>
+                <div className="text-[12.5px] font-semibold text-ink truncate">{a.name}</div>
+                <div className="flex gap-1">
+                  <span className="text-[11.5px] text-accent font-semibold">Click to study →</span>
+                  <span className="text-[11.5px] text-muted" onClick={(e) => { e.preventDefault(); e.stopPropagation(); redesign(a.name); }}>more like this</span>
+                </div>
+              </button>
+            ))}
+            {!alts && (
+              <p className="text-[12.5px] text-subtle">{busy === "redesign" ? "Designing three variations…" : "Press “+ 3 more” and AI variations of your design appear here — click one to move it into the center canvas."}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Center stage */}
         <div className="space-y-3 min-w-0">
           <div className="rounded-2xl bg-navy-deep p-4">
             <div className="mb-2 flex items-center justify-between text-[12px] text-subtle">
@@ -312,65 +407,6 @@ export default function StudioPanel({ openId, openStarter }: { openId?: string |
             </div>
           </div>
 
-          <div className="rounded-2xl border border-line bg-white p-3">
-            <div className="mb-2 flex items-center gap-2">
-              {(["ideas", "templates"] as const).map((t) => (
-                <button key={t} onClick={() => setStrip(t)} className={`text-[14px] font-semibold ${strip === t ? "text-ink" : "text-subtle hover:text-muted"}`}>
-                  {t === "ideas" ? "Ideas from Claude" : "My templates"}
-                  <span className="ml-1.5 rounded-full bg-line px-2 text-[11.5px] font-normal text-muted">{t === "ideas" ? alts?.length ?? 0 : saved.length}</span>
-                </button>
-              ))}
-            </div>
-            {strip === "ideas" ? (
-              !alts ? (
-                <p className="text-[12.5px] text-subtle">{busy === "redesign" ? "Claude is designing three alternatives…" : "Press Redesign in the panel on the right and three alternatives will appear here."}</p>
-              ) : (
-                <div className="flex gap-3 overflow-x-auto pb-1">
-                  {alts.map((a, k) => (
-                    <div key={k} className="w-[220px] shrink-0 space-y-1">
-                      <Thumb design={a.design} title={a.name} />
-                      <div className="text-[12.5px] font-semibold text-ink truncate">{a.name}</div>
-                      <div className="flex gap-1">
-                        <button className={btnGhost} onClick={() => useAlt(a)}>Use this</button>
-                        <button className={btnGhost} disabled={busy !== null} onClick={() => redesign(a.name)}>More like this</button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )
-            ) : saved.length === 0 ? (
-              <p className="text-[12.5px] text-subtle">Nothing saved yet. Build an email and press Save as template, and it will show up here.</p>
-            ) : (
-              <div className="flex gap-3 overflow-x-auto pb-1">
-                {saved.map((d) => (
-                  <div key={d.id} className="w-[220px] shrink-0 space-y-1">
-                    <button className="block w-full text-left" onClick={() => openDesign(d.id)} aria-label={`Open ${d.name}`}><Thumb design={d.studio} title={d.name} /></button>
-                    <div className="flex items-center justify-between gap-1">
-                      <div className={`truncate text-[12.5px] font-semibold ${d.id === id ? "text-accent" : "text-ink"}`}>{d.name}</div>
-                      <button className={btnGhost} disabled={busy !== null || d.id === id} onClick={() => openDesign(d.id)}>{d.id === id ? "Open" : "Open"}</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="px-1 pt-2 text-[14px] font-semibold text-ink">Instructions on how to use</div>
-          <div className="space-y-2 rounded-2xl border border-line bg-white p-2">
-            <Fold n="01" title="Start with a draft or a template" open>Type what the email is for under Draft on the right and press Draft, or open one of My templates under the preview. Everything Devin writes is a suggestion you can change.</Fold>
-            <Fold n="02" title="Build it block by block">Add a heading, text, picture, button, divider or spacer. Click a block to edit it, and use the arrows to move it. Pictures come from your Photo Library.</Fold>
-            <Fold n="03" title="Ask Devin for a more designed version">Press Redesign. Three alternatives appear under the preview. Press Use this to switch to one, and keep editing it. The undo arrow under the preview takes you back.</Fold>
-            <Fold n="04" title="Check every screen size">Use Mobile, iPad, Laptop and Desktop at the bottom right to see how it looks. Most people read email on a phone, so check Mobile last.</Fold>
-            <Fold n="05" title="Save it">Name it, pick a category and type, then Save as template. It appears in My templates here and in the Templates list. Nothing is sent from the Studio.</Fold>
-          </div>
-
-          <div className="px-1 pt-2 text-[14px] font-semibold text-ink">Coming next</div>
-          <div className="space-y-2 rounded-2xl border border-dashed border-line bg-canvas p-2">
-            <Fold n="•" title="Send a test to yourself">Not built yet. It will be turned on together with consent and unsubscribe handling, so nothing goes out before the safeguards are in place.</Fold>
-            <Fold n="•" title="Different content for different groups">Not built yet. Show one version of a section to weddings, another to chambers, and so on, using the same segments as your categories.</Fold>
-            <Fold n="•" title="Funnel templates">Not built yet. Saved wedding, corporate, community and office-suite sequences you can start from.</Fold>
-            <Fold n="•" title="Results">Not built yet. Opens, clicks and replies per design, once sending is live.</Fold>
-          </div>
         </div>
 
         {/* Control panel */}
@@ -481,7 +517,17 @@ export default function StudioPanel({ openId, openStarter }: { openId?: string |
             <div className={lbl}>Ask Devin for a first draft</div>
             <div className="flex gap-2">
               <input className={inputCls} placeholder="e.g. Invite past wedding clients to a spring open house" value={goal} onChange={(e) => setGoal(e.target.value)} />
-              <button className={btnGhost} disabled={busy !== null || !goal.trim()} onClick={draft}>{busy === "draft" ? "Writing…" : "Draft"}</button>
+              <button className={btnGhost} disabled={busy !== null || !goal.trim()} onClick={() => run("draft", async () => {
+                if (blocks.length && !confirm("This adds Claude's draft after your current blocks. Continue?")) return;
+                const { draft: d } = await ai({ action: "draft", goal });
+                const added: Block[] = [
+                  { id: newId(), type: "heading", text: d.heading, align: "left" },
+                  ...d.paragraphs.map((p: string): Block => ({ id: newId(), type: "text", text: p, align: "left" })),
+                  { id: newId(), type: "button", label: d.buttonLabel, link: "", align: "center" },
+                ];
+                record("Added Claude's draft", [...blocks, ...added], brand); setAiCount((c) => c + 1);
+                addLog([{ text: `Draft: ${goal}`, kind: "you" }, { text: "Added a heading, text and a button.", kind: "claude" }]);
+              })}>{busy === "draft" ? "Writing…" : "Draft"}</button>
             </div>
           </div>
 
@@ -525,12 +571,95 @@ export default function StudioPanel({ openId, openStarter }: { openId?: string |
             ))}
           </div>
           <div className="flex items-center gap-2">
-            <button className={`${btnPrimary} flex-1`} disabled={busy !== null || !name.trim()} onClick={save}>{busy === "save" ? "Saving…" : "Save as template"}</button>
+            <button className={`${btnPrimary} flex-1`} disabled={busy !== null || !name.trim()} onClick={() => { save(); }}>{busy === "save" ? "Saving…" : "Save as template"}</button>
             {id && <button className={btnGhost} disabled={busy !== null} onClick={remove}>Delete</button>}
           </div>
+          <button className={btnPrimary + " w-full"} disabled={blocks.length === 0} onClick={() => { getReview(); setStep(3); }}>Review & approve →</button>
         </div>
         </div>
       </div>
+
+      {/* Template feed — endless gallery below the workbench */}
+      <div className="ibox">
+        <div className="ibox-title">
+          <h4 className="text-[15px] font-semibold text-ink">Template feed</h4>
+          <span className="text-[11px] font-bold text-muted bg-line px-2 py-0.5 rounded">{saved.length} saved</span>
+        </div>
+        <div className="ibox-content">
+          {saved.length === 0 ? (
+            <p className="text-[12.5px] text-subtle">Nothing saved yet. Build an email and press Save as template — it will show up here.</p>
+          ) : (
+            <>
+              <div className="columns-2 md:columns-3 xl:columns-4 gap-4 [column-fill:balance]">
+                {saved.slice(0, feedLimit).map((d) => (
+                  <div key={d.id} className="mb-4 break-inside-avoid space-y-1">
+                    <button className="block w-full text-left" onClick={() => openDesign(d.id)} aria-label={`Open ${d.name}`}><Thumb design={d.studio} title={d.name} /></button>
+                    <div className="flex items-center justify-between gap-1">
+                      <div className={`truncate text-[12.5px] font-semibold ${d.id === id ? "text-accent" : "text-ink"}`}>{d.name}</div>
+                      <button className={btnGhost} disabled={busy !== null} onClick={() => openDesign(d.id)}>Open</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {feedLimit < saved.length && (
+                <button onClick={() => setFeedLimit((n) => n + 12)} className="mt-2 w-full py-2.5 rounded-lg bg-accent text-white text-[13px] font-semibold hover:bg-accent-deep transition">Show more</button>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+      </>
+      )}
+
+      {/* Step 3 — Approve */}
+      {step === 3 && (
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(360px,1fr)]">
+          <div className="rounded-2xl bg-navy-deep p-4 min-w-0">
+            <div className="mb-2 flex items-center justify-between text-[12px] text-subtle">
+              <span>Final — {name || "untitled"}</span>
+              <button className="text-line underline" onClick={() => setStep(2)}>Back to compose</button>
+            </div>
+            <div className="flex justify-center">
+              <div style={{ width: Math.min(640, Math.max(300, boxW - 24)) }} className="overflow-hidden bg-white rounded border border-navy-soft">
+                <iframe title="Final email preview" sandbox="" srcDoc={html} style={{ width: "100%", height: 620, border: 0, background: "#fff" }} />
+              </div>
+            </div>
+          </div>
+          <div className="space-y-3 min-w-0">
+            <div className="ibox">
+              <div className="ibox-title"><h4 className="text-[15px] font-semibold text-ink">AI review</h4></div>
+              <div className="ibox-content space-y-2 text-[13px] text-ink">
+                {!review && <p className="text-subtle">{busy === "review" ? "Reading…" : "Ask Devin to review the whole email."}
+                  {busy !== "review" && <button className={`${btnGhost} ml-2`} disabled={busy !== null} onClick={getReview}>Review</button>}</p>}
+                {review && (
+                  <>
+                    <ul className="list-disc pl-5 space-y-1">{review.suggestions.map((s, k) => <li key={k}>{s}</li>)}</ul>
+                    {review.subjects.map((s, k) => (
+                      <div key={k} className="rounded-md bg-canvas p-2">
+                        <div className="font-semibold">{s.subject}</div><div className="text-muted">{s.previewText}</div>
+                        <button className={`${btnGhost} mt-1`} onClick={() => { setSubject(s.subject); setPreviewText(s.previewText); setDirty(true); }}>Use these</button>
+                      </div>
+                    ))}
+                  </>
+                )}
+              </div>
+            </div>
+            <div className="ibox">
+              <div className="ibox-title"><h4 className="text-[15px] font-semibold text-ink">Approve</h4></div>
+              <div className="ibox-content space-y-2">
+                <label className="block"><span className={lbl}>Subject</span><input className={inputCls} value={subject} onChange={(e) => { setSubject(e.target.value); setDirty(true); }} /></label>
+                <label className="block"><span className={lbl}>Preview text</span><input className={inputCls} value={previewText} onChange={(e) => { setPreviewText(e.target.value); setDirty(true); }} /></label>
+                <button className={`${btnPrimary} w-full`} disabled={busy !== null || !name.trim()} onClick={save}>{busy === "save" ? "Saving…" : "Approve & save as template"}</button>
+                <div className="flex gap-2">
+                  <button className={btnGhost} disabled={busy !== null || blocks.length === 0} onClick={copyPrompt}>Copy prompt</button>
+                  <button className={btnGhost} disabled={blocks.length === 0} onClick={downloadHtml}>Download HTML</button>
+                </div>
+                <p className="text-[11.5px] text-subtle">Saving puts it in the Templates list. Nothing is sent from the studio.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
