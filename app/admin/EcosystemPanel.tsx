@@ -8,6 +8,7 @@ export type EcoDef = {
   what: string;
   feeds: string;
   live: boolean;
+  control?: boolean; // on/off switch actually gates an engine (default: live && true)
 };
 
 // The Wizard-of-Oz brain, one ecosystem per organ — plus the channel
@@ -15,7 +16,7 @@ export type EcoDef = {
 // exists today; standing-architecture organs show their build spec honestly.
 export const ECOSYSTEMS: EcoDef[] = [
   { key: "competitors", title: "Competitive analysis", what: "Reads Meta's public Ad Library for each competitor in the library — every live ad, how long it's run (duration is the signal it's paying for itself), format and offer.", feeds: "Marketing Library → Competitors · Meta token (Connections)", live: true },
-  { key: "reviews", title: "Review monitoring", what: "Sweeps Google/Facebook/WeddingWire/The Knot for new reviews; each lands in Needs-you with a drafted reply.", feeds: "GOOGLE_PLACES_API_KEY + GOOGLE_PLACE_ID", live: true },
+  { key: "reviews", title: "Review monitoring", what: "Sweeps Google Places for new reviews; each lands in Needs-you with a drafted reply. (Facebook/WeddingWire/The Knot connectors: planned.)", feeds: "GOOGLE_PLACES_API_KEY + GOOGLE_PLACE_ID", live: true },
   { key: "news", title: "Local life events", what: "Scans the 30-mile local papers for engagement and wedding announcements — warm leads before they search venues.", feeds: "Marketing Library → watch-sources (5 feeds live)", live: true },
   { key: "monitoring", title: "Ad monitoring", what: "Standing feed of saved competitors' active creative and offers with one-click patterns to clone into your own ads.", feeds: "Marketing Library → Ad snapshots", live: false },
   { key: "market", title: "Market analysis", what: "Venue-market benchmarks so the weekly card scores you against your niche — occupancy, inquiry rates, seasonal demand.", feeds: "Marketing Library → Market benchmarks", live: false },
@@ -24,7 +25,7 @@ export const ECOSYSTEMS: EcoDef[] = [
   { key: "annual-plan", title: "Annual plan", what: "The one-year marketing calendar keyed to real venue seasons, plus the Friday weekly-justification card — every action vs plan.", feeds: "Marketing Library → all folders", live: false },
   { key: "email", title: "Email", what: "Outbound rail for journeys and broadcasts — SendGrid first, Resend fallback, honest staged drafts when neither is configured.", feeds: "SENDGRID_API_KEY (set) · EMAIL_FROM (needed)", live: true },
   { key: "texting", title: "Texting", what: "Outbound rail for journey texts — Twilio REST, staged for a human when the lead has no phone on file.", feeds: "TWILIO_ACCOUNT_SID / TOKEN / FROM (set)", live: true },
-  { key: "templates", title: "Email templates", what: "The template catalog the composer draws from — journeys assemble from live rows, seeded bodies only fill empty templates.", feeds: "DbTemplate rows + Email studio", live: true },
+  { key: "templates", title: "Email templates", control: false, what: "The template catalog the composer draws from — journeys assemble from live rows, seeded bodies only fill empty templates.", feeds: "DbTemplate rows + Email studio", live: true },
 ];
 
 type Finding = { id: string; status: string; suggestedDraft: string; createdAt: string };
@@ -80,13 +81,18 @@ export default function EcosystemPanel({ eco }: { eco: EcoDef }) {
         </div>
         {eco.live && state && (
           <div className="mt-4 flex items-center gap-3 border-t border-line pt-4">
-            <button
-              type="button"
-              onClick={toggle}
-              className={`rounded-full px-4 py-1.5 text-[12px] font-semibold ${state.enabled ? "bg-accent text-white" : "border border-line text-muted"}`}
-            >
-              {state.enabled ? "On" : "Off"}
-            </button>
+            {eco.control === false ? (
+              <span className="rounded-full px-4 py-1.5 text-[12px] font-semibold bg-gray-100 text-muted">Always on — opens the Templates tool</span>
+            ) : null}
+            {eco.control !== false && (
+              <button
+                type="button"
+                onClick={toggle}
+                className={`rounded-full px-4 py-1.5 text-[12px] font-semibold ${state.enabled ? "bg-accent text-white" : "border border-line text-muted"}`}
+              >
+                {state.enabled ? "On" : "Off"}
+              </button>
+            )}
             {lastRun ? (
               <p className="text-[13px] text-muted">
                 Last run {new Date(lastRun.at).toLocaleString()}: pulled {lastRun.pulled}
@@ -95,6 +101,7 @@ export default function EcosystemPanel({ eco }: { eco: EcoDef }) {
             ) : (
               <p className="text-[13px] text-muted">Ready — runs on the daily sweep (14:00 UTC).</p>
             )}
+
           </div>
         )}
       </div>
@@ -126,7 +133,7 @@ export default function EcosystemPanel({ eco }: { eco: EcoDef }) {
                 onClick={() => setTab(t)}
                 className={`px-4 py-2 text-[13px] font-semibold border-b-2 -mb-px ${tab === t ? "border-accent text-ink" : "border-transparent text-muted"}`}
               >
-                {t === "findings" ? `Findings feed (${total})` : "Run log"}
+                {t === "findings" ? `Findings feed (${total > 25 ? "latest 25 of " : ""}${total})` : "Run log"}
               </button>
             ))}
           </div>

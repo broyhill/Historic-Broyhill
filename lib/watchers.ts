@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { ecoEnabled } from "@/lib/eco-control";
 
 // The wizard's eyes. Each watcher reads its folder in the Marketing Library
 // (KnowledgeEntry), fetches what it can reach, and files findings as
@@ -10,11 +11,7 @@ async function library(folder: string) {
   return prisma.knowledgeEntry.findMany({ where: { folder, enabled: true } });
 }
 
-async function watcherEnabled(key: string) {
-  const ctl = await prisma.knowledgeEntry.findFirst({ where: { folder: "watch-control", title: key } });
-  if (!ctl) return true; // default on
-  return (ctl.data as any).enabled !== false;
-}
+
 
 async function logRun(watcher: string, result: { pulled: number; note?: string }) {
   const existing = await prisma.knowledgeEntry.findFirst({ where: { folder: "watch-log", title: watcher } });
@@ -43,9 +40,9 @@ async function fileFinding(kind: string, title: string, draft: string, metrics: 
 export async function runWatchers() {
   const results: Record<string, { pulled: number; note?: string }> = {};
   const enabled = {
-    competitors: await watcherEnabled("competitors"),
-    reviews: await watcherEnabled("reviews"),
-    news: await watcherEnabled("news"),
+    competitors: await ecoEnabled("competitors"),
+    reviews: await ecoEnabled("reviews"),
+    news: await ecoEnabled("news"),
   };
 
   // --- Competitor ads (Meta Ad Library) ---
@@ -143,8 +140,10 @@ export async function runWatchers() {
   }
   results.news = { pulled: news, note: !enabled.news ? "disabled in admin" : sources.length === 0 ? 'add RSS feeds to the "watch-sources" folder in Marketing Library' : undefined };
 
+  // Log only real runs — a disabled organ keeps its last actual run, not a
+  // "disabled" stamp that would mislabel the panel's Last run line.
   for (const [watcher, result] of Object.entries(results)) {
-    await logRun(watcher, result).catch(() => {});
+    if (result.note !== "disabled in admin") await logRun(watcher, result).catch(() => {});
   }
   return results;
 }

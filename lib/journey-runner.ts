@@ -4,6 +4,7 @@ import { stepsSchema, type JourneyStep } from "@/lib/journeys";
 import { CAMPAIGN_TEMPLATES, TEXT_TEMPLATES } from "@/lib/campaign-templates";
 import type { Resend } from "resend";
 import { sendEmail, sendSms } from "@/lib/send";
+import { ecoEnabled } from "@/lib/eco-control";
 import { tripwireHtml } from "@/lib/tripwires";
 
 // The journeys runner. Moves every RUNNING JourneyRun forward through its steps:
@@ -60,6 +61,10 @@ async function deliver(opts: {
   const body = lines.filter((_, i) => i !== si).join("\n").trim();
 
   if (channel === "SMS" && liveDelivery) {
+    if (!(await ecoEnabled("texting"))) {
+      await prisma.aiContentPipeline.update({ where: { id: staged.id }, data: { metrics: { leadId, source: "journey", deliveryStatus: "HELD", holdReason: "Texting disabled in admin" } } });
+      return { stagedId: staged.id, status: "STAGED" };
+    }
     const lead = await prisma.leadProfile.findUnique({ where: { id: leadId }, select: { phone: true } });
     if (!lead?.phone) return { stagedId: staged.id, status: "STAGED" }; // no number — leave for a human
     const result = await sendSms({ to: lead.phone, body });
@@ -71,6 +76,10 @@ async function deliver(opts: {
     return { stagedId: staged.id, status: "SENT" };
   }
   if (liveDelivery && channel === "EMAIL") {
+    if (!(await ecoEnabled("email"))) {
+      await prisma.aiContentPipeline.update({ where: { id: staged.id }, data: { metrics: { leadId, recipientEmail, source: "journey", deliveryStatus: "HELD", holdReason: "Email disabled in admin" } } });
+      return { stagedId: staged.id, status: "STAGED" };
+    }
     const result = await sendEmail({ to: recipientEmail, subject, text: body, html: tripwireHtml(body, leadId, staged.id) });
     if (!result.sent) throw new Error(result.reason);
     await prisma.aiContentPipeline.update({
