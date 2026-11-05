@@ -26,6 +26,7 @@ import ExpressPanel from "./ExpressPanel";
 import JourneysPanel from "./JourneysPanel";
 import EcosystemPanel, { ECOSYSTEMS } from "./EcosystemPanel";
 import PlannedStudioPanel from "./PlannedStudioPanel";
+import LibraryPanel from "./LibraryPanel";
 import ConnectionsPanel from "./ConnectionsPanel";
 import { SPACES } from "@/lib/spaces";
 
@@ -110,6 +111,7 @@ const NAV_TOOLS: { key: Section; label: string }[] = [
   { key: "stock", label: "Free media" },
   { key: "ask", label: "Ask" },
   { key: "brands", label: "Brands" },
+  { key: "library", label: "Marketing Library" },
   { key: "connections", label: "Connections" },
   { key: "brand", label: "Brand setup" },
   { key: "settings", label: "Venue & account" },
@@ -144,6 +146,7 @@ const TITLES: Partial<Record<Section, string>> = {
   podcast: "Podcast studio",
   call: "Call studio",
   proposal: "Proposal studio",
+  library: "Marketing Library",
   connections: "Connections",
 };
 
@@ -305,6 +308,7 @@ export default function AdminConsole() {
           {section === "podcast" && <PlannedStudioPanel studio="podcast" />}
           {section === "call" && <PlannedStudioPanel studio="call" />}
           {section === "proposal" && <PlannedStudioPanel studio="proposal" />}
+          {section === "library" && <LibraryPanel />}
           {section === "connections" && <ConnectionsPanel />}
           {ECOSYSTEMS.map((e) =>
             section === ("eco-" + e.key) ? <EcosystemPanel key={e.key} eco={e} /> : null
