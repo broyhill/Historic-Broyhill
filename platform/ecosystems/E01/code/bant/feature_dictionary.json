@@ -1,0 +1,124 @@
+{
+  "feature_set_id": "bant_features_v0",
+  "model_family": "BANT",
+  "version": "0.1.0",
+  "dimensions": {
+    "budget": "Giving capacity + donation history (classic Budget)",
+    "authority": "Influence / entity alignment / segment role (classic Authority)",
+    "need": "Issue heat + voter alignment to candidate agenda (classic Need)",
+    "timing": "Recency + fatigue headroom + news urgency (classic Timing)"
+  },
+  "features": [
+    {
+      "feature_id": "F_DON_TOTAL_10Y",
+      "family": "donation",
+      "source_schema": "spine",
+      "source_table": "donor_transactions_deduped",
+      "source_column": "norm_amount",
+      "description": "10y gift total (silo-aware rollup), log-normalized",
+      "dtype": "numeric",
+      "weight_default": 0.18
+    },
+    {
+      "feature_id": "F_DON_RECENCY_DAYS",
+      "family": "donation",
+      "source_schema": "spine",
+      "source_table": "donor_transactions_deduped",
+      "source_column": "txn_date",
+      "description": "Days since last gift, exponential decay to [0,1]",
+      "dtype": "numeric",
+      "weight_default": 0.12
+    },
+    {
+      "feature_id": "F_DON_FREQUENCY",
+      "family": "donation",
+      "source_schema": "spine",
+      "source_table": "donor_transactions_deduped",
+      "source_column": "txn_id",
+      "description": "Gift count in window / 20",
+      "dtype": "numeric",
+      "weight_default": 0.1
+    },
+    {
+      "feature_id": "F_VOTE_PRIMARY_R",
+      "family": "voter",
+      "source_schema": "core",
+      "source_table": "datatrust_voter_nc",
+      "source_column": null,
+      "description": "R primary participation streak proxy (DataTrust)",
+      "dtype": "numeric",
+      "weight_default": 0.1
+    },
+    {
+      "feature_id": "F_VOTE_TURNOUT",
+      "family": "voter",
+      "source_schema": "core",
+      "source_table": "datatrust_voter_nc",
+      "source_column": null,
+      "description": "General turnout consistency proxy",
+      "dtype": "numeric",
+      "weight_default": 0.06
+    },
+    {
+      "feature_id": "F_ACX_AFFLUENCE",
+      "family": "acxiom",
+      "source_schema": "core",
+      "source_table": "acxiom_ibe",
+      "source_column": null,
+      "description": "Consumer affluence / capacity proxy",
+      "dtype": "numeric",
+      "weight_default": 0.08
+    },
+    {
+      "feature_id": "F_ENTITY_PAC_INT",
+      "family": "entity",
+      "source_schema": null,
+      "source_table": null,
+      "source_column": null,
+      "description": "PAC/527/501c3 aligned entity intensity",
+      "dtype": "numeric",
+      "weight_default": 0.08
+    },
+    {
+      "feature_id": "F_HEAT_ISSUE",
+      "family": "heat",
+      "source_schema": null,
+      "source_table": null,
+      "source_column": null,
+      "description": "News/legislation issue heat for silo (E42/E63)",
+      "dtype": "numeric",
+      "weight_default": 0.1
+    },
+    {
+      "feature_id": "F_SEG_ALIVE_HIT",
+      "family": "segment",
+      "source_schema": "e59",
+      "source_table": null,
+      "source_column": null,
+      "description": "In an alive microsegment for jurisdiction",
+      "dtype": "flag",
+      "weight_default": 0.08
+    },
+    {
+      "feature_id": "F_FATIGUE_HEADROOM",
+      "family": "fatigue",
+      "source_schema": "brain",
+      "source_table": "channel_fatigue_ledger",
+      "source_column": null,
+      "description": "Remaining multi-channel touch headroom",
+      "dtype": "numeric",
+      "weight_default": 0.1
+    }
+  ],
+  "identity_keys": {
+    "cluster_id": "INTEGER",
+    "rnc_regid": "TEXT",
+    "state_voter_id": "DataTrust voter id (not ncid)"
+  },
+  "sacred_never_write": [
+    "raw.ncboe_donations",
+    "core.di_donor_attribution",
+    "core.datatrust_voter_nc",
+    "core.acxiom_ibe"
+  ]
+}

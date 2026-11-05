@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BroyhillGOP - Make A Campaign</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .step-active { background: linear-gradient(135deg, #1e40af, #3b82f6); }
+        .step-completed { background: linear-gradient(135deg, #059669, #10b981); }
+        .step-pending { background: #374151; }
+        .mode-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+        .ifttt-card { transition: all 0.2s; }
+        .ifttt-card:hover { transform: scale(1.02); }
+        .ifttt-selected { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <div id="app" class="container mx-auto px-4 py-6 max-w-6xl">
+        
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold mb-2">🚀 Make A Campaign</h1>
+            <p class="text-gray-400">Create powerful multi-channel campaigns with AI or build manually</p>
+        </div>
+
+        <!-- Mode Selection (Initial Screen) -->
+        <div id="modeSelection" class="mb-8">
+            <h2 class="text-2xl font-bold text-center mb-6">Choose Your Creation Mode</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                
+                <!-- AI Autopilot -->
+                <div onclick="selectMode('ai')" class="mode-card cursor-pointer bg-gradient-to-br from-purple-900 to-indigo-900 border-2 border-purple-500 rounded-2xl p-6 transition-all">
+                    <div class="text-center">
+                        <div class="text-6xl mb-4">🤖</div>
+                        <h3 class="text-2xl font-bold mb-2">AI Campaign Generation</h3>
+                        <p class="text-purple-200 mb-4">Let AI create your entire campaign automatically</p>
+                        <ul class="text-left text-sm text-purple-200 space-y-2 mb-4">
+                            <li>✨ Describe your goals in plain English</li>
+                            <li>✨ AI selects best channels & timing</li>
+                            <li>✨ Auto-generates content & IFTTT flows</li>
+                            <li>✨ Review & launch in minutes</li>
+                        </ul>
+                        <div class="bg-purple-800 rounded-lg py-2 px-4 inline-block">
+                            <span class="text-purple-200">⚡ Fastest Option</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Manual Create -->
+                <div onclick="selectMode('manual')" class="mode-card cursor-pointer bg-gradient-to-br from-blue-900 to-cyan-900 border-2 border-blue-500 rounded-2xl p-6 transition-all">
+                    <div class="text-center">
+                        <div class="text-6xl mb-4">🎯</div>
+                        <h3 class="text-2xl font-bold mb-2">Manual Create</h3>
+                        <p class="text-blue-200 mb-4">Build step-by-step with full control</p>
+                        <ul class="text-left text-sm text-blue-200 space-y-2 mb-4">
+                            <li>📋 Step 1: Campaign Basics</li>
+                            <li>📡 Step 2: Select Channels</li>
+                            <li>👥 Step 3: Define Audience</li>
+                            <li>📝 Step 4: Create Content</li>
+                            <li class="font-bold text-yellow-300">🎛️ Step 5: Select IFTTT Automations</li>
+                            <li>🎯 Step 6: Set Goals</li>
+                            <li>🚀 Step 7: Review & Launch</li>
+                        </ul>
+                        <div class="bg-blue-800 rounded-lg py-2 px-4 inline-block">
+                            <span class="text-blue-200">🎛️ Full Control</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manual Builder -->
+        <div id="manualBuilder" class="hidden">
+            
+            <!-- Progress Steps -->
+            <div class="mb-8">
+                <div class="flex justify-between items-center max-w-4xl mx-auto">
+                    <div class="step-indicator text-center" data-step="1">
+                        <div class="w-10 h-10 rounded-full step-active flex items-center justify-center mx-auto mb-1">1</div>
+                        <span class="text-xs">Basics</span>
+                    </div>
+                    <div class="flex-1 h-1 bg-gray-700 mx-2"></div>
+                    <div class="step-indicator text-center" data-step="2">
+                        <div class="w-10 h-10 rounded-full step-pending flex items-center justify-center mx-auto mb-1">2</div>
+                        <span class="text-xs">Channels</span>
+                    </div>
+                    <div class="flex-1 h-1 bg-gray-700 mx-2"></div>
+                    <div class="step-indicator text-center" data-step="3">
+                        <div class="w-10 h-10 rounded-full step-pending flex items-center justify-center mx-auto mb-1">3</div>
+                        <span class="text-xs">Audience</span>
+                    </div>
+                    <div class="flex-1 h-1 bg-gray-700 mx-2"></div>
+                    <div class="step-indicator text-center" data-step="4">
+                        <div class="w-10 h-10 rounded-full step-pending flex items-center justify-center mx-auto mb-1">4</div>
+                        <span class="text-xs">Content</span>
+                    </div>
+                    <div class="flex-1 h-1 bg-gray-700 mx-2"></div>
+                    <div class="step-indicator text-center" data-step="5">
+                        <div class="w-10 h-10 rounded-full step-pending flex items-center justify-center mx-auto mb-1 border-2 border-yellow-500">5</div>
+                        <span class="text-xs text-yellow-400 font-bold">IFTTT</span>
+                    </div>
+                    <div class="flex-1 h-1 bg-gray-700 mx-2"></div>
+                    <div class="step-indicator text-center" data-step="6">
+                        <div class="w-10 h-10 rounded-full step-pending flex items-center justify-center mx-auto mb-1">6</div>
+                        <span class="text-xs">Goals</span>
+                    </div>
+                    <div class="flex-1 h-1 bg-gray-700 mx-2"></div>
+                    <div class="step-indicator text-center" data-step="7">
+                        <div class="w-10 h-10 rounded-full step-pending flex items-center justify-center mx-auto mb-1">7</div>
+                        <span class="text-xs">Launch</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step Content Container -->
+            <div id="stepContent" class="bg-gray-800 rounded-2xl p-6 max-w-4xl mx-auto">
+                <!-- Steps will be loaded here -->
+            </div>
+
+            <!-- Navigation -->
+            <div class="flex justify-between max-w-4xl mx-auto mt-6">
+                <button onclick="prevStep()" id="prevBtn" class="bg-gray-700 hover:bg-gray-600 px-6 py-3 rounded-lg hidden">
+                    ← Previous
+                </button>
+                <div class="flex-1"></div>
+                <button onclick="nextStep()" id="nextBtn" class="bg-blue-600 hover:bg-blue-500 px-6 py-3 rounded-lg">
+                    Next Step →
+                </button>
+            </div>
+        </div>
+
+        <!-- AI Mode -->
+        <div id="aiBuilder" class="hidden">
+            <div class="bg-gray-800 rounded-2xl p-6 max-w-4xl mx-auto">
+                <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+                    🤖 AI Campaign Generation
+                </h2>
+                <p class="text-gray-400 mb-6">Describe what you want to achieve and AI will create your campaign</p>
+                
+                <textarea id="aiPrompt" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-4 h-32 mb-4" 
+                    placeholder="Example: Create a 2-week fundraising campaign targeting lapsed donors with email, SMS, and direct mail. Goal is to raise $50,000 and reactivate 200 donors."></textarea>
+                
+                <div class="mb-6">
+                    <p class="text-sm text-gray-400 mb-2">Quick suggestions:</p>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="setPrompt('fundraising')" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm">💰 Fundraising</button>
+                        <button onclick="setPrompt('gotv')" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm">🗳️ GOTV</button>
+                        <button onclick="setPrompt('event')" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm">📅 Event</button>
+                        <button onclick="setPrompt('volunteer')" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm">🙋 Volunteer</button>
+                    </div>
+                </div>
+                
+                <button onclick="generateAICampaign()" class="w-full bg-purple-600 hover:bg-purple-500 py-3 rounded-lg font-bold">
+                    ✨ Generate Campaign with AI
+                </button>
+                
+                <button onclick="backToModeSelect()" class="w-full mt-4 text-gray-400 hover:text-white">
+                    ← Back to mode selection
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let campaignData = {
+            name: '',
+            type: 'fundraising',
+            channels: [],
+            ifttt: [],
+            goals: []
+        };
+
+        // Available IFTTT workflows
+        const iftttWorkflows = [
+            { id: 'donation_thank_you', name: 'Donation Thank You', trigger: 'donation.received', category: 'donor', essential: true, description: 'Send thank you when donation received' },
+            { id: 'new_donor_nurture', name: 'New Donor Nurture', trigger: 'donation.first', category: 'donor', essential: true, description: 'Welcome series for first-time donors' },
+            { id: 'lapsed_reactivation', name: 'Lapsed Donor Reactivation', trigger: 'donor.became_lapsed', category: 'donor', essential: false, description: 'Re-engage donors who stopped giving' },
+            { id: 'major_donor_alert', name: 'Major Donor Alert', trigger: 'donation.threshold', category: 'donor', essential: true, description: 'Alert team on large donations' },
+            { id: 'email_not_opened', name: 'Email Follow-up', trigger: 'email.not_opened', category: 'engagement', essential: false, description: 'Follow up if email not opened after 3 days' },
+            { id: 'sms_keyword', name: 'SMS Keyword Response', trigger: 'sms.keyword', category: 'engagement', essential: false, description: 'Auto-respond to SMS keywords' },
+            { id: 'event_reminder', name: 'Event Reminder Series', trigger: 'event.rsvp', category: 'events', essential: true, description: 'Reminder sequence after RSVP' },
+            { id: 'no_show_followup', name: 'No-Show Follow-up', trigger: 'event.no_show', category: 'events', essential: false, description: 'Re-engage people who missed event' },
+            { id: 'rapid_response', name: 'Rapid Response', trigger: 'news.crisis_detected', category: 'news', essential: false, description: 'Auto-respond to negative coverage' },
+            { id: 'issue_capitalize', name: 'Issue Capitalize', trigger: 'news.issue_trending', category: 'news', essential: false, description: 'Engage when issue trends' },
+            { id: 'welcome_series', name: 'Welcome Series', trigger: 'contact.created', category: 'engagement', essential: true, description: 'Welcome new contacts' },
+        ];
+
+        const channels = [
+            { id: 'email', name: 'Email', icon: '📧', description: 'Send personalized emails' },
+            { id: 'sms', name: 'SMS/MMS', icon: '📱', description: 'Text message campaigns' },
+            { id: 'rcs', name: 'RCS Rich Messaging', icon: '💬', description: 'Rich messaging with buttons' },
+            { id: 'phone', name: 'Phone Banking', icon: '📞', description: 'Live or AI phone calls' },
+            { id: 'rvm', name: 'Ringless Voicemail', icon: '🔔', description: 'Voicemail drops' },
+            { id: 'direct_mail', name: 'Direct Mail', icon: '✉️', description: 'Physical mail' },
+            { id: 'social', name: 'Social Media', icon: '📱', description: 'Facebook, Twitter, Instagram' },
+            { id: 'digital_ads', name: 'Digital Ads', icon: '🖥️', description: 'Google, Facebook ads' },
+            { id: 'events', name: 'Events', icon: '📅', description: 'Rally, town hall' },
+        ];
+
+        function selectMode(mode) {
+            document.getElementById('modeSelection').classList.add('hidden');
+            if (mode === 'ai') {
+                document.getElementById('aiBuilder').classList.remove('hidden');
+            } else {
+                document.getElementById('manualBuilder').classList.remove('hidden');
+                renderStep(1);
+            }
+        }
+
+        function backToModeSelect() {
+            document.getElementById('modeSelection').classList.remove('hidden');
+            document.getElementById('aiBuilder').classList.add('hidden');
+            document.getElementById('manualBuilder').classList.add('hidden');
+        }
+
+        function renderStep(step) {
+            currentStep = step;
+            updateStepIndicators();
+            
+            const content = document.getElementById('stepContent');
+            
+            switch(step) {
+                case 1:
+                    content.innerHTML = renderStep1();
+                    break;
+                case 2:
+                    content.innerHTML = renderStep2();
+                    break;
+                case 3:
+                    content.innerHTML = renderStep3();
+                    break;
+                case 4:
+                    content.innerHTML = renderStep4();
+                    break;
+                case 5:
+                    content.innerHTML = renderStep5();
+                    break;
+                case 6:
+                    content.innerHTML = renderStep6();
+                    break;
+                case 7:
+                    content.innerHTML = renderStep7();
+                    break;
+            }
+            
+            // Update navigation buttons
+            document.getElementById('prevBtn').classList.toggle('hidden', step === 1);
+            document.getElementById('nextBtn').textContent = step === 7 ? '🚀 Launch Campaign' : 'Next Step →';
+        }
+
+        function updateStepIndicators() {
+            document.querySelectorAll('.step-indicator').forEach(el => {
+                const step = parseInt(el.dataset.step);
+                const circle = el.querySelector('div');
+                circle.classList.remove('step-active', 'step-completed', 'step-pending');
+                if (step < currentStep) {
+                    circle.classList.add('step-completed');
+                } else if (step === currentStep) {
+                    circle.classList.add('step-active');
+                } else {
+                    circle.classList.add('step-pending');
+                }
+            });
+        }
+
+        // Step 1: Basics
+        function renderStep1() {
+            return `
+                <h2 class="text-2xl font-bold mb-6">📋 Step 1: Campaign Basics</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Campaign Name</label>
+                        <input type="text" id="campaignName" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3" 
+                            placeholder="e.g., Q1 Fundraising Drive" value="${campaignData.name}">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Campaign Type</label>
+                        <select id="campaignType" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3">
+                            <option value="fundraising" ${campaignData.type === 'fundraising' ? 'selected' : ''}>💰 Fundraising</option>
+                            <option value="gotv" ${campaignData.type === 'gotv' ? 'selected' : ''}>🗳️ Get Out The Vote (GOTV)</option>
+                            <option value="awareness" ${campaignData.type === 'awareness' ? 'selected' : ''}>📢 Awareness</option>
+                            <option value="event" ${campaignData.type === 'event' ? 'selected' : ''}>📅 Event Promotion</option>
+                            <option value="volunteer" ${campaignData.type === 'volunteer' ? 'selected' : ''}>🙋 Volunteer Recruitment</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">Start Date</label>
+                            <input type="date" id="startDate" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">End Date</label>
+                            <input type="date" id="endDate" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Budget</label>
+                        <input type="number" id="budget" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3" 
+                            placeholder="e.g., 50000">
+                    </div>
+                </div>
+            `;
+        }
+
+        // Step 2: Channels
+        function renderStep2() {
+            return `
+                <h2 class="text-2xl font-bold mb-6">📡 Step 2: Select Channels</h2>
+                <p class="text-gray-400 mb-4">Choose the communication channels for your campaign</p>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    ${channels.map(ch => `
+                        <div onclick="toggleChannel('${ch.id}')" 
+                             class="channel-card cursor-pointer p-4 rounded-xl border-2 transition-all
+                                    ${campaignData.channels.includes(ch.id) ? 'border-blue-500 bg-blue-900/30' : 'border-gray-700 bg-gray-900 hover:border-gray-500'}"
+                             data-channel="${ch.id}">
+                            <div class="text-3xl mb-2">${ch.icon}</div>
+                            <div class="font-bold">${ch.name}</div>
+                            <div class="text-xs text-gray-400">${ch.description}</div>
+                            ${campaignData.channels.includes(ch.id) ? '<div class="text-green-400 text-sm mt-2">✓ Selected</div>' : ''}
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="mt-4 text-sm text-gray-400">
+                    Selected: ${campaignData.channels.length} channels
+                </div>
+            `;
+        }
+
+        function toggleChannel(channelId) {
+            const idx = campaignData.channels.indexOf(channelId);
+            if (idx > -1) {
+                campaignData.channels.splice(idx, 1);
+            } else {
+                campaignData.channels.push(channelId);
+            }
+            renderStep(2);
+        }
+
+        // Step 3: Audience
+        function renderStep3() {
+            return `
+                <h2 class="text-2xl font-bold mb-6">👥 Step 3: Define Audience</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">Select Segments</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center gap-2 p-3 bg-gray-900 rounded-lg cursor-pointer hover:bg-gray-800">
+                                <input type="checkbox" class="w-4 h-4"> All Contacts
+                            </label>
+                            <label class="flex items-center gap-2 p-3 bg-gray-900 rounded-lg cursor-pointer hover:bg-gray-800">
+                                <input type="checkbox" class="w-4 h-4"> Active Donors
+                            </label>
+                            <label class="flex items-center gap-2 p-3 bg-gray-900 rounded-lg cursor-pointer hover:bg-gray-800">
+                                <input type="checkbox" class="w-4 h-4"> Lapsed Donors
+                            </label>
+                            <label class="flex items-center gap-2 p-3 bg-gray-900 rounded-lg cursor-pointer hover:bg-gray-800">
+                                <input type="checkbox" class="w-4 h-4"> Major Donors ($500+)
+                            </label>
+                            <label class="flex items-center gap-2 p-3 bg-gray-900 rounded-lg cursor-pointer hover:bg-gray-800">
+                                <input type="checkbox" class="w-4 h-4"> Volunteers
+                            </label>
+                            <label class="flex items-center gap-2 p-3 bg-gray-900 rounded-lg cursor-pointer hover:bg-gray-800">
+                                <input type="checkbox" class="w-4 h-4"> Event Attendees
+                            </label>
+                        </div>
+                    </div>
+                    <div class="bg-blue-900/30 border border-blue-700 rounded-lg p-4">
+                        <div class="text-blue-300 font-bold">Estimated Reach</div>
+                        <div class="text-3xl font-bold">24,500 contacts</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Step 4: Content
+        function renderStep4() {
+            return `
+                <h2 class="text-2xl font-bold mb-6">📝 Step 4: Create Content</h2>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-3 gap-4">
+                        <div onclick="selectContentMode('ai')" class="cursor-pointer p-4 rounded-xl border-2 border-purple-500 bg-purple-900/30 text-center">
+                            <div class="text-3xl mb-2">🤖</div>
+                            <div class="font-bold">AI Generate</div>
+                            <div class="text-xs text-gray-400">AI creates content</div>
+                        </div>
+                        <div onclick="selectContentMode('template')" class="cursor-pointer p-4 rounded-xl border-2 border-gray-700 bg-gray-900 hover:border-gray-500 text-center">
+                            <div class="text-3xl mb-2">📄</div>
+                            <div class="font-bold">Use Template</div>
+                            <div class="text-xs text-gray-400">Choose from library</div>
+                        </div>
+                        <div onclick="selectContentMode('custom')" class="cursor-pointer p-4 rounded-xl border-2 border-gray-700 bg-gray-900 hover:border-gray-500 text-center">
+                            <div class="text-3xl mb-2">✏️</div>
+                            <div class="font-bold">Custom</div>
+                            <div class="text-xs text-gray-400">Write your own</div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-900 rounded-lg p-4">
+                        <p class="text-gray-400 mb-2">Content will be created for:</p>
+                        <div class="flex flex-wrap gap-2">
+                            ${campaignData.channels.map(ch => {
+                                const channel = channels.find(c => c.id === ch);
+                                return `<span class="bg-gray-700 px-3 py-1 rounded">${channel?.icon} ${channel?.name}</span>`;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Step 5: IFTTT Selection (KEY STEP)
+        function renderStep5() {
+            const recommended = iftttWorkflows.filter(w => w.essential);
+            const other = iftttWorkflows.filter(w => !w.essential);
+            
+            return `
+                <h2 class="text-2xl font-bold mb-2 flex items-center gap-2">
+                    🎛️ Step 5: Select IFTTT Automations
+                </h2>
+                <p class="text-gray-400 mb-6">Choose which automated workflows to attach to this campaign</p>
+                
+                <!-- Recommended -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-bold mb-3 flex items-center gap-2">
+                        <span class="text-yellow-400">⭐</span> Recommended for ${campaignData.type || 'your'} campaign
+                    </h3>
+                    <div class="space-y-2">
+                        ${recommended.map(w => renderIFTTTCard(w)).join('')}
+                    </div>
+                </div>
+                
+                <!-- Other Workflows -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-bold mb-3">📋 Other Available Workflows</h3>
+                    <div class="space-y-2">
+                        ${other.map(w => renderIFTTTCard(w)).join('')}
+                    </div>
+                </div>
+                
+                <!-- Selected Summary -->
+                <div class="bg-blue-900/30 border border-blue-700 rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-blue-300 font-bold">Selected Automations</div>
+                            <div class="text-2xl font-bold">${campaignData.ifttt.length} workflows attached</div>
+                        </div>
+                        <button onclick="showIFTTTConfig()" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg">
+                            ⚙️ Configure Modes
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderIFTTTCard(workflow) {
+            const isSelected = campaignData.ifttt.find(i => i.id === workflow.id);
+            const mode = isSelected?.mode || 'on';
+            
+            return `
+                <div class="ifttt-card flex items-center justify-between p-4 rounded-xl border-2 
+                            ${isSelected ? 'border-blue-500 bg-blue-900/20 ifttt-selected' : 'border-gray-700 bg-gray-900'}"
+                     data-workflow="${workflow.id}">
+                    <div class="flex items-center gap-4">
+                        <input type="checkbox" ${isSelected ? 'checked' : ''} 
+                               onchange="toggleIFTTT('${workflow.id}')"
+                               class="w-5 h-5">
+                        <div>
+                            <div class="font-bold">${workflow.name}</div>
+                            <div class="text-sm text-gray-400">Trigger: ${workflow.trigger}</div>
+                            <div class="text-xs text-gray-500">${workflow.description}</div>
+                        </div>
+                    </div>
+                    ${isSelected ? `
+                        <div class="flex items-center gap-2">
+                            <select onchange="setIFTTTMode('${workflow.id}', this.value)" 
+                                    class="bg-gray-800 border border-gray-600 rounded px-2 py-1 text-sm">
+                                <option value="on" ${mode === 'on' ? 'selected' : ''}>🟢 ON</option>
+                                <option value="off" ${mode === 'off' ? 'selected' : ''}>⚫ OFF</option>
+                                <option value="timer" ${mode === 'timer' ? 'selected' : ''}>🟡 TIMER</option>
+                            </select>
+                            ${mode === 'timer' ? `
+                                <input type="number" placeholder="min" 
+                                       class="bg-gray-800 border border-gray-600 rounded px-2 py-1 text-sm w-20"
+                                       value="${isSelected?.timer || 60}">
+                            ` : ''}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function toggleIFTTT(workflowId) {
+            const idx = campaignData.ifttt.findIndex(i => i.id === workflowId);
+            if (idx > -1) {
+                campaignData.ifttt.splice(idx, 1);
+            } else {
+                campaignData.ifttt.push({ id: workflowId, mode: 'on', timer: null });
+            }
+            renderStep(5);
+        }
+
+        function setIFTTTMode(workflowId, mode) {
+            const item = campaignData.ifttt.find(i => i.id === workflowId);
+            if (item) {
+                item.mode = mode;
+                renderStep(5);
+            }
+        }
+
+        // Step 6: Goals
+        function renderStep6() {
+            return `
+                <h2 class="text-2xl font-bold mb-6">🎯 Step 6: Set Goals</h2>
+                <div class="space-y-4">
+                    <div class="p-4 bg-gray-900 rounded-lg">
+                        <label class="flex items-center gap-2 mb-3">
+                            <input type="checkbox" class="w-4 h-4" checked> 💰 Fundraising Goal
+                        </label>
+                        <input type="number" class="w-full bg-gray-800 border border-gray-700 rounded p-2" placeholder="Target amount ($)" value="50000">
+                    </div>
+                    <div class="p-4 bg-gray-900 rounded-lg">
+                        <label class="flex items-center gap-2 mb-3">
+                            <input type="checkbox" class="w-4 h-4" checked> 👥 New Donors
+                        </label>
+                        <input type="number" class="w-full bg-gray-800 border border-gray-700 rounded p-2" placeholder="Target count" value="500">
+                    </div>
+                    <div class="p-4 bg-gray-900 rounded-lg">
+                        <label class="flex items-center gap-2 mb-3">
+                            <input type="checkbox" class="w-4 h-4"> 📧 Email Open Rate
+                        </label>
+                        <input type="number" class="w-full bg-gray-800 border border-gray-700 rounded p-2" placeholder="Target %" value="25">
+                    </div>
+                    <div class="p-4 bg-gray-900 rounded-lg">
+                        <label class="flex items-center gap-2 mb-3">
+                            <input type="checkbox" class="w-4 h-4"> 📅 Event RSVPs
+                        </label>
+                        <input type="number" class="w-full bg-gray-800 border border-gray-700 rounded p-2" placeholder="Target count">
+                    </div>
+                </div>
+            `;
+        }
+
+        // Step 7: Review & Launch
+        function renderStep7() {
+            return `
+                <h2 class="text-2xl font-bold mb-6">🚀 Step 7: Review & Launch</h2>
+                
+                <div class="space-y-4">
+                    <!-- Summary -->
+                    <div class="bg-gray-900 rounded-lg p-4">
+                        <h3 class="font-bold mb-2">📋 Campaign Summary</h3>
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div><span class="text-gray-400">Name:</span> ${campaignData.name || 'New Campaign'}</div>
+                            <div><span class="text-gray-400">Type:</span> ${campaignData.type}</div>
+                            <div><span class="text-gray-400">Channels:</span> ${campaignData.channels.length}</div>
+                            <div><span class="text-gray-400">Est. Reach:</span> 24,500</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Channels -->
+                    <div class="bg-gray-900 rounded-lg p-4">
+                        <h3 class="font-bold mb-2">📡 Selected Channels</h3>
+                        <div class="flex flex-wrap gap-2">
+                            ${campaignData.channels.map(ch => {
+                                const channel = channels.find(c => c.id === ch);
+                                return `<span class="bg-blue-900 text-blue-200 px-3 py-1 rounded">${channel?.icon} ${channel?.name}</span>`;
+                            }).join('')}
+                        </div>
+                    </div>
+                    
+                    <!-- IFTTT Automations -->
+                    <div class="bg-gray-900 rounded-lg p-4">
+                        <h3 class="font-bold mb-2">🎛️ IFTTT Automations</h3>
+                        <div class="space-y-2">
+                            ${campaignData.ifttt.map(i => {
+                                const workflow = iftttWorkflows.find(w => w.id === i.id);
+                                const modeIcon = i.mode === 'on' ? '🟢' : i.mode === 'off' ? '⚫' : '🟡';
+                                return `
+                                    <div class="flex items-center justify-between text-sm bg-gray-800 p-2 rounded">
+                                        <span>${workflow?.name}</span>
+                                        <span>${modeIcon} ${i.mode.toUpperCase()}${i.mode === 'timer' ? ` (${i.timer || 60}m)` : ''}</span>
+                                    </div>
+                                `;
+                            }).join('') || '<div class="text-gray-500">No automations attached</div>'}
+                        </div>
+                    </div>
+                    
+                    <!-- Validation -->
+                    <div class="bg-green-900/30 border border-green-700 rounded-lg p-4">
+                        <div class="flex items-center gap-2 text-green-400 font-bold">
+                            ✓ Campaign Ready to Launch
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function nextStep() {
+            if (currentStep === 1) {
+                campaignData.name = document.getElementById('campaignName')?.value || '';
+                campaignData.type = document.getElementById('campaignType')?.value || 'fundraising';
+            }
+            
+            if (currentStep < 7) {
+                renderStep(currentStep + 1);
+            } else {
+                launchCampaign();
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                renderStep(currentStep - 1);
+            }
+        }
+
+        function launchCampaign() {
+            alert('🚀 Campaign Launched Successfully!\n\nYour campaign is now active with ' + campaignData.ifttt.length + ' IFTTT automations attached.');
+        }
+
+        function setPrompt(type) {
+            const prompts = {
+                fundraising: 'Create a 2-week fundraising campaign targeting lapsed donors with email, SMS, and direct mail. Goal is to raise $50,000 and reactivate 200 donors.',
+                gotv: 'Build a Get Out The Vote campaign for the last 5 days before election. Target unlikely voters with phone calls, SMS reminders, and ride-to-polls offers.',
+                event: 'Create an event promotion campaign for our upcoming town hall. Include email invites, SMS reminders, and social media promotion with RSVP tracking.',
+                volunteer: 'Design a volunteer recruitment campaign using email and social media. Target engaged supporters and past event attendees.'
+            };
+            document.getElementById('aiPrompt').value = prompts[type] || '';
+        }
+
+        function generateAICampaign() {
+            alert('🤖 AI is generating your campaign...\n\nThis would create a complete campaign plan including:\n• Channel selection\n• Content drafts\n• IFTTT automations\n• Goals & tracking');
+        }
+    </script>
+</body>
+</html>

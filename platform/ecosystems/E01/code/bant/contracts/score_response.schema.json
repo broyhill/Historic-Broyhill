@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/broyhill/BroyhillGOP/bant/score_response.schema.json",
+  "title": "BANT Score Response",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "silo_id",
+    "cluster_id",
+    "model_id",
+    "budget_score",
+    "authority_score",
+    "need_score",
+    "timing_score",
+    "bant_composite",
+    "p_act",
+    "tier",
+    "opponent_safe",
+    "observe_only"
+  ],
+  "properties": {
+    "silo_id": { "type": "string" },
+    "cluster_id": { "type": "integer" },
+    "model_id": { "type": "string" },
+    "budget_score": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "authority_score": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "need_score": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "timing_score": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "bant_composite": { "type": "number", "minimum": 0, "maximum": 100 },
+    "p_act": { "type": "number", "minimum": 0, "maximum": 1 },
+    "expected_amount": { "type": ["number", "null"] },
+    "tier": { "type": "string", "enum": ["A", "B", "C", "D", "U", "unscored"] },
+    "reason_vector": { "type": "array", "items": { "type": "object" } },
+    "microsegment_hints": { "type": "array", "items": { "type": "string" } },
+    "jurisdiction_key": { "type": ["string", "null"] },
+    "opponent_safe": { "type": "boolean" },
+    "observe_only": { "type": "boolean" }
+  }
+}

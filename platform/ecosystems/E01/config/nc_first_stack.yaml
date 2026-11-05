@@ -1,0 +1,65 @@
+# E01 — NC First tech stack (DonorAtlas §10–13 adapted)
+# Their stack is Next.js + Tailwind + Elasticsearch + Snowflake + Vercel + GTM.
+# Ours is already live. Do not stand up theirs.
+
+version: 1
+lane: E01
+gtm_id_do_not_copy: G-WTM3XSDRZX
+
+tech_stack:
+  frontend:
+    theirs: [React, Next.js, Tailwind, TypeScript, Inter, Open Sans, Vercel]
+    ours: [Inspinia, HTML/JS, BroyhillGOP tokens]
+    surface: ECO_CANONICAL/E01/frontend/E01_NC_FIRST_DONOR_EXPLORER.html
+  backend:
+    theirs: [Node.js, FastAPI/Django]
+    ours: [Python 3, optional FastAPI later]
+    module: ECO_CANONICAL/E01/code/nc_first_donor_explorer.py
+  database:
+    theirs: [PostgreSQL, Snowflake, Elasticsearch]
+    ours: [PostgreSQL on Hetzner]
+    person_key: {name: cluster_id, type: INTEGER}
+  search:
+    theirs: Elasticsearch
+    ours_docs: E84 /library/v2 and /relay/search-docs
+    ours_people: Postgres on cluster_id / core.donor_profile
+  infrastructure:
+    theirs: [AWS, Kubernetes, GitHub Actions, Docker]
+    ours: [Hetzner, feature branch + PR, dryrun then Authorized]
+  crm:
+    theirs: [Salesforce, Neon One, Bloomerang, HubSpot, NGP VAN]
+    ours: [D365 registered, NGP VAN listed as surpass on E15 — do not rebuild]
+  compliance:
+    theirs: [SOC 2, HIPAA marketing badges]
+    ours: [FEC, NCBOE, TCPA, 10DLC, opponent-donor suppression gate]
+
+sort_protocols:
+  - lifetime_total
+  - last_gift_date
+  - txn_count
+  - zip5
+  - county
+  - office_tier_relevance
+
+api:
+  base: /e01/nc-first
+  endpoints:
+    - method: GET
+      path: /donors/search
+      maps_from: GET /api/v1/donors/search
+      key: cluster_id
+    - method: GET
+      path: /donors/{cluster_id}/profile
+      maps_from: GET /api/v1/donors/{donor_id}/profile
+    - method: GET
+      path: /donors/{cluster_id}/tattoo
+      maps_from: GET /api/v1/donors/{donor_id}/network
+      notes: Tattoo graph, not a second identity.
+    - method: POST
+      path: /lists/export
+      maps_from: POST /api/v1/lists/export
+      notes: Returns payload only. No outbound send without Authorized.
+    - method: GET
+      path: /orgs/{ein}/tattoo
+      maps_from: GET /api/v1/organizations/{org_id}/contributors
+      key: ein

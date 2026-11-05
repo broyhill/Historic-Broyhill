@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>E01 Donor Intelligence — Chronological Progression</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#f8f9fa;color:#1a1a2e;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+#header{background:#1a1a2e;color:#fff;padding:24px 32px;border-bottom:4px solid #f0883e}
+#header h1{font-size:22px;font-weight:800;color:#f0883e;margin-bottom:4px}
+#header .sub{font-size:13px;color:#94a3b8}
+#search-bar{background:#fff;border-bottom:1px solid #e5e7eb;padding:12px 32px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px #0001}
+#search-input{flex:1;background:#f0f2f5;border:2px solid #d1d5db;border-radius:8px;padding:8px 14px;font-size:14px;outline:none;color:#1a1a2e;max-width:400px}
+#search-input:focus{border-color:#f0883e}
+.stat{font-size:12px;color:#6b7280;padding:4px 10px;background:#f0f2f5;border-radius:6px;white-space:nowrap}
+#timeline{max-width:1100px;margin:0 auto;padding:32px 24px;position:relative}
+#timeline::before{content:'';position:absolute;left:220px;top:0;bottom:0;width:3px;background:linear-gradient(180deg,#f0883e,#6366f1,#16a34a);opacity:.3}
+.era{margin-bottom:48px}
+.era-header{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#9ca3af;margin-bottom:20px;padding-left:240px}
+.event{display:flex;gap:0;margin-bottom:20px;position:relative}
+.event.hidden{display:none}
+.date-col{width:200px;flex-shrink:0;padding-right:24px;text-align:right}
+.date-label{font-size:13px;font-weight:700;color:#1a1a2e}
+.date-sub{font-size:11px;color:#6b7280}
+.dot{width:16px;height:16px;border-radius:50%;flex-shrink:0;margin-top:4px;border:3px solid #fff;box-shadow:0 0 0 2px currentColor;z-index:1;position:relative}
+.dot.conception{color:#f0883e;background:#f0883e}
+.dot.spec{color:#6366f1;background:#6366f1}
+.dot.code{color:#388bfd;background:#388bfd}
+.dot.schema{color:#16a34a;background:#16a34a}
+.dot.deploy{color:#ef4444;background:#ef4444}
+.dot.evolution{color:#8b5cf6;background:#8b5cf6}
+.dot.integration{color:#0891b2;background:#0891b2}
+.content{flex:1;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px 20px;margin-left:24px;transition:border-color .15s}
+.content:hover{border-color:#f0883e;box-shadow:0 2px 12px #f0883e11}
+.content-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
+.event-title{font-size:15px;font-weight:700;color:#1a1a2e;flex:1}
+.type-badge{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700;white-space:nowrap;flex-shrink:0}
+.badge-conception{background:#fff7ed;color:#c2410c;border:1px solid #fdba74}
+.badge-spec{background:#ede9fe;color:#6d28d9;border:1px solid #c4b5fd}
+.badge-code{background:#dbeafe;color:#1d4ed8;border:1px solid #93c5fd}
+.badge-schema{background:#f0fdf4;color:#15803d;border:1px solid #86efac}
+.badge-deploy{background:#fef2f2;color:#991b1b;border:1px solid #fca5a5}
+.badge-evolution{background:#f5f3ff;color:#6d28d9;border:1px solid #ddd6fe}
+.badge-integration{background:#ecfeff;color:#0e7490;border:1px solid #a5f3fc}
+.event-desc{font-size:13px;color:#374151;line-height:1.6;margin-bottom:10px}
+.event-details{font-size:12px;color:#6b7280;line-height:1.5}
+.key-point{background:#f8f9fa;border-left:3px solid #f0883e;padding:8px 12px;border-radius:0 6px 6px 0;margin:8px 0;font-size:12px;color:#374151}
+.key-point.blue{border-color:#388bfd}
+.key-point.green{border-color:#16a34a}
+.key-point.purple{border-color:#6366f1}
+.file-chip{display:inline-block;font-size:10px;padding:2px 8px;border-radius:4px;background:#f0f2f5;border:1px solid #e5e7eb;color:#6b7280;font-family:monospace;margin:2px 2px 2px 0;text-decoration:none;transition:all .15s;cursor:pointer}
+a.file-chip:hover{background:#dbeafe;border-color:#388bfd;color:#1d4ed8;text-decoration:none}
+.change-box{background:#fefce8;border:1px solid #fde047;border-radius:6px;padding:10px 14px;margin-top:8px;font-size:12px;color:#713f12}
+.change-box.added{background:#f0fdf4;border-color:#86efac;color:#14532d}
+.change-box.removed{background:#fef2f2;border-color:#fca5a5;color:#7f1d1d}
+.change-box.revised{background:#eff6ff;border-color:#93c5fd;color:#1e3a5f}
+.section-divider{text-align:center;padding:8px 0;margin:16px 0}
+.section-divider hr{border:none;border-top:1px dashed #e5e7eb}
+.metric-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.metric{background:#f8f9fa;border:1px solid #e5e7eb;border-radius:6px;padding:4px 10px;font-size:11px;color:#374151}
+.metric strong{color:#1a1a2e;font-size:13px;display:block}
+.summary-box{background:#1a1a2e;color:#e2e8f0;border-radius:12px;padding:24px 28px;margin:32px 0}
+.summary-box h2{font-size:16px;font-weight:800;color:#f0883e;margin-bottom:16px}
+.summary-row{display:flex;gap:32px;flex-wrap:wrap}
+.summary-item{flex:1;min-width:160px}
+.summary-item .label{font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.summary-item .value{font-size:18px;font-weight:800;color:#fff}
+.summary-item .note{font-size:11px;color:#94a3b8;margin-top:2px}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <h1>E01 — Donor Intelligence: Chronological Progression</h1>
+  <div class="sub">Origin to present · October 2025 → May 2026 · Every version, every change, every evolution</div>
+</div>
+
+<div id="search-bar">
+  <input id="search-input" type="text" placeholder="Filter events... try 'XGBoost' or 'schema' or 'grading'" oninput="filterEvents()">
+  <span class="stat" id="count-stat">All events</span>
+  <span class="stat">🟠 Conception &nbsp;🟣 Spec &nbsp;🔵 Code &nbsp;🟢 Schema &nbsp;🔴 Deploy &nbsp;🟤 Evolution</span>
+</div>
+
+<div id="timeline">
+
+<div class="summary-box">
+  <h2>E01 Snapshot — What It Is Today vs. What It Started As</h2>
+  <div class="summary-row">
+    <div class="summary-item">
+      <div class="label">Original vision</div>
+      <div class="value">Oct 2025</div>
+      <div class="note">XGBoost propensity model for 150K NC donors</div>
+    </div>
+    <div class="summary-item">
+      <div class="label">First code</div>
+      <div class="value">Dec 8, 2025</div>
+      <div class="note">donor_intelligence_engine.py — 39KB</div>
+    </div>
+    <div class="summary-item">
+      <div class="label">Current size</div>
+      <div class="value">9 files</div>
+      <div class="note">~600KB of Python across canonical + imports</div>
+    </div>
+    <div class="summary-item">
+      <div class="label">Deployed to Hetzner</div>
+      <div class="value">PARTIAL</div>
+      <div class="note">CALCULATE_TRIPLE_GRADES.sql not yet run</div>
+    </div>
+    <div class="summary-item">
+      <div class="label">Donors graded</div>
+      <div class="value">0 / 98,303</div>
+      <div class="note">composite_grade = 0% — unblocked by triple grades</div>
+    </div>
+  </div>
+</div>
+
+<!-- ERA 1: CONCEPTION -->
+<div class="era">
+<div class="era-header">⚡ ERA 1 — CONCEPTION (Oct–Nov 2025)</div>
+
+<div class="event" data-tags="conception presentation original vision propensity xgboost">
+  <div class="date-col">
+    <div class="date-label">Oct 26, 2025</div>
+    <div class="date-sub">First presentation</div>
+  </div>
+  <div class="dot conception"></div>
+  <div class="content">
+    <div class="content-top">
+      <span class="event-title">Original Concept Presentation — "Donor Intelligence Mapping"</span>
+      <span class="type-badge badge-conception">CONCEPTION</span>
+    </div>
+    <div class="event-desc">The very first documented version of what became E01. Presented as part of the BroyhillGOP Final Presentation deck. At this point it had no code, no schema, no ecosystem number — just a concept: use AI to map donor propensity for NC Republican candidates.</div>
+    <div class="key-point">The idea was simple: stop reaching out to everyone the same way. Use AI to predict who will give, how much, and on which issue — then contact them exactly that way.</div>
+    <span class="file-chip">docs/INBOX/BroyhillGOP FInal Presentation/donor intelligence mapping.pdf</span>
+  </div>
+</div>
+
+<div class="event" data-tags="conception spec propensity model xgboost religious university military nc">
+  <div class="date-col">
+    <div class="date-label">Nov 6, 2025</div>
+    <div class="date-sub">Full specification</div>
+  </div>
+  <div class="dot conception"></div>
+  <div class="content">
+    <div class="content-top">
+      <span class="event-title">Full Donor Intelligence Specification — "North Carolina Republican Donor Intelligence System"</span>
+      <span class="type-badge badge-conception">SPEC</span>
+    </div>
+    <div class="event-desc">The founding document of E01. 111KB, 24 pages. Everything E01 was designed to be. This is the original bible — written before a single line of code existed.</div>
+
+    <div class="key-point purple">WHAT IT SAID E01 WOULD DO: Predict donation propensity for 150,000 NC GOP donors using XGBoost machine learning trained on 6 NC-specific feature categories.</div>
+
+    <div class="section-divider"><hr></div>
+    <div class="event-desc"><strong>The 6 Feature Categories (with weights):</strong></div>
+
+    <div class="key-point">1. Religious Identity (35%) — 6 categories: Evangelical Protestant (2.1x), LDS (2.5x), Mainline Protestant (1.4x), Catholic (1.3x), Jewish (0.7x), Non-Religious (0.6x). Each tracked by denomination with propensity multipliers.</div>
+    <div class="key-point">2. NC University Alumni Loyalty (25%) — Duke (1.8x), Wake Forest (1.9x), UNC (1.2x), NC State (1.7x), private religious colleges (2.0x+). ACC rivalry intelligence used for donor segmentation.</div>
+    <div class="key-point">3. Professional &amp; Industry Affiliation (20%) — Banking/Finance Charlotte (1.8x), Textile/Manufacturing (2.2x), Agriculture (2.7x), Healthcare (1.4x), Real Estate (2.0x), Legal/Federalist Society (2.3x).</div>
+    <div class="key-point">4. Military Service (15%) — Veterans (1.9x), combat veterans (2.4x), 82nd Airborne/Special Forces (2.8x). Fort Liberty, Camp Lejeune, Seymour Johnson AFB as key NC bases.</div>
+    <div class="key-point">5. Civic &amp; Community Leadership (10%) — Chamber of Commerce, Rotary (337 clubs in NC), Farm Bureau (580K members). Propensity multiplier: 1.6x.</div>
+    <div class="key-point">6. Past Donation History (25%) — SINGLE MOST PREDICTIVE FEATURE. RFM model: 1 donation in past year = 2.1x; 3+ donations = 4.7x; $5,000+ total = 5.8x.</div>
+
+    <div class="section-divider"><hr></div>
+    <div class="event-desc"><strong>ML Model Architecture:</strong></div>
+    <div class="change-box added">XGBoost Multi-Output Regression. 4 predicted outputs per donor: (1) Probability of donation next 90 days (0–100%), (2) Expected donation amount ($10–$10K+), (3) Donation frequency per year, (4) Channel preference (Email/Mail/Event/Phone/Text).</div>
+    <div class="change-box added">Training set: 50,000 NC donors with known outcomes. Performance targets: 82% precision, 67% recall, 4.2x ROI vs. random outreach.</div>
+    <div class="change-box added">Feature vector: 18 dimensions including religious category, university tier, industry, military status, civic org count, donation history, home value, age, county, urban/rural score, church attendance, social media conservative score, yard sign detected.</div>
+
+    <div class="section-divider"><hr></div>
+    <div class="event-desc"><strong>Top 15 NC Issues (by donor salience score):</strong></div>
+    <div class="metric-row">
+      <div class="metric"><strong>92</strong>Education Choice</div>
+      <div class="metric"><strong>91</strong>Agriculture (farmers)</div>
+      <div class="metric"><strong>89</strong>Pro-Life</div>
+      <div class="metric"><strong>86</strong>2nd Amendment</div>
+      <div class="metric"><strong>83</strong>Religious Liberty</div>
+      <div class="metric"><strong>81</strong>Tax Reform</div>
+      <div class="metric"><strong>78</strong>Election Integrity</div>
+      <div class="metric"><strong>76</strong>Parental Rights</div>
+      <div class="metric"><strong>74</strong>Immigration</div>
+      <div class="metric"><strong>72</strong>Military/Veterans</div>
+    </div>
+
+    <div class="section-divider"><hr></div>
+    <div class="event-desc"><strong>4-Tier Outreach Strategy:</strong></div>
+    <div class="change-box">Tier 1 (Score 90–100, ~3,000 donors): Candidate phone call, ask $2,500–$10,000. Tier 2 (75–89, ~15,000): Staff call + personalized email, ask $500–$2,500. Tier 3 (60–74, ~35,000): Mass personalized email, ask $100–$500. Tier 4 (&lt;60, ~97,000): Generic email/text, ask $25–$100.</div>
+
+    <div class="section-divider"><hr></div>
+    <div class="event-desc"><strong>Innovative additions in original spec:</strong></div>
+    <div class="change-box added">Computer vision yard sign detection: YOLO model trained on NC political yard signs. Google Street View scan of all 150K donor addresses. Yard sign detected = +15 propensity score.</div>
+    <div class="change-box added">OpenAI deep research integration: o4-mini deep research for top 1,000 scored donors. 8 research dimensions per donor including church membership, university athletic donor status, Federalist Society membership.</div>
+    <div class="change-box added">PostgresML implementation: Full SQL training code for XGBoost model directly in Postgres. Score all 150K donors with SQL UPDATE. Top 10K prospects query.</div>
+    <div class="change-box added">NC Conservative Org Directory: 15+ organizations with FEC IDs, Guidestar links, donor lookup URLs (John Locke Foundation, NC Values Coalition, AFP, Heritage Foundation, ADF, Samaritan's Purse).</div>
+
+    <span class="file-chip">Downloads/regarding BroyhillGOP Political Donor Intelligence.docx (111KB)</span>
+    <span class="file-chip">Downloads/regarding BroyhillGOP Political Donor Intelligence.pdf (295KB)</span>
+  </div>
+</div>
+
+</div><!-- end era 1 -->
+
+<!-- ERA 2: FIRST BUILD -->
+<div class="era">
+<div class="era-header">🔨 ERA 2 — FIRST BUILD (Nov–Dec 2025)</div>
+
+<div class="event" data-tags="spec masterfile part1 donor intelligence detailed">
+  <div class="date-col">
+    <div class="date-label">Nov 21, 2025</div>
+    <div class="date-sub">Detailed spec</div>
+  </div>
+  <div class="dot spec"></div>
+  <div class="content">
+    <div class="content-top">
+      <span class="event-title">BroyhillGOP V8 Masterfile — Donor Intelligence Part 1</span>
+      <span class="type-badge badge-spec">SPEC</span>
+    </div>
+    <div class="event-desc">The first formal ecosystem spec — "02_DONOR_INTELLIGENCE_PART1.md" — produced as part of the BroyhillGOP V8 Masterfile package. 37KB. Translated the October concept into a platform blueprint with explicit ecosystem architecture. This is where E01 got its number and formal identity.</div>
+    <div class="key-point">CHANGE: The spec went from a standalone research report to a formal ecosystem blueprint with layers (DDL, API, Brain integration). The "E01" designation was assigned here.</div>
+    <span class="file-chip">Downloads/BroyhillGOP_V8_Masterfile_Complete/02_DONOR_INTELLIGENCE_PART1.md (37KB)</span>
+  </div>
+</div>
+
+<div class="event" data-tags="code python first engine donor intelligence">
+  <div class="date-col">
+    <div class="date-label">Dec 8, 2025</div>
+    <div class="date-sub">First code ever written</div>
+  </div>
+  <div class="dot code"></div>
+  <div class="content">
+    <div class="content-top">
+      <span class="event-title">donor_intelligence_engine.py — First E01 Python Code</span>
+      <span class="type-badge badge-code">CODE</span>
+    </div>
+    <div class="event-desc">The very first Python implementation of donor intelligence. Delivered as part of FINAL_UPLOAD_PACKAGE. 39KB. This is the original engine — before the ecosystem naming convention, before Supabase integration, before the grading system.</div>
+    <div class="key-point blue">WHAT IT DID: Implemented the propensity model from the November spec. Feature extraction for religious identity, university affiliation, professional category, donation history. Basic scoring function returning 0–100 propensity score.</div>
+    <div class="change-box">MISSING from v1: No RFM recency weighting. No NC-specific multipliers. No channel preference output. Simple scalar score, not multi-output regression. No integration with any database — standalone Python.</div>
+    <span class="file-chip">Downloads/FINAL_UPLOAD_PACKAGE/2_PYTHON_HOST/donor_intelligence_engine.py (39KB)</span>
+  </div>
+</div>
+
+<div class="event" data-tags="code python complete ecosystem first full version">
+  <div class="date-col">
+    <div class="date-label">Dec 16, 2025</div>
+    <div class="date-sub">First complete ecosystem</div>
+  </div>
+  <div class="dot code"></div>
+  <div class="content">
+    <div class="content-top">
+      <span class="event-title">ecosystem_01_donor_intelligence_complete.py — First Full Ecosystem File</span>
+      <span class="type-badge badge-code">CODE</span>
+    </div>
+    <div class="event-desc">The file graduated from "engine" to "ecosystem." 50KB. Now formally named as E01. Delivered in multiple package bundles (broyhillgop_platform, broyhillgop_platform_1, all-files). This version introduced the ecosystem class architecture that all subsequent ecosystems followed.</div>
+    <div class="key-point blue">WHAT CHANGED: Added Supabase connection. Added grade_donor() function (first appearance of A–F grading). Added donor profile schema. Integrated RFM model (Recency, Frequency, Monetary). Added channel preference output (email/phone/SMS/mail).</div>
+    <div class="change-box added">ADDED: A–F donor grading scale. grade_donor() as primary entry point. Supabase REST client. RFM scoring with recency decay. Multi-output: propensity + amount + frequency + channel.</div>
+    <div class="change-box">STILL MISSING: NC-specific propensity multipliers not yet wired to the scoring logic. No Brain integration. No control panel. No on/off toggles.</div>
+    <span class="file-chip">Downloads/broyhillgop_platform/ecosystem_01_donor_intelligence_complete.py (50KB)</span>
+    <span class="file-chip">Downloads/all-files/ecosystem_01_donor_intelligence_complete.py (50KB)</span>
+  </div>
+</div>
+
+</div><!-- end era 2 -->
+
+<!-- ERA 3: FORMALIZATION -->
+<div class="era">
+<div class="era-header">📋 ERA 3 — FORMALIZATION (Feb–Mar 2026)</div>
+
+<div class="event" data-tags="spec perplexity nexus blueprint e01 e02 formal">
+  <div class="date-col">
+    <div class="date-label">Feb 21, 2026</div>
+    <div class="date-sub">Nexus blueprint</div>
+  </div>
+  <div class="dot spec"></div>
+  <div class="content">
+    <div class="content-top">
+      <span class="event-title">Perplexity/Nexus E01–E02 Blueprint — Formal 7-Layer Architecture</span>
+      <span class="type-badge badge-spec">SPEC</span>
+    </div>
+    <div class="event-desc">Nexus produced the first formal 7-layer ecosystem blueprint for E01. This aligned donor intelligence with the BroyhillGOP standard blueprint format (DDL → Indexes → RLS → API → Triggers → Brain Integration → Inspinia Admin).</div>
+    <div class="key-point purple">WHAT CHANGED: E01 was now tied to the Brain (E20). Events fired from E01 ("donor graded") became Brain triggers. The concept of "Brain-aware donor intelligence" was introduced here.</div>
+    <span class="file-chip">Claude sessions/uploads/Perplexity-E01-E02-Blueprint.txt (84KB)</span>
+  </div>
+</div>
+
+<div class="event" data-tags="spec briefing cursor claude handoff donor intelligence march">
+  <div class="date-col">
+    <div class="date-label">Mar 15, 2026</div>
+    <div class="date-sub">Claude → Cursor handoff</div>
+  </div>
+  <div class="dot spec"></div>
+  <div class="content">
+    <div class="content-top">
+      <span class="event-title">Claude Briefing to Cursor — Donor Intelligence Build Instructions</span>
+      <span class="type-badge badge-spec">HANDOFF</span>
+    </div>
+    <div class="event-desc">First cross-agent handoff document for E01. Claude wrote a full briefing to Cursor specifying exactly what to build and how. 17KB. Established the pattern of AI-to-AI handoffs that became standard across the platform.</div>
+    <div class="key-point">WHAT CHANGED: This document introduced the match_tier constraint (A_EXACT | B_ALIAS | C_FIRST3 | D_HOUSEHOLD | E_WRONG_LAST | F_ORPHAN | UNMATCHED) as a core E01 concept. Every future version carried this forward.</div>
+    <span class="file-chip">docs/CLAUDE_BRIEFING_TO_CURSOR_donor_intelligence_2026-03-15.docx (17KB)</span>
+  </div>
+</div>
+
+<div class="event" data-tags="schema sql control panel data import march deploy">
+  <div class="date-col">
+    <div class="date-label">Mar 24, 2026</div>
+    <div class="date-sub">First schema deployment</div>
+  </div>
+  <div class="dot schema"></div>
+  <div class="content">
+    <div class="content-top">
+      <span class="event-title">E01 Data Import Control Panel Schema — First SQL</span>
+      <span class="type-badge badge-schema">SCHEMA</span>
+    </div>
+    <div class="event-desc">First production SQL schema for E01. 21KB. Introduced the control panel architecture — ON/OFF toggles for each data import source. This was the first appearance of the candidate-facing control panel in E01.</div>
+    <div class="key-point green">WHAT WAS NEW: control_panel table with per-source toggle switches. Import sources: NCBOE voter file, FEC donations, DataTrust, social OAuth, church directories, LinkedIn, property records. Each source had enabled/disabled/scheduled/manual toggle.</div>
+    <div class="change-box added">ADDED: E01_import_sources table. E01_import_log table. E01_control_panel table with on/off/timer for each source. RLS policies per candidate_id (multi-tenant isolation).</div>
+    <span class="file-chip">E01_DEPLOY/E01_DATA_IMPORT_CONTROL_PANEL_SCHEMA.sql (21KB)</span>
+    <span class="file-chip">sql/E01_DATA_IMPORT_CONTROL_PANEL_SCHEMA.sql (21KB)</span>
+    <span class="file-chip">ECOSYSTEM_REPORTS/E01_DONOR_INTELLIGENCE.docx (27KB)</span>
+  </div>
+</div>
+
+<div class="event" data-tags="code ecosystem python complete enhanced march canonical">
+  <div class="date-col">
+    <div class="date-label">Mar 2026</div>
+    <div class="date-sub">Multiple Python builds</div>
+  </div>
+  <div class="dot code"></div>
+  <div class="content">
+    <div class="content-top">
+      <span class="event-title">E01 Python Suite Expanded — Data Import, Contact Import, Social OAuth, Platform Import</span>
+      <span class="type-badge badge-code">CODE</span>
+    </div>
+    <div class="event-desc">E01 grew from one file to a suite. Four separate Python modules, each handling a different data intake pipeline. This was the first time E01 split into a modular architecture.</div>
+    <div class="metric-row">
+      <div class="metric"><strong>87KB</strong>ecosystem_01_data_import_engine.py</div>
+      <div class="metric"><strong>65KB</strong>ecosystem_01_contact_import.py</div>
+      <div class="metric"><strong>54KB</strong>ecosystem_01_platform_social_import.py</div>
+      <div class="metric"><strong>76KB</strong>ecosystem_01_social_oauth_maximum_capture.py</div>
+    </div>
+    <div class="change-box added">ADDED: Separate data intake pipeline per source type. Social graph builder. OAuth capture for 6 social platforms. vCard/Outlook/Google Contacts import. Deduplification against core.donor_profile.</div>
+    <div class="change-box revised">REVISED: grade_donor() now takes match_tier as required parameter. No grade assigned until match_tier ≥ A_EXACT or B_ALIAS.</div>
+    <span class="file-chip">ecosystems/ecosystem_01_data_import_engine.py</span>
+    <span class="file-chip">ecosystems/ecosystem_01_contact_import.py</span>
+    <span class="file-chip">ecosystems/ecosystem_01_platform_social_import.py</span>
+    <span class="file-chip">ecosystems/ecosystem_01_social_oauth_maximum_capture.py</span>
+  </div>
+</div>
+
+</div><!-- end era 3 -->
+
+<!-- ERA 4: STABILIZATION -->
+<div class="era">
+<div class="era-header">🔧 ERA 4 — STABILIZATION &amp; CONSOLIDATION (May 2–6, 2026)</div>
+
+<div class="event" data-tags="architecture section 1 grading consolidation design claude may">
+  <div class="date-col">
+    <div class="date-label">May 2, 2026</div>
+    <div class="date-sub">Section 1 — grading reorg</div>
+  </div>
+  <div class="dot evolution"></div>
+  <div class="content">
+    <div class="content-top">
+      <span class="event-title">Section 1 — E01 Grading Consolidation: Unified grade_donor() Entry Point</span>
+      <span class="type-badge badge-evolution">REDESIGN</span>
+    </div>
+    <div class="event-desc">The most significant architectural change to E01. Five separate files were all claiming E01. Claude consolidated them: one canonical grade_donor() function as the single entry point, four supporting files moved to e01_imports/ folder. 24 unit tests. This is the version documented in the May 2 plain-English map.</div>
+    <div class="key-point purple">WHAT CHANGED: Before = 5 files, no clear primary, no single entry point. After = 1 canonical file with grade_donor(rnc_regid) as the ONLY public API. Everything else is an import. No other module calls E01 directly anymore — they call grade_donor() and get back a structured result.</div>
+    <div class="change-box added">ADDED: Unified grade_donor(rnc_regid) → returns {grade: 'A+', confidence: 0.87, propensity_score: 92, expected_amount: 850, channel: 'email', top_issues: ['education_choice', 'pro_life']}. 24 unit tests. Brain event fired on grade assignment.</div>
+    <div class="change-box">STATUS: PR pushed, NOT yet merged to main.</div>
+    <span class="file-chip">docs/architecture/SECTION_1_E01_GRADING_CONSOLIDATION_DESIGN.md (8KB)</span>
+    <span class="file-chip">ecosystems/ecosystem_01_donor_intelligence.py (canonical)</span>
+    <span class="file-chip">ecosystems/e01_imports/ (4 supporting files)</span>
+  </div>
+</div>
+
+<div class="event" data-tags="test e01 determinism grade distribution match tier passthrough may">
+  <div class="date-col">
+    <div class="date-label">May 6, 2026</div>
+    <div class="date-sub">Test suite</div>
+  </div>
+  <div class="dot code"></div>
+  <div class="content">
+    <div class="content-top">
+      <span class="event-title">E01 Test Suite — Determinism, Grade Distribution, Match Tier Passthrough</span>
+      <span class="type-badge badge-code">TESTS</span>
+    </div>
+    <div class="event-desc">Three dedicated test files for E01. First time E01 had formal automated testing. Tests verified that grading is deterministic (same donor always gets same grade), grade distribution follows expected bell curve, and match_tier constraint is properly enforced.</div>
+    <div class="key-point green">WHAT WAS TESTED: Determinism (run grade_donor() 3x on same donor → identical result each time). Grade distribution (A+ through F follows expected NC donor population distribution). Match tier passthrough (D/E/F match tiers cannot receive A or B grades).</div>
+    <span class="file-chip">tests/test_e01_determinism.py (3.9KB)</span>
+    <span class="file-chip">tests/test_e01_grade_distribution.py (5.5KB)</span>
+    <span class="file-chip">tests/test_e01_match_tier_passthrough.py (3.8KB)</span>
+  </div>
+</div>
+
+<div class="event" data-tags="audit e01 may 8 cellular json state">
+  <div class="date-col">
+    <div class="date-label">May 8, 2026</div>
+    <div class="date-sub">Platform audit</div>
+  </div>
+  <div class="dot deploy"></div>
+  <div class="content">
+    <div class="content-top">
+      <span class="event-title">May 8 Platform Audit — E01 Cellular State Snapshot</span>
+      <span class="type-badge badge-deploy">AUDIT</span>
+    </div>
+    <div class="event-desc">Part of the comprehensive Prometheus audit of all 63 ecosystems. E01 was snapshot to audit/2026-05-08/cellular/E01.json (14.6KB). This was the first objective assessment of E01's actual deployed state vs. intended state.</div>
+    <div class="change-box removed">AUDIT FINDING: composite_grade column exists in core.donor_profile but 0% of 98,303 rows have a value. CALCULATE_TRIPLE_GRADES.sql not run. E01 cannot grade donors until this runs first.</div>
+    <div class="change-box">STATUS AT AUDIT: PARTIAL. Schema deployed, Python written, zero live computation.</div>
+    <span class="file-chip">audit/2026-05-08/cellular/E01.json (14.6KB)</span>
+  </div>
+</div>
+
+</div><!-- end era 4 -->
+
+<!-- ERA 5: CURRENT STATE -->
+<div class="era">
+<div class="era-header">🚀 ERA 5 — CURRENT STATE (May 2026)</div>
+
+<div class="event" data-tags="canonical reference comprehensive pipeline plan may 2026">
+  <div class="date-col">
+    <div class="date-label">May 24, 2026</div>
+    <div class="date-sub">Canonical reference</div>
+  </div>
+  <div class="dot evolution"></div>
+  <div class="content">
+    <div class="content-top">
+      <span class="event-title">E01 Donor Intelligence Canonical Reference + Comprehensive Pipeline Plan</span>
+      <span class="type-badge badge-evolution">CANONICAL</span>
+    </div>
+    <div class="event-desc">The two largest E01 documents. The canonical reference (42KB) is the current single source of truth for E01's architecture, API, schema, and behavior. The pipeline plan (67KB) is the detailed implementation roadmap. These supersede all earlier spec documents.</div>
+    <div class="metric-row">
+      <div class="metric"><strong>42KB</strong>E01_Donor_Intelligence_Canonical_Reference.md</div>
+      <div class="metric"><strong>67KB</strong>E01_DONOR_PIPELINE_COMPREHENSIVE_PLAN.md</div>
+      <div class="metric"><strong>14KB</strong>E01_DOC_REGISTRY.md</div>
+    </div>
+    <div class="key-point purple">WHAT CHANGED: Triple grading system introduced (Triple Grades = NCBOE + FEC + DataTrust/Acxiom combined score). This replaced the original single-source propensity model. Three data sources → one composite grade → drives all downstream decisions.</div>
+    <div class="change-box revised">REVISED: Original XGBoost model from November 2025 replaced by Triple Grade composite scoring. BG/NBD (Buy-'Til-You-Die) model added for churn prediction. Gamma-Gamma model added for lifetime value. These are Tier 3 features — not yet deployed.</div>
+    <div class="change-box added">ADDED: dual_grading_update.py — updates composite_grade in real-time when new donation events arrive from Brain. batch_grade_donors.py — runs bulk grading against all 98,303 ungraded donors. Social OAuth maximum capture for 6 platforms.</div>
+    <span class="file-chip">docs/canonical/E01_Donor_Intelligence_Canonical_Reference.md (42KB)</span>
+    <span class="file-chip">docs/plans/E01_DONOR_PIPELINE_COMPREHENSIVE_PLAN.md (67KB)</span>
+    <span class="file-chip">ecosystems/ecosystem_01_dual_grading_update.py (14KB)</span>
+    <span class="file-chip">scripts/batch_grade_donors.py (6KB)</span>
+  </div>
+</div>
+
+<div class="event" data-tags="restoration sequence may 25 hetzner deployed partial spec current">
+  <div class="date-col">
+    <div class="date-label">May 25, 2026</div>
+    <div class="date-sub">Restoration sequence</div>
+  </div>
+  <div class="dot deploy"></div>
+  <div class="content">
+    <div class="content-top">
+      <span class="event-title">Ecosystem Restoration Sequence — E01 Current Status: PARTIAL</span>
+      <span class="type-badge badge-deploy">STATUS</span>
+    </div>
+    <div class="event-desc">The May 25 platform audit classified E01 as PARTIAL. This is the most honest, current assessment of where E01 actually stands. Produced by Brain Capability Audit team.</div>
+    <div class="change-box removed">BLOCKER: CALCULATE_TRIPLE_GRADES.sql must run FIRST — populates composite_grade on 98,303 donor rows. Until this runs, E01 cannot grade a single donor. Everything downstream is blocked.</div>
+    <div class="change-box">E01 DEPLOYED: Schema exists on Hetzner. Python written. grade_donor() function exists. Brain triggers wired.</div>
+    <div class="change-box removed">E01 MISSING: composite_grade = 0% on 98,303 rows. Tier 2 ecosystems (E05 Channel Preference, E07 Event-Driven Response) blocked waiting on E01. Tier 3 (BG/NBD, Gamma-Gamma LTV models) not started.</div>
+    <span class="file-chip">docs/architecture/ECOSYSTEM_RESTORATION_SEQUENCE_2026-05-25.md</span>
+  </div>
+</div>
+
+<div class="event" data-tags="phase b triple grades dry run may 15 hetzner partial">
+  <div class="date-col">
+    <div class="date-label">May 15, 2026</div>
+    <div class="date-sub">Triple grades dry run</div>
+  </div>
+  <div class="dot deploy"></div>
+  <div class="content">
+    <div class="content-top">
+      <span class="event-title">Phase B Triple Grades Dry Run — Hetzner</span>
+      <span class="type-badge badge-deploy">DRY RUN</span>
+    </div>
+    <div class="event-desc">The triple grading SQL was run as a dry-run against Hetzner. Verified the calculation logic, confirmed 98,303 rows would be affected, checked for constraint violations. Never promoted to live — authorization was pending.</div>
+    <div class="key-point green">DRY RUN OUTCOME: No errors. Logic correct. Canary cluster 372171 validated (147 txns / $332,631.30 — unchanged). Ready to run live with authorization.</div>
+    <div class="change-box">CURRENT SITUATION: CALCULATE_TRIPLE_GRADES.sql is tested and ready. Waiting on Ed authorization to run live. One command = 98,303 donors graded. Everything downstream unblocks.</div>
+    <span class="file-chip">docs/ai-sessions/PHASE_B_TRIPLE_GRADES_DRY_RUN_2026-05-15.md (14KB)</span>
+    <span class="file-chip">docs/E01/ECOSYSTEM_BUILDOUT_TODO_2026-05-15.md (47KB)</span>
+  </div>
+</div>
+
+</div><!-- end era 5 -->
+
+<!-- SUMMARY -->
+<div class="summary-box">
+  <h2>The E01 Journey — What Changed Over 7 Months</h2>
+  <div class="summary-row">
+    <div class="summary-item">
+      <div class="label">Original intent (Oct 2025)</div>
+      <div class="value" style="font-size:14px;line-height:1.4">XGBoost propensity model. 6 feature categories. Score 150K donors 0–100. One Python file.</div>
+    </div>
+    <div class="summary-item">
+      <div class="label">What it became (May 2026)</div>
+      <div class="value" style="font-size:14px;line-height:1.4">Triple Grade composite (NCBOE + FEC + DataTrust). 9 Python files. Brain-wired. Candidate-isolated. match_tier enforced. BG/NBD + Gamma-Gamma LTV (Tier 3, not deployed).</div>
+    </div>
+    <div class="summary-item">
+      <div class="label">What stayed the same</div>
+      <div class="value" style="font-size:14px;line-height:1.4">The goal: predict which NC GOP donor gives next, how much, on which issue, via which channel. Unchanged from day one.</div>
+    </div>
+  </div>
+  <div style="margin-top:20px;padding-top:16px;border-top:1px solid #334155;font-size:13px;color:#94a3b8">
+    <strong style="color:#f0883e">The one thing that hasn't happened yet:</strong> Running CALCULATE_TRIPLE_GRADES.sql live on Hetzner. That's the unlock. 98,303 donors get graded. Every downstream ecosystem unblocks. E01 goes from PARTIAL to LIVE with one authorized command.
+  </div>
+</div>
+
+</div><!-- end timeline -->
+
+<script>
+function filterEvents() {
+  const q = document.getElementById('search-input').value.toLowerCase().trim();
+  const events = document.querySelectorAll('.event');
+  let shown = 0;
+  events.forEach(e => {
+    const text = (e.textContent + ' ' + (e.dataset.tags||'')).toLowerCase();
+    if (!q || text.includes(q)) { e.classList.remove('hidden'); shown++; }
+    else e.classList.add('hidden');
+  });
+  document.getElementById('count-stat').textContent = q ? shown + ' events match' : 'All ' + events.length + ' events';
+  // Hide empty eras
+  document.querySelectorAll('.era').forEach(era => {
+    const any = [...era.querySelectorAll('.event')].some(e => !e.classList.contains('hidden'));
+    era.style.display = any ? '' : 'none';
+  });
+}
+// ── Auto-link all file chips to bridge ──────────────────────────
+const CURSOR  = '/Users/Broyhill/Desktop/BroyhillGOP-CURSOR/';
+const GITHUB  = '/Users/Broyhill/Documents/GitHub/BroyhillGOP/';
+const DLOADS  = '/Users/Broyhill/Downloads/';
+
+function resolvePath(text) {
+  text = text.trim();
+  if (text.startsWith('/Users/')) return text; // already absolute
+  if (text.startsWith('Downloads/'))   return '/Users/Broyhill/' + text;
+  if (text.startsWith('Claude sessions/')) return null; // too deep to resolve
+  // Try CURSOR first, then GitHub
+  const cursroots = ['docs/','E01_DEPLOY/','scripts/','sql/','ECOSYSTEM_REPORTS/','e55_jeeva_clone/','backend/','frontend/','ecosystems/e01_imports/','sessions/'];
+  const ghrroots  = ['ecosystems/','tests/','audit/','migrations/','database/','docs/architecture/','docs/canonical/','docs/handoffs/','docs/plans/'];
+  if (cursroots.some(r => text.startsWith(r))) return CURSOR + text;
+  if (ghrroots.some(r => text.startsWith(r)))  return GITHUB + text;
+  // Fallback: try CURSOR
+  return CURSOR + text;
+}
+
+document.querySelectorAll('.file-chip').forEach(chip => {
+  const raw = chip.textContent.trim();
+  const full = resolvePath(raw);
+  if (!full) return; // skip unresolvable
+  const a = document.createElement('a');
+  a.className = 'file-chip';
+  a.href = 'http://localhost:8181/open?path=' + encodeURIComponent(full);
+  a.target = '_blank';
+  a.title = 'Open: ' + full;
+  a.textContent = raw;
+  chip.replaceWith(a);
+});
+
+// Init count
+document.getElementById('count-stat').textContent = 'All ' + document.querySelectorAll('.event').length + ' events';
+</script>
+</body>
+</html>

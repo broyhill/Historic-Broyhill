@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>E01 NC First Donor Explorer</title>
+<style>
+:root {
+  --primary: #c41e3a;
+  --primary-hover: #a01830;
+  --primary-light: rgba(196, 30, 58, 0.08);
+  --secondary: #1a3a5c;
+  --accent: #d4af37;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --bg-light: #f8f9fa;
+  --bg-white: #ffffff;
+  --border: #e5e7eb;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg-light); color: var(--text-primary); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+header { background: var(--secondary); color: #fff; padding: 20px 28px; border-bottom: 4px solid var(--primary); }
+header h1 { font-size: 22px; font-weight: 700; }
+header p { font-size: 13px; color: #cbd5e1; margin-top: 4px; }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 20px; }
+.filters { display: flex; flex-wrap: wrap; gap: 10px; background: var(--bg-white); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 16px; }
+.filters input, .filters select { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 14px; }
+.filters input { min-width: 180px; flex: 1; }
+button { background: var(--primary); color: #fff; border: 0; border-radius: 8px; padding: 8px 14px; font-weight: 600; cursor: pointer; }
+button:hover { background: var(--primary-hover); }
+.note { font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; }
+table { width: 100%; border-collapse: collapse; background: var(--bg-white); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+th { text-align: left; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; background: var(--primary-light); color: var(--secondary); padding: 10px; }
+td { padding: 10px; border-top: 1px solid var(--border); font-size: 14px; }
+tr { cursor: pointer; }
+tr:hover td { background: var(--primary-light); }
+.kpi { color: var(--accent); font-weight: 700; }
+.badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+.gold { background: #fef3c7; color: #92400e; }
+.demo { background: #e5e7eb; color: #374151; }
+aside { margin-top: 16px; background: var(--bg-white); border: 1px solid var(--border); border-radius: 10px; padding: 16px; display: none; }
+aside h2 { font-size: 16px; margin-bottom: 8px; }
+pre { font-size: 12px; white-space: pre-wrap; color: var(--text-secondary); }
+</style>
+</head>
+<body>
+<header>
+  <h1>NC First Donor Explorer</h1>
+  <p>E01 · Inspinia tokens · person key <code>cluster_id</code> INTEGER · fixture until Hetzner answers · not Next.js</p>
+</header>
+<div class="wrap">
+  <p class="note">Spine GOLD = NCBOE Individual + FEC cand_id. PAC/party/charity = tattoo. DEMO rows are labeled. Canary 372171 = 147 / $332,631.30 (prose; relay unverified this sitting). Phone: <code>/e01/nc-first</code> on Vercel. <code>http://127.0.0.1:8765</code> is the Cursor agent VM and will not load on your device.</p>
+  <div class="filters">
+    <input id="q" placeholder="Name or employer">
+    <select id="county"><option value="">All 100 counties</option></select>
+    <select id="tier">
+      <option value="">All tiers</option>
+      <option value="federal">Federal</option>
+      <option value="state">State</option>
+      <option value="county">County</option>
+      <option value="municipal">Municipal</option>
+    </select>
+    <select id="sort">
+      <option value="lifetime_total">Sort: lifetime</option>
+      <option value="last_gift_date">Sort: recency</option>
+      <option value="txn_count">Sort: frequency</option>
+      <option value="zip5">Sort: ZIP</option>
+    </select>
+    <button type="button" id="go">Search</button>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>cluster_id</th>
+        <th>Name</th>
+        <th>County</th>
+        <th>Office</th>
+        <th>Lifetime</th>
+        <th>Txns</th>
+        <th>Mark</th>
+      </tr>
+    </thead>
+    <tbody id="rows"></tbody>
+  </table>
+  <aside id="profile">
+    <h2 id="profile-title">Profile</h2>
+    <pre id="profile-body"></pre>
+  </aside>
+</div>
+<script>
+const DATA = {
+  counties: ["Alamance","Alexander","Alleghany","Anson","Ashe","Avery","Beaufort","Bertie","Bladen","Brunswick","Buncombe","Burke","Cabarrus","Caldwell","Camden","Carteret","Caswell","Catawba","Chatham","Cherokee","Chowan","Clay","Cleveland","Columbus","Craven","Cumberland","Currituck","Dare","Davidson","Davie","Duplin","Durham","Edgecombe","Forsyth","Franklin","Gaston","Gates","Graham","Granville","Greene","Guilford","Halifax","Harnett","Haywood","Henderson","Hertford","Hoke","Hyde","Iredell","Jackson","Johnston","Jones","Lee","Lenoir","Lincoln","McDowell","Macon","Madison","Martin","Mecklenburg","Mitchell","Montgomery","Moore","Nash","New Hanover","Northampton","Onslow","Orange","Pamlico","Pasquotank","Pender","Perquimans","Person","Pitt","Polk","Randolph","Richmond","Robeson","Rockingham","Rowan","Rutherford","Sampson","Scotland","Stanly","Stokes","Surry","Swain","Transylvania","Tyrrell","Union","Vance","Wake","Warren","Washington","Watauga","Wayne","Wilkes","Wilson","Yadkin","Yancey"],
+  donors: [
+    {cluster_id:372171,display_name:"JAMES EDGAR BROYHILL",county:"Caldwell",city:"Lenoir",state:"NC",zip5:"28645",employer:"BROYHILL",lifetime_total:332631.30,txn_count:147,last_gift_date:"2024-10-01",office_tier:"state",office_class:"state_auditor",grade:"A++",demo:false},
+    {cluster_id:999000001,display_name:"DEMO WAKE COUNTY FIXTURE",county:"Wake",city:"Raleigh",state:"NC",zip5:"27601",employer:"DEMO ONLY",lifetime_total:5400,txn_count:6,last_gift_date:"2026-05-01",office_tier:"state",office_class:"governor",grade:"B",demo:true},
+    {cluster_id:999000002,display_name:"DEMO ONSLOW SHERIFF FIXTURE",county:"Onslow",city:"Jacksonville",state:"NC",zip5:"28540",employer:"DEMO ONLY",lifetime_total:1200,txn_count:3,last_gift_date:"2026-03-15",office_tier:"county",office_class:"sheriff",grade:"C",demo:true}
+  ]
+};
+const countySel = document.getElementById("county");
+DATA.counties.forEach(c => {
+  const o = document.createElement("option");
+  o.value = c; o.textContent = c; countySel.appendChild(o);
+});
+function money(n){ return "$" + Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function render(){
+  const q = document.getElementById("q").value.trim().toLowerCase();
+  const county = countySel.value;
+  const tier = document.getElementById("tier").value;
+  const sort = document.getElementById("sort").value;
+  let rows = DATA.donors.filter(d => d.state === "NC");
+  if (county) rows = rows.filter(d => d.county === county);
+  if (tier) rows = rows.filter(d => d.office_tier === tier);
+  if (q) rows = rows.filter(d => (d.display_name+" "+d.employer).toLowerCase().includes(q));
+  rows.sort((a,b) => {
+    if (sort === "zip5") return a.zip5.localeCompare(b.zip5);
+    if (sort === "last_gift_date") return (b.last_gift_date||"").localeCompare(a.last_gift_date||"");
+    return (b[sort]||0) - (a[sort]||0);
+  });
+  const tb = document.getElementById("rows");
+  tb.innerHTML = rows.map(d => `<tr data-cid="${d.cluster_id}">
+    <td>${d.cluster_id}</td>
+    <td>${d.display_name}</td>
+    <td>${d.county}</td>
+    <td>${d.office_tier} / ${d.office_class}</td>
+    <td class="kpi">${money(d.lifetime_total)}</td>
+    <td>${d.txn_count}</td>
+    <td>${d.demo ? '<span class="badge demo">DEMO</span>' : '<span class="badge gold">CANARY</span>'}</td>
+  </tr>`).join("");
+  tb.querySelectorAll("tr").forEach(tr => tr.addEventListener("click", () => {
+    const d = DATA.donors.find(x => String(x.cluster_id) === tr.dataset.cid);
+    document.getElementById("profile").style.display = "block";
+    document.getElementById("profile-title").textContent = "cluster_id " + d.cluster_id;
+    document.getElementById("profile-body").textContent = JSON.stringify({
+      person_key: "cluster_id",
+      spine: "gold",
+      tattoo: {pac_party_charity: "tattoo_only"},
+      donor_id: "REJECTED",
+      ...d
+    }, null, 2);
+  }));
+}
+document.getElementById("go").addEventListener("click", render);
+document.getElementById("q").addEventListener("keydown", e => { if (e.key === "Enter") render(); });
+render();
+</script>
+</body>
+</html>
