@@ -201,13 +201,14 @@ export default function AdminConsole() {
         key={key}
         onClick={() => go(key)}
         aria-current={active ? "page" : undefined}
-        className={`ins-navitem ${active ? "is-active" : ""} w-full flex items-center gap-3 px-3 min-h-[44px] rounded-md text-[14px]`}
+        title={label}
+        className={`ins-navitem ${active ? "is-active" : ""} w-full flex items-center gap-3 px-3 min-h-[44px] rounded-md text-[14px] lg:justify-center lg:px-0 lg:group-hover:justify-start lg:group-hover:px-3`}
       >
-        <span className="ins-navdot h-1.5 w-1.5 rounded-full bg-transparent shrink-0" aria-hidden="true" />
+        <span className="ins-navdot h-1.5 w-1.5 rounded-full bg-transparent shrink-0 lg:hidden lg:group-hover:block" aria-hidden="true" />
         <NavIcon section={key} />
-        <span className="flex-1 text-left">{label}</span>
+        <span className="flex-1 text-left whitespace-nowrap lg:hidden lg:group-hover:block">{label}</span>
         {badge !== undefined && badge > 0 && (
-          <span className={`text-[11px] font-semibold tabular-nums px-1.5 py-0.5 rounded ${key === "queue" ? "bg-accent-bright text-navy-deep" : "bg-white/10 text-white/80"}`}>{badge}</span>
+          <span className={`text-[11px] font-semibold tabular-nums px-1.5 py-0.5 rounded lg:hidden lg:group-hover:inline-block ${key === "queue" ? "bg-accent-bright text-navy-deep" : "bg-white/10 text-white/80"}`}>{badge}</span>
         )}
       </button>
     );
@@ -219,10 +220,11 @@ export default function AdminConsole() {
       {navOpen && <div className="fixed inset-0 z-30 bg-black/40 lg:hidden" onClick={() => setNavOpen(false)} aria-hidden="true" />}
 
       {/* Sidebar */}
-      <aside className={`ins-sidebar fixed inset-y-0 left-0 z-40 w-64 flex flex-col transform transition-transform motion-reduce:transition-none lg:translate-x-0 ${navOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="px-5 pt-6 pb-5 border-b border-white/10">
-          <h1 className="text-[22px] text-white leading-none">Historic Broyhill</h1>
-          <p className="text-[13px] text-accent-bright mt-1.5">Back office</p>
+      <aside className={`ins-sidebar group fixed inset-y-0 left-0 z-40 w-64 flex flex-col transform transition-all motion-reduce:transition-none lg:w-[72px] lg:hover:w-64 lg:hover:shadow-2xl lg:translate-x-0 overflow-hidden ${navOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className="px-5 pt-6 pb-5 border-b border-white/10 lg:px-0 lg:text-center lg:group-hover:px-5 lg:group-hover:text-left">
+          <h1 className="text-[22px] text-white leading-none lg:hidden lg:group-hover:block">Historic Broyhill</h1>
+          <h1 className="hidden lg:block lg:group-hover:hidden text-[20px] text-accent-bright font-bold leading-none">HB</h1>
+          <p className="text-[13px] text-accent-bright mt-1.5 lg:hidden lg:group-hover:block">Back office</p>
         </div>
 
         <nav className="flex-1 px-3 py-3 overflow-y-auto" aria-label="Console sections">
@@ -230,39 +232,40 @@ export default function AdminConsole() {
             {NAV_PRIMARY.slice(0, 1).map((n) => navButton(n.key, n.label))}
             <a
               href="/admin/wizard"
-              className="ins-navitem w-full flex items-center gap-3 px-3 min-h-[44px] rounded-md text-[14px] mt-1 mb-1"
+              title="Wizard of Oz"
+              className="ins-navitem w-full flex items-center gap-3 px-3 min-h-[44px] rounded-md text-[14px] mt-1 mb-1 lg:justify-center lg:px-0 lg:group-hover:justify-start lg:group-hover:px-3"
             >
               <span className="h-7 w-7 rounded-full bg-accent-bright text-navy-deep flex items-center justify-center text-[11px] font-bold tracking-tight shrink-0" aria-hidden="true">OZ</span>
-              <span className="flex-1 text-left font-semibold tracking-wide">WIZARD OF OZ</span>
+              <span className="flex-1 text-left font-semibold tracking-wide whitespace-nowrap lg:hidden lg:group-hover:block">WIZARD OF OZ</span>
             </a>
             {NAV_PRIMARY.slice(1).map((n) => navButton(n.key, n.label))}
           </div>
           {/* All sections visible — no collapsing, per Ed. */}
           <div className="mt-5">
-            <p className="ins-navlabel px-3 pb-1 text-[12px] select-none">Studios</p>
+            <p className="ins-navlabel px-3 pb-1 text-[12px] select-none lg:hidden lg:group-hover:block">Studios</p>
             <div className="space-y-0.5 mt-1">
               {NAV_STUDIOS.map((n) => navButton(n.key, n.label))}
             </div>
           </div>
           <div className="mt-4">
-            <p className="ins-navlabel px-3 pb-1 text-[12px] select-none">Wizard brain</p>
+            <p className="ins-navlabel px-3 pb-1 text-[12px] select-none lg:hidden lg:group-hover:block">Wizard brain</p>
             <div className="space-y-0.5 mt-1">{NAV_BRAIN.map((n) => navButton(n.key, n.label))}</div>
           </div>
           <div className="mt-4">
-            <p className="ins-navlabel px-3 pb-1 text-[12px] select-none">More tools</p>
+            <p className="ins-navlabel px-3 pb-1 text-[12px] select-none lg:hidden lg:group-hover:block">More tools</p>
             <div className="space-y-0.5 mt-1">{NAV_TOOLS.map((n) => navButton(n.key, n.label))}</div>
           </div>
         </nav>
         <div className="p-3 border-t border-white/10">
-          <button onClick={signOut} className="ins-navitem w-full flex items-center gap-3 px-3 min-h-[44px] rounded-md text-[14px]">
+          <button onClick={signOut} title="Sign out" className="ins-navitem w-full flex items-center gap-3 px-3 min-h-[44px] rounded-md text-[14px] lg:justify-center lg:px-0 lg:group-hover:justify-start lg:group-hover:px-3">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px]"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" /></svg>
-            Sign out
+            <span className="lg:hidden lg:group-hover:inline">Sign out</span>
           </button>
         </div>
       </aside>
 
       {/* Main */}
-      <div className="lg:pl-64">
+      <div className="lg:pl-[72px]">
         <header className="sticky top-0 z-20 flex items-center gap-3 px-4 md:px-6 h-14 bg-canvas/95 backdrop-blur-sm border-b border-line">
           <button onClick={() => setNavOpen(true)} className="h-9 w-9 -ml-1 grid place-items-center rounded-md bg-accent text-white lg:hidden" aria-label="Open navigation">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" className="h-4 w-4"><path d="M3 12h18M3 6h18M3 18h18" /></svg>
