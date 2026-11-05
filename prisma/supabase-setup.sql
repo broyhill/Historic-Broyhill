@@ -172,3 +172,15 @@ CREATE TABLE IF NOT EXISTS "KnowledgeEntry" (
     CONSTRAINT "KnowledgeEntry_pkey" PRIMARY KEY ("id")
 );
 CREATE INDEX IF NOT EXISTS "KnowledgeEntry_folder_idx" ON "KnowledgeEntry"("folder");
+
+-- Connected outside vendors (OAuth tokens live here, never in env or code).
+CREATE TABLE IF NOT EXISTS "VendorConnection" (
+    "id" TEXT NOT NULL,
+    "vendor" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'CONNECTED',
+    "meta" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "VendorConnection_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "VendorConnection_vendor_key" UNIQUE ("vendor")
+);
