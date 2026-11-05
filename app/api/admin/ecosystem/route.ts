@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// Watcher key → the metrics.source stamped on its findings, and the library
-// folder it reads. Non-watcher ecosystems map to no source yet.
+// Watcher key → the metrics.source stamped on its findings. Channel
+// ecosystems (email/texting) report real send activity instead.
 const SOURCE: Record<string, string> = {
   competitors: "competitor-watcher",
   reviews: "review-watcher",
@@ -13,8 +13,10 @@ export async function GET(req: NextRequest) {
   const key = req.nextUrl.searchParams.get("key");
   if (!key) return NextResponse.json({ error: "key required" }, { status: 400 });
   const source = SOURCE[key];
+  const isChannel = key === "email" || key === "texting";
+  const channel = key === "texting" ? "SMS" : "EMAIL";
 
-  const [log, ctl, findings, statusCounts] = await Promise.all([
+  const [log, ctl, findings, statusCounts, channelSent, channelLatest] = await Promise.all([
     prisma.knowledgeEntry.findFirst({ where: { folder: "watch-log", title: key } }),
     prisma.knowledgeEntry.findFirst({ where: { folder: "watch-control", title: key } }),
     source
@@ -32,17 +34,31 @@ export async function GET(req: NextRequest) {
           _count: true,
         })
       : Promise.resolve([] as any[]),
+    isChannel
+      ? prisma.aiContentPipeline.count({ where: { channel, publishedAt: { not: null } } })
+      : Promise.resolve(0),
+    isChannel
+      ? prisma.aiContentPipeline.findMany({
+          where: { channel, publishedAt: { not: null } },
+          orderBy: { publishedAt: "desc" },
+          take: 25,
+          select: { id: true, status: true, suggestedDraft: true, publishedAt: true },
+        })
+      : Promise.resolve([] as any[]),
   ]);
 
   const counts: Record<string, number> = {};
   for (const s of statusCounts) counts[s.status] = s._count;
+  if (isChannel) counts.PUBLISHED = channelSent;
 
   return NextResponse.json({
     key,
     enabled: ctl ? (ctl.data as any).enabled !== false : true,
     lastRun: log?.data ?? null,
     counts,
-    findings,
+    findings: isChannel
+      ? (channelLatest as any[]).map((f) => ({ ...f, createdAt: f.publishedAt }))
+      : findings,
   });
 }
 
