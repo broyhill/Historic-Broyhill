@@ -1,9 +1,7 @@
 import Link from "next/link";
 
-// Landing for the vendored Wizard of Oz spine (wizard/ in this repo, copied
-// from XSELLNET E68). Single-user test ground — the app itself runs standalone
-// (`cd wizard && npm install && npm run dev`) until its models reconcile into
-// the root schema.
+// Landing for the Wizard of Oz spine — merged into this app (lib/wizard, routes under
+// /api/wizard/** and /admin/wizard-console) as the single-owner test ground.
 export default function WizardLanding() {
   return (
     <div className="ins-app min-h-screen p-6 md:p-10">
@@ -14,7 +12,7 @@ export default function WizardLanding() {
           <div className="h-16 w-16 rounded-full bg-navy text-cream flex items-center justify-center text-xl font-bold tracking-tight" aria-hidden="true">OZ</div>
           <div>
             <h1 className="text-2xl font-semibold text-ink font-serif">Wizard of Oz</h1>
-            <p className="text-[13.5px] text-muted">Marketing engine test ground — vendored into this repo at <code>wizard/</code></p>
+            <p className="text-[13.5px] text-muted">Marketing engine test ground — runs inside this app, single-owner</p>
           </div>
         </div>
 
@@ -30,19 +28,22 @@ export default function WizardLanding() {
         </div></section>
 
         <section className="ibox"><div className="ibox-content">
-          <h3 className="text-[14px] font-semibold text-ink mb-3">Run it</h3>
-          <pre className="text-[12.5px] bg-navy text-cream rounded-md p-4 overflow-x-auto">cd wizard
-npm install
-npm run db:push:dev    # guarded — refuses anything but a dev DB
-npm run dev            # → localhost:3000/admin</pre>
-          <p className="text-[12.5px] text-subtle mt-3">Dispatch stays a dry run until the provider adapters are bound — nothing can send on its own.</p>
+          <h3 className="text-[14px] font-semibold text-ink mb-3">Open the console</h3>
+          <p className="text-[13.5px] text-muted mb-3">
+            <Link href="/admin/wizard-console" className="text-info hover:underline font-semibold">/admin/wizard-console</Link>{" "}
+            — needs <code>WIZARD_AGENCY_DATABASE_URL</code> pointed at a dev Postgres and a seeded owner
+            (<code>WIZARD_SEED_ADMIN_EMAIL</code>/<code>WIZARD_SEED_ADMIN_PASSWORD</code>). Without them the console shows its login and nothing more.
+          </p>
+          <p className="text-[12.5px] text-subtle">Dispatch stays a dry run until the provider adapters are bound — nothing can send on its own.</p>
         </div></section>
 
         <section className="ibox"><div className="ibox-content">
-          <h3 className="text-[14px] font-semibold text-ink mb-3">Before it merges into this app</h3>
+          <h3 className="text-[14px] font-semibold text-ink mb-3">How it's wired</h3>
           <ul className="text-[13.5px] text-muted space-y-1.5 list-disc pl-5">
-            <li><code>LeadProfile</code>, <code>JourneyRun</code>, <code>AiContentPipeline</code>, <code>Business</code> exist in both schemas with different fields — reconcile into the root Prisma schema</li>
-            <li>Tenant/RBAC plumbing collapses to a single-owner scope for single-user HB</li>
+            <li>Code lives in <code>lib/wizard/</code> with its own Prisma client — wizard tables are <code>wz_*</code>, no collision with app tables</li>
+            <li>API mounted at <code>/api/wizard/**</code>; public intake at <code>/wizard/capture</code>, <code>/wizard/unsubscribe</code></li>
+            <li>Tenant/RBAC kept but resolves to one owner silo (<code>WIZARD_DEFAULT_SILO_SLUG</code>)</li>
+            <li>Original vendored copy kept at <code>wizard/</code> for reference</li>
           </ul>
         </div></section>
       </div>
