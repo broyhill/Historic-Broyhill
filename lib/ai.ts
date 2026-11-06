@@ -79,13 +79,13 @@ async function compatChat(provider: FreeProvider, body: {
   max_tokens?: number;
   response_format?: { type: "json_object" };
   temperature?: number;
-}): Promise<{ content: string; tool_calls: GroqToolCall[]; finish_reason: string }> {
+}, timeoutMs = 60_000): Promise<{ content: string; tool_calls: GroqToolCall[]; finish_reason: string }> {
   const cfg = compatConfig(provider);
   const res = await fetch(cfg.url, {
     method: "POST",
     headers: { Authorization: `Bearer ${cfg.key}`, "Content-Type": "application/json" },
     body: JSON.stringify({ model: cfg.model, temperature: 0.3, ...body }),
-    signal: AbortSignal.timeout(60_000),
+    signal: AbortSignal.timeout(timeoutMs),
   });
   const data: any = await res.json().catch(() => ({}));
   if (!res.ok) {
@@ -117,10 +117,13 @@ export async function groqChat(body: {
 }, provider?: FreeProvider): Promise<{ content: string; tool_calls: GroqToolCall[]; finish_reason: string }> {
   if (provider) return compatChat(provider, body);
   const providers = freeProviders();
+  // Split the caller's ~60s budget across providers so a timeout on the
+  // first still leaves room for the next to answer.
+  const budget = Math.max(15_000, Math.floor(60_000 / Math.max(providers.length, 1)));
   let lastErr: unknown = new Error(NOT_CONFIGURED);
   for (const p of providers) {
     try {
-      return await compatChat(p, body);
+      return await compatChat(p, body, budget);
     } catch (e) {
       lastErr = e;
       console.warn(`${p} chat failed, trying next provider:`, aiErrorMessage(e));
@@ -143,6 +146,7 @@ async function freeJson<T extends z.ZodTypeAny>(opts: { system: string; user: st
   const schemaText = JSON.stringify(z.toJSONSchema(opts.schema));
   const system = `${opts.system}\n\nRespond with a single JSON object and nothing else. It must match this JSON Schema exactly:\n${schemaText}`;
   let lastErr: unknown = null;
+  let responded = false;
   for (const provider of freeProviders()) {
     for (let attempt = 0; attempt < 2; attempt++) {
       let out;
@@ -157,6 +161,7 @@ async function freeJson<T extends z.ZodTypeAny>(opts: { system: string; user: st
         console.warn(`${provider} json call failed:`, aiErrorMessage(e));
         break; // move to the next free provider
       }
+      responded = true;
       try {
         const parsed = opts.schema.safeParse(extractJson(out.content));
         if (parsed.success) return parsed.data;
@@ -166,9 +171,10 @@ async function freeJson<T extends z.ZodTypeAny>(opts: { system: string; user: st
       }
     }
   }
-  // Surface the real provider failure (bad key, quota, rate limit) to callers;
-  // null is reserved for valid responses that failed schema validation.
-  if (lastErr) throw lastErr;
+  // Surface a real provider failure (bad key, quota, timeout) only when no
+  // provider ever answered; if one answered but produced unusable output,
+  // null correctly reports "the model could not do this".
+  if (!responded && lastErr) throw lastErr;
   return null;
 }
 
