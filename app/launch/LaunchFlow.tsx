@@ -26,6 +26,8 @@ export default function LaunchFlow() {
   const [error, setError] = useState("");
   const [tick, setTick] = useState(0);
   const [data, setData] = useState<{ brand: Brand; found: string[]; plan: Plan; channels: string[] } | null>(null);
+  const [page, setPage] = useState<string | null>(null);
+  const [pageLoading, setPageLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [sending, setSending] = useState(false);
@@ -49,9 +51,30 @@ export default function LaunchFlow() {
       // Let the last tick land before the reveal.
       setData(d);
       timers.current.push(setTimeout(() => setStage("reveal"), 1200));
+      // Second pass: the "first ad" beat — compose their branded page in the background.
+      composePage();
     } catch (e: any) {
       timers.current.push(setTimeout(() => { setError(e.message || "Could not read that site."); setStage("enter"); }, 800));
     }
+  };
+
+  const composePage = () => {
+    setPageLoading(true);
+    fetch("/api/launch", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ website: site.trim(), page: true }),
+    }).then((r) => r.json()).then((pd) => { if (pd?.page) setPage(pd.page); })
+      .catch(() => {}).finally(() => setPageLoading(false));
+  };
+
+  const downloadPage = () => {
+    if (!page) return;
+    const blob = new Blob([page], { type: "text/html" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${(data?.brand?.name || "landing-page").toLowerCase().replace(/[^a-z0-9]+/g, "-")}-landing-page.html`;
+    a.click();
+    URL.revokeObjectURL(a.href);
   };
 
   const claim = async () => {
@@ -153,7 +176,7 @@ export default function LaunchFlow() {
     <main className={shell} style={{ background: "radial-gradient(120% 90% at 50% -10%, #1d3a55 0%, #10202e 55%, #0a1622 100%)" }}>
       <header className="flex items-center justify-between px-6 py-5 sm:px-10">
         <a href="/" className="hb-display text-lg tracking-wide text-white">Historic&nbsp;Broyhill</a>
-        <button onClick={() => { setStage("enter"); setData(null); }} className="text-xs tracking-widest text-white/60 transition hover:text-white">START&nbsp;OVER</button>
+        <button onClick={() => { setStage("enter"); setData(null); setPage(null); setPageLoading(false); }} className="text-xs tracking-widest text-white/60 transition hover:text-white">START&nbsp;OVER</button>
       </header>
 
       <section className="mx-auto grid w-full max-w-5xl gap-6 px-6 pb-24 lg:grid-cols-2">
@@ -223,11 +246,37 @@ export default function LaunchFlow() {
             ))}
           </ol>
 
-          <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.3em]" style={{ color: GOLD }}>Sixteen channels, one orchestrator</p>
+          <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.3em]" style={{ color: GOLD }}>Sixteen campaign options, one orchestrator</p>
+          <p className="mt-2 text-xs text-white/50">Every cannon we fire. Gold = this plan uses it. No monthly test cap — the machine keeps testing until it finds winners and switches off losers. Outcomes, not quotas.</p>
           <div className="mt-3 flex flex-wrap gap-2">
-            {data!.channels.map((c) => (
-              <span key={c} className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-white/70">{c}</span>
-            ))}
+            {data!.channels.map((c) => {
+              const inPlan = plan.plan.some((s) => s.channel === c);
+              return (
+                <span key={c} className={`rounded-full border px-3 py-1 text-xs ${inPlan ? "border-[#c2a15a]/60 bg-[#c2a15a]/15 font-semibold" : "border-white/15 bg-white/5 text-white/60"}`} style={inPlan ? { color: GOLD } : undefined}>{c}</span>
+              );
+            })}
+          </div>
+
+          {/* Their first page — drafted in THEIR brand while they read the plan */}
+          <div className="mt-6 flex items-center justify-between">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.3em]" style={{ color: GOLD }}>Your first page</p>
+            {page && (
+              <div className="flex gap-2">
+                <button onClick={composePage} disabled={pageLoading} className="rounded-full border border-[#c2a15a]/50 bg-[#c2a15a]/10 px-4 py-1.5 text-xs font-semibold transition hover:bg-[#c2a15a]/25 disabled:opacity-50" style={{ color: GOLD }}>✦ Recreate</button>
+                <button onClick={downloadPage} className="rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-white/20">↓ Download</button>
+              </div>
+            )}
+          </div>
+          <div className="mt-3 overflow-hidden rounded-xl border border-white/15">
+            {page ? (
+              <iframe title="Your first landing page, drafted in your brand" srcDoc={page} sandbox="" className="h-[560px] w-full bg-white" />
+            ) : (
+              <div className="flex h-[200px] items-center justify-center bg-black/30 px-6 text-center">
+                <p className="text-sm text-white/50">
+                  {pageLoading ? "Composing your first page in your colors…" : "The page preview didn't draft — claim the plan and we'll build it with you."}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Claim CTA */}
